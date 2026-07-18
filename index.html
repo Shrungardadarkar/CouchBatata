@@ -318,6 +318,10 @@
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
   .lead-summary-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
   .lead-summary-x:hover{background:var(--tomato);color:var(--cream)}
+  .lead-edit{font:inherit;font-size:.74rem;font-weight:900;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:4px 8px;cursor:pointer}
+  .lead-edit:hover{background:var(--sun)}
+  .sect-lead{margin-top:10px;padding-top:9px;border-top:2px dashed rgba(90,47,62,.45)}
+  .sect-lead .lead-sequence{margin:7px 0 0;min-height:0}
 
   /* toast → sticker popup */
   #toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(16px) rotate(-2deg) scale(.9);
@@ -1248,6 +1252,7 @@ let leadSelection=new Array(6).fill(null); // one selected fret per string befor
 let leadSelectionSectionId=null;
 let leadDisplay='notes';
 let leadDraft=[];       // events being prepared before Create solo adds them to a section
+let leadDraftSourceSectionId=null; // section being edited, or null for a new solo
 let boardMode='chord';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
@@ -1415,6 +1420,9 @@ function leadEventLabel(event){
   const technique=event.t?(' · '+LEAD_TECH_LABEL[event.t]):' · clean';
   return notes.join(' + ')+technique;
 }
+function copyLeadEvents(events){
+  return (events||[]).map(event=>({notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),t:event.t||''}));
+}
 function renderLead(){
   const target=document.getElementById('leadSectionName');
   const out=document.getElementById('leadSequence');
@@ -1422,7 +1430,8 @@ function renderLead(){
   if(leadSelectionSectionId!==null&&leadSelectionSectionId!==sec?.id){
     leadSelection.fill(null);leadSelectionSectionId=sec?.id??null;
   }
-  target.textContent=sec?sec.name:'new Solo section';
+  const targetSection=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):sec;
+  target.textContent=targetSection?targetSection.name:'new Solo section';
   out.innerHTML='';
   const events=leadDraft;
   if(!events.length){
@@ -1467,12 +1476,17 @@ document.getElementById('leadTechniques').addEventListener('click',event=>{
 });
 document.getElementById('btnLeadCreate').addEventListener('click',()=>{
   if(!leadDraft.length){flash('Add one or more solo events first');return;}
-  const sec=ensureActiveSection('Solo');
-  if(!Array.isArray(sec.lead))sec.lead=[];
-  sec.lead.push(...leadDraft.map(event=>({notes:event.notes.map(n=>({s:n.s,f:n.f})),t:event.t||''})));
-  leadDraft=[];activeSectionId=sec.id;
+  const existing=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):null;
+  const sec=existing||ensureActiveSection('Solo');
+  if(existing)sec.lead=copyLeadEvents(leadDraft);
+  else {
+    if(!Array.isArray(sec.lead))sec.lead=[];
+    sec.lead.push(...copyLeadEvents(leadDraft));
+  }
+  const wasEditing=!!existing;
+  leadDraft=[];leadDraftSourceSectionId=null;activeSectionId=sec.id;
   renderSong();save();render();
-  flash('Solo added to '+sec.name);
+  flash((wasEditing?'Updated':'Solo added to')+' '+sec.name);
 });
 document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;render();renderLead();
@@ -1982,13 +1996,32 @@ function buildSectionCard(sec,idx,primary){
   }
   card.appendChild(wrap);
   if((sec.lead||[]).length){
+    const leadWrap=document.createElement('div');leadWrap.className='sect-lead';
     const summary=document.createElement('div');summary.className='lead-summary';
     const label=document.createElement('span');label.textContent='🎸 Solo · '+sec.lead.length+' event'+(sec.lead.length===1?'':'s');summary.appendChild(label);
+    const edit=document.createElement('button');edit.type='button';edit.className='lead-edit';edit.textContent='Edit solo';
+    edit.title='Edit this solo';edit.addEventListener('click',e=>{
+      e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
+      setBoardMode('solo');renderSong();renderLead();
+      document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
+      flash('Editing solo in '+sec.name);
+    });
+    summary.appendChild(edit);
     const remove=document.createElement('button');remove.type='button';remove.className='lead-summary-x';remove.textContent='×';
     remove.title='Delete this solo from '+sec.name;remove.setAttribute('aria-label','Delete solo from '+sec.name);
     remove.addEventListener('click',e=>{e.stopPropagation();sec.lead=[];renderSong();save();flash('Deleted solo from '+sec.name);});
     summary.appendChild(remove);
-    card.appendChild(summary);
+    leadWrap.appendChild(summary);
+    const events=document.createElement('div');events.className='lead-sequence';events.setAttribute('aria-label','Solo events — drag to reorder');
+    sec.lead.forEach((leadEvent,eventIdx)=>{
+      const event=document.createElement('div');event.className='lead-event';event.title='Drag to reorder this solo event';
+      const eventLabel=document.createElement('span');eventLabel.textContent=(eventIdx+1)+'. '+leadEventLabel(leadEvent);event.appendChild(eventLabel);
+      const eventRemove=document.createElement('button');eventRemove.type='button';eventRemove.className='lead-event-x';eventRemove.textContent='×';
+      eventRemove.title='Remove this solo event';eventRemove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
+      eventRemove.addEventListener('click',e=>{e.stopPropagation();sec.lead.splice(eventIdx,1);renderSong();save();flash('Removed solo event');});
+      event.appendChild(eventRemove);attachSavedLeadDrag(event,sec,eventIdx);events.appendChild(event);
+    });
+    leadWrap.appendChild(events);card.appendChild(leadWrap);
   }
 
   // Lyrics
@@ -2199,6 +2232,19 @@ function attachLeadDraftDrag(eventEl,eventIdx){
   });
 }
 
+function attachSavedLeadDrag(eventEl,sec,eventIdx){
+  eventEl.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.lead-event-x'))return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    const rect=eventEl.getBoundingClientRect();
+    drag={
+      type:'lead-saved',sourceSection:sec.id,sourceIdx:eventIdx,startX:e.clientX,startY:e.clientY,
+      ghostOffsetX:e.clientX-rect.left,ghostOffsetY:e.clientY-rect.top,
+      origEl:eventEl,started:false,dropIdx:-1,pointerId:e.pointerId
+    };
+  });
+}
+
 function attachSectionDrag(bar,card,secIdx){
   bar.addEventListener('pointerdown',e=>{
     if(e.target.closest('select, .chip-x, .active-badge, .sect-name-wrap'))return;
@@ -2275,6 +2321,7 @@ function updateDropTarget(e){
   const el=document.elementFromPoint(e.clientX,e.clientY);
   if(drag.type==='chord')updateChordDrop(el,e);
   else if(drag.type==='lead-draft')updateLeadDraftDrop(el,e);
+  else if(drag.type==='lead-saved')updateSavedLeadDrop(el,e);
   else updateSectionDrop(el,e);
 }
 
@@ -2282,6 +2329,24 @@ function updateLeadDraftDrop(el,e){
   if(drag.indicator.parentNode)drag.indicator.remove();
   drag.dropIdx=-1;
   const wrap=el?.closest('#leadSequence');
+  if(!wrap)return;
+  const events=[...wrap.querySelectorAll('.lead-event:not(.dragging)')];
+  let insertBefore=null,insertIdx=events.length;
+  for(let i=0;i<events.length;i++){
+    const r=events[i].getBoundingClientRect();
+    if(e.clientX<r.left+r.width/2){insertBefore=events[i];insertIdx=i;break;}
+  }
+  if(insertBefore)wrap.insertBefore(drag.indicator,insertBefore);
+  else wrap.appendChild(drag.indicator);
+  drag.dropIdx=insertIdx;
+}
+
+function updateSavedLeadDrop(el,e){
+  if(drag.indicator.parentNode)drag.indicator.remove();
+  drag.dropIdx=-1;
+  const card=el?.closest('.song-sect');
+  if(!card||+card.dataset.sectionId!==drag.sourceSection)return;
+  const wrap=card.querySelector('.sect-lead .lead-sequence');
   if(!wrap)return;
   const events=[...wrap.querySelectorAll('.lead-event:not(.dragging)')];
   let insertBefore=null,insertIdx=events.length;
@@ -2348,6 +2413,11 @@ function commitDrop(){
     const [moved]=leadDraft.splice(drag.sourceIdx,1);
     leadDraft.splice(drag.dropIdx,0,moved);
     renderLead();
+  } else if(drag.type==='lead-saved'&&drag.dropIdx>=0){
+    const sec=findSection(drag.sourceSection);if(!sec)return;
+    const [moved]=sec.lead.splice(drag.sourceIdx,1);
+    sec.lead.splice(drag.dropIdx,0,moved);
+    renderSong();save();
   } else if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
     const fromSec=findSection(drag.sourceSection);
     const toSec=findSection(drag.dropSection);

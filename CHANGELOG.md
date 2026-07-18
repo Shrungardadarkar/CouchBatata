@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-18 — Visible, editable saved solos
+
+- Show every saved solo event directly inside its Song section instead of only
+  showing an event count.
+- Added Edit solo to load a saved solo back into the recorder and update the
+  same section after editing.
+- Added per-event × deletion and drag reordering for saved solo events.
+
 ## 2026-07-18 — Solo draft and creation workflow
 
 - Made the Notes/Tab switch update both shared-fretboard markers and drafted

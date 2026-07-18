@@ -34,6 +34,8 @@ assert.match(html, /btnLeadShowNotes/);
 assert.match(html, /btnLeadShowTab/);
 assert.match(html, /btnLeadCreate/);
 assert.match(html, /leadDraft/);
+assert.match(html, /Edit solo/);
+assert.match(html, /attachSavedLeadDrag/);
 assert.doesNotMatch(html, /btnLeadUndo/);
 assert.match(html, /notes:\[\{s,f\}\]/);
 assert.match(html, /Solo \/ arpeggio:/);

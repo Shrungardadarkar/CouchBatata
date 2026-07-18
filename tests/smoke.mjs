@@ -32,6 +32,8 @@ assert.match(html, /id="btnCopy"[^>]*>Preview<\/button>/);
 assert.match(html, /btnBoardMode/);
 assert.match(html, /class="fret-controls"/);
 assert.match(html, /id="boardLeadDisplay"/);
+assert.match(html, /id="boardTechDrawer"/);
+assert.match(html, /Apply to selected notes/);
 assert.match(html, /class="switch-toggle board-mode"/);
 assert.match(html, /class="switch-toggle lead-view-toggle"/);
 assert.doesNotMatch(html, /id="leadBoard"/);

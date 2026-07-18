@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-18 — Fretboard technique drawer
+
+- Moved Solo / arpeggio technique pills into a sliding strip directly below the
+  fret numbers on the shared fretboard.
+- The strip opens only in Solo mode, and its techniques remain disabled until
+  one or more notes are selected.
+
 ## 2026-07-18 — Preview action
 
 - Replaced the ambiguous Copy to clipboard action with Preview, which opens the

@@ -38,6 +38,8 @@ Users do not need an app-store download.
   pull-off, hammer-on, slides, vibrato, or mute; selected markers can show
   note names or tab fret numbers. Draft events can be deleted or reordered,
   then **Create solo** adds them to the selected section (or a new Solo section).
+- Solo techniques slide in directly beneath the fret numbers and activate only
+  after selecting one or more notes.
 - Saved solos are visible in their Song section and can be reopened with
   **Edit solo** for further changes; the action becomes **Save solo** while
   editing. A new solo joins an active chord section, or creates a Solo section

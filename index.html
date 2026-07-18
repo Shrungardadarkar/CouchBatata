@@ -184,6 +184,10 @@
   .row:nth-child(4) .cell{--str-h:2.8px}
   .row:nth-child(5) .cell{--str-h:3.4px}
   .row:nth-child(6) .cell{--str-h:4px}
+  .board-tech-drawer{max-height:0;overflow:hidden;opacity:0;transform:translateY(-12px);margin:0;transition:max-height .34s var(--ease-out-back),opacity .18s ease,transform .3s var(--ease-out-back),margin .3s var(--ease-out-back)}
+  .board-tech-inner{padding:10px 0 2px;min-width:max-content}
+  .board-tech-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+  body.solo-mode .board-tech-drawer{max-height:110px;opacity:1;transform:translateY(0);margin-top:2px}
   .inlay{position:absolute;width:15px;height:15px;border-radius:50%;
     background:var(--cream);opacity:.5;transform:translate(-50%,-50%);pointer-events:none;
     box-shadow:inset 0 -1px 2px rgba(90,47,62,.2)}
@@ -316,6 +320,7 @@
   .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
   .lead-tech:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .lead-tech:disabled{opacity:.38;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.4)}
   .lead-tech:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
   .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
@@ -658,6 +663,9 @@
     .scale-chip{min-width:140px}
     .board-outer{min-width:720px}
     .board{grid-template-rows:repeat(6,42px)}
+    body.solo-mode .board-tech-drawer{max-height:158px}
+    .board-tech-inner{min-width:0;padding-top:9px}
+    .board-tech-drawer .lead-techniques{flex-wrap:nowrap;overflow-x:auto;padding:1px 3px 6px;margin:0 -3px;-webkit-overflow-scrolling:touch}
     .install-card{align-items:flex-start;flex-wrap:wrap}
     .install-card-copy{flex-basis:calc(100% - 44px)}
     .help-fab{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:46px;height:46px}
@@ -675,7 +683,7 @@
      strip the springy rotations/scales and playful keyframes, keep simple state changes. */
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
-    .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.song-sect,.chip,
+    .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
     .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
     #toast,.modal-dialog,.help-fab,.help-panel,.help-close{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
@@ -760,6 +768,22 @@
       <div class="fret-nums" id="fretNums"></div>
     </div>
   </div>
+  <div class="board-tech-drawer" id="boardTechDrawer" aria-label="Solo techniques" aria-hidden="true">
+    <div class="board-tech-inner">
+      <span class="board-tech-label">Apply to selected notes</span>
+      <div class="lead-techniques" id="leadTechniques" aria-label="Save selected notes with an action">
+        <button class="lead-tech" type="button" data-tech="">Clean</button>
+        <button class="lead-tech" type="button" data-tech="b">Bend</button>
+        <button class="lead-tech" type="button" data-tech="r">Release</button>
+        <button class="lead-tech" type="button" data-tech="p">Pull-off</button>
+        <button class="lead-tech" type="button" data-tech="h">Hammer-on</button>
+        <button class="lead-tech" type="button" data-tech="/">Slide ↑</button>
+        <button class="lead-tech" type="button" data-tech="&#92;">Slide ↓</button>
+        <button class="lead-tech" type="button" data-tech="~">Vibrato</button>
+        <button class="lead-tech" type="button" data-tech="x">Mute</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="panel win-sky" data-win="Chord" id="chordPanel">
@@ -779,20 +803,9 @@
 
 <div class="panel win-lilac" data-win="Solo / Arpeggio" id="leadPanel">
   <h2>Solo / Arpeggio recorder</h2>
-  <p class="lead-intro">Use the original fretboard above: choose one or more notes, then press an action to save them together. Use several strings at once for double-stops and chord hits.</p>
+  <p class="lead-intro">Choose one or more notes on the fretboard, then use the technique strip below it to add an event to this solo draft.</p>
   <div class="lead-toolbar">
     <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
-    <div class="lead-techniques" id="leadTechniques" aria-label="Save selected notes with an action">
-      <button class="lead-tech" type="button" data-tech="">Clean</button>
-      <button class="lead-tech" type="button" data-tech="b">Bend</button>
-      <button class="lead-tech" type="button" data-tech="r">Release</button>
-      <button class="lead-tech" type="button" data-tech="p">Pull-off</button>
-      <button class="lead-tech" type="button" data-tech="h">Hammer-on</button>
-      <button class="lead-tech" type="button" data-tech="/">Slide ↑</button>
-      <button class="lead-tech" type="button" data-tech="\\">Slide ↓</button>
-      <button class="lead-tech" type="button" data-tech="~">Vibrato</button>
-      <button class="lead-tech" type="button" data-tech="x">Mute</button>
-    </div>
   </div>
   <div class="lead-sequence" id="leadSequence" aria-live="polite"></div>
   <div class="btn-row">
@@ -1552,7 +1565,9 @@ function renderLead(){
   createButton.title=editing?'Save changes to this solo':targetSection
     ?'Add this solo to '+targetSection.name:'Create a new Solo section with this solo';
   document.getElementById('btnLeadClear').disabled=!events.length;
-  document.getElementById('btnLeadClearSelection').disabled=!leadSelection.some(Number.isInteger);
+  const hasLeadSelection=leadSelection.some(Number.isInteger);
+  document.getElementById('btnLeadClearSelection').disabled=!hasLeadSelection;
+  document.querySelectorAll('.lead-tech').forEach(button=>button.disabled=!hasLeadSelection);
   const displayToggle=document.getElementById('boardLeadDisplay');
   displayToggle.classList.toggle('tab',leadDisplay==='tab');
   displayToggle.setAttribute('aria-checked',String(leadDisplay==='tab'));
@@ -1832,6 +1847,7 @@ function setBoardMode(mode){
   if(mode!== 'chord'&&mode!== 'solo')return;
   boardMode=mode;
   document.body.classList.toggle('solo-mode',mode==='solo');
+  document.getElementById('boardTechDrawer').setAttribute('aria-hidden',String(mode!=='solo'));
   const modeToggle=document.getElementById('btnBoardMode');
   modeToggle.classList.toggle('solo',mode==='solo');
   modeToggle.setAttribute('aria-checked',String(mode==='solo'));

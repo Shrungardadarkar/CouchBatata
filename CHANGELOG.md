@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Whole-pill fretboard switches
+
+- Rebuilt Chord/Solo and Notes/Tab as single-click sliding switches that match
+  the ♯/♭ control; tapping anywhere on either pill toggles its state.
+
 ## 2026-07-18 — Unified fretboard controls
 
 - Grouped Chord/Solo, Notes/Tab, and ♯/♭ controls together above the shared

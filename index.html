@@ -117,11 +117,18 @@
   #tabPanel{position:relative}
   #tabPanel .toggle{position:relative;z-index:1;flex:0 0 auto}
   .fret-controls{display:flex;align-items:center;gap:9px;overflow-x:auto;padding:2px 4px 10px;margin:0 -4px;-webkit-overflow-scrolling:touch}
-  .board-mode{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;margin:0;box-shadow:1.5px 1.5px 0 var(--ink);flex:0 0 auto}
-  .board-mode button{font:inherit;font-size:.76rem;font-weight:900;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:5px 10px;cursor:pointer;transition:transform .16s var(--ease-spring),background .14s,box-shadow .16s var(--ease-spring)}
-  .board-mode button:hover{background:var(--sun);transform:translateY(-1px) rotate(-1deg)}
-  .board-mode button:active{transform:translateY(1px) scale(.96);transition-duration:.05s}
-  .board-mode button[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
+  .switch-toggle{position:relative;display:inline-flex;align-items:center;height:36px;padding:0;background:var(--paper);border:var(--outline);border-radius:999px;box-shadow:2.5px 2.5px 0 var(--ink);cursor:pointer;font-family:inherit;overflow:hidden;flex:0 0 auto;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+  .switch-toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}
+  .switch-toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
+  .switch-toggle:focus-visible{outline:none;box-shadow:2.5px 2.5px 0 var(--ink),0 0 0 3px var(--mint)}
+  .board-mode{width:226px}
+  .lead-view-toggle{width:118px}
+  .switch-label{flex:1;display:flex;align-items:center;justify-content:center;padding:0 9px;color:var(--ink-faint);font-size:.76rem;font-weight:900;line-height:1;white-space:nowrap;z-index:2;pointer-events:none;transition:color .15s}
+  .switch-label.first{color:var(--ink)}
+  .switch-toggle.solo .switch-label.first,.switch-toggle.tab .switch-label.first{color:var(--ink-faint)}
+  .switch-toggle.solo .switch-label.last,.switch-toggle.tab .switch-label.last{color:var(--ink)}
+  .switch-knob{position:absolute;top:2.5px;left:2.5px;width:calc(50% - 4px);height:calc(100% - 5px);border:2px solid var(--ink);border-radius:999px;background:var(--sun);z-index:1;transition:transform .28s var(--ease-out-back),background .15s}
+  .switch-toggle.solo .switch-knob,.switch-toggle.tab .switch-knob{transform:translateX(calc(100% + 3px));background:var(--mint)}
   body.solo-mode #chordPanel{display:none}
   body:not(.solo-mode) #leadPanel{display:none}
   body:not(.solo-mode) #boardLeadDisplay{display:none}
@@ -309,12 +316,7 @@
   .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
   .lead-tech:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .lead-view-toggle{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink)}
-  .lead-view{font:inherit;font-size:.72rem;font-weight:850;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:4px 7px;cursor:pointer;transition:transform .16s var(--ease-spring),background .14s,box-shadow .16s var(--ease-spring)}
-  .lead-view:hover{background:var(--sun);transform:translateY(-1px)}
-  .lead-view:active{transform:translateY(1px) scale(.96);transition-duration:.05s}
-  .lead-view[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
-  .lead-tech:focus-visible,.lead-view:focus-visible,.board-mode button:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .lead-tech:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
   .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .lead-event:hover,.lead-event.selected{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
@@ -666,14 +668,14 @@
      available; touch users can edit, delete and duplicate without the page locking. */
   @media (pointer:coarse){
     .chip,.sect-bar{touch-action:pan-y}
-    .song-sect:hover,.chip:hover,.btn:hover,.toggle:hover{transform:none}
+    .song-sect:hover,.chip:hover,.btn:hover,.toggle:hover,.switch-toggle:hover{transform:none}
   }
 
   /* Respect users who prefer reduced motion — keep interactions functional but calm:
      strip the springy rotations/scales and playful keyframes, keep simple state changes. */
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
-    .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.song-sect,.chip,
+    .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.song-sect,.chip,
     .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
     #toast,.modal-dialog,.help-fab,.help-panel,.help-close{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
@@ -734,14 +736,16 @@
 
 <div class="panel win-sun" data-win="Fretboard" id="tabPanel">
   <div class="fret-controls" aria-label="Fretboard controls">
-    <div class="board-mode" role="group" aria-label="Fretboard mode">
-      <button id="btnBoardChord" type="button" aria-pressed="true">Chord</button>
-      <button id="btnBoardLead" type="button" aria-pressed="false">Solo / arpeggio</button>
-    </div>
-    <div class="lead-view-toggle" id="boardLeadDisplay" aria-label="Solo marker display">
-      <button class="lead-view" id="btnLeadShowNotes" type="button" aria-pressed="true">Notes</button>
-      <button class="lead-view" id="btnLeadShowTab" type="button" aria-pressed="false">Tab</button>
-    </div>
+    <button class="switch-toggle board-mode" id="btnBoardMode" type="button" role="switch" aria-checked="false" aria-label="Fretboard mode: Chord">
+      <span class="switch-knob" aria-hidden="true"></span>
+      <span class="switch-label first" aria-hidden="true">Chord</span>
+      <span class="switch-label last" aria-hidden="true">Solo / arpeggio</span>
+    </button>
+    <button class="switch-toggle lead-view-toggle" id="boardLeadDisplay" type="button" role="switch" aria-checked="false" aria-label="Solo marker display: Notes">
+      <span class="switch-knob" aria-hidden="true"></span>
+      <span class="switch-label first" aria-hidden="true">Notes</span>
+      <span class="switch-label last" aria-hidden="true">Tab</span>
+    </button>
     <button class="toggle" id="btnAccidental" type="button" role="switch" aria-checked="false"
       aria-label="Note spelling: sharps or flats" title="Slide to toggle note spelling between sharps (♯) and flats (♭)">
       <span class="acc-knob" aria-hidden="true"></span>
@@ -1549,8 +1553,11 @@ function renderLead(){
     ?'Add this solo to '+targetSection.name:'Create a new Solo section with this solo';
   document.getElementById('btnLeadClear').disabled=!events.length;
   document.getElementById('btnLeadClearSelection').disabled=!leadSelection.some(Number.isInteger);
-  document.getElementById('btnLeadShowNotes').setAttribute('aria-pressed',String(leadDisplay==='notes'));
-  document.getElementById('btnLeadShowTab').setAttribute('aria-pressed',String(leadDisplay==='tab'));
+  const displayToggle=document.getElementById('boardLeadDisplay');
+  displayToggle.classList.toggle('tab',leadDisplay==='tab');
+  displayToggle.setAttribute('aria-checked',String(leadDisplay==='tab'));
+  displayToggle.setAttribute('aria-label','Solo marker display: '+(leadDisplay==='tab'?'Tab':'Notes'));
+  displayToggle.title='Switch solo markers between Notes and Tab';
 }
 function toggleLeadNote(s,f){
   const sectionId=activeSection()?.id??null;
@@ -1589,11 +1596,8 @@ document.getElementById('btnLeadCreate').addEventListener('click',()=>{
 document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;render();renderLead();
 });
-document.getElementById('btnLeadShowNotes').addEventListener('click',()=>{
-  leadDisplay='notes';render();renderLead();
-});
-document.getElementById('btnLeadShowTab').addEventListener('click',()=>{
-  leadDisplay='tab';render();renderLead();
+document.getElementById('boardLeadDisplay').addEventListener('click',()=>{
+  leadDisplay=leadDisplay==='notes'?'tab':'notes';render();renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
   if(!leadDraft.length)return;leadDraft=[];renderLead();flash('Cleared solo draft');
@@ -1828,14 +1832,15 @@ function setBoardMode(mode){
   if(mode!== 'chord'&&mode!== 'solo')return;
   boardMode=mode;
   document.body.classList.toggle('solo-mode',mode==='solo');
-  document.getElementById('btnBoardChord').setAttribute('aria-pressed',String(mode==='chord'));
-  document.getElementById('btnBoardLead').setAttribute('aria-pressed',String(mode==='solo'));
+  const modeToggle=document.getElementById('btnBoardMode');
+  modeToggle.classList.toggle('solo',mode==='solo');
+  modeToggle.setAttribute('aria-checked',String(mode==='solo'));
+  modeToggle.setAttribute('aria-label','Fretboard mode: '+(mode==='solo'?'Solo / arpeggio':'Chord'));
   document.getElementById('btnAccidental').title=(mode==='solo'?'Change note spelling for the solo markers':'Slide to toggle note spelling between sharps (♯) and flats (♭)');
   render();
   if(mode==='solo')renderLead();
 }
-document.getElementById('btnBoardChord').addEventListener('click',()=>setBoardMode('chord'));
-document.getElementById('btnBoardLead').addEventListener('click',()=>setBoardMode('solo'));
+document.getElementById('btnBoardMode').addEventListener('click',()=>setBoardMode(boardMode==='chord'?'solo':'chord'));
 
 function setFlats(v){useFlats=v;
   const btn=document.getElementById('btnAccidental');

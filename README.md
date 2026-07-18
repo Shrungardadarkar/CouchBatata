@@ -33,11 +33,13 @@ Users do not need an app-store download.
 ## Features
 
 - Interactive 6-string, 12-fret guitar fretboard.
+- Separate solo and arpeggio recorder with tappable notes and tab techniques:
+  bend, release, pull-off, hammer-on, slides, vibrato, and mute.
 - Standard tuning with sharps/flats spelling.
 - Chord recognition, inversions, alternate interpretations, and voicing browser.
 - Song sections, repeats, lyrics, duplication, deletion, and reordering.
 - Key analysis, borrowed-chord guidance, scale suggestions, and position boxes.
-- Plain-text chord-chart export and clipboard copy.
+- Plain-text chord and lead-tab export and clipboard copy.
 - Editable JSON project backup and restore.
 - Local autosave with close/reload protection.
 - Responsive touch layout and accessible custom section menu.

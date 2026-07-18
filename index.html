@@ -291,6 +291,28 @@
   .shape-nav .btn{padding:8px 15px}
   .shape-label{color:var(--ink-dim);font-size:.85rem;font-weight:700}
 
+  /* solo / arpeggio recorder */
+  .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
+  .lead-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .lead-target{font-size:.8rem;font-weight:800;color:var(--ink-dim)}
+  .lead-target b{color:var(--ink)}
+  .lead-techniques{display:flex;gap:6px;flex-wrap:wrap}
+  .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer}
+  .lead-tech[aria-pressed="true"]{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}
+  .lead-tech:focus-visible,.lead-cell:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .lead-board-wrap{overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+  .lead-board{min-width:620px;border:var(--outline);border-radius:10px;overflow:hidden;background:var(--fretwood);box-shadow:var(--shadow-sm)}
+  .lead-row{display:grid;grid-template-columns:34px repeat(13,1fr);min-height:35px}
+  .lead-string{display:flex;align-items:center;justify-content:center;background:var(--cream);font-family:"Arial Black",Arial,sans-serif;font-size:.78rem;color:var(--ink);border-right:2px solid var(--ink)}
+  .lead-cell{border:0;border-right:1px solid rgba(90,47,62,.55);border-bottom:1px solid rgba(90,47,62,.5);background:transparent;color:var(--cream);font:inherit;font-weight:900;cursor:pointer;position:relative}
+  .lead-cell:hover{background:rgba(245,197,24,.45)}
+  .lead-cell::after{content:attr(data-fret);position:absolute;right:3px;bottom:1px;color:rgba(90,47,62,.48);font-size:.6rem;font-weight:800}
+  .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
+  .lead-event{font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 7px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .lead-event:hover{background:var(--sun)}
+  .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
+  .lead-summary{margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
+
   /* toast → sticker popup */
   #toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(16px) rotate(-2deg) scale(.9);
     background:var(--sun);color:var(--ink);font-weight:900;font-size:.88rem;
@@ -690,6 +712,31 @@
     <button class="btn" id="btnPrevShape" title="Previous voicing">◀</button>
     <span class="shape-label" id="shapeLabel"></span>
     <button class="btn" id="btnNextShape" title="Next voicing">▶</button>
+  </div>
+</div>
+
+<div class="panel win-lilac" data-win="Solo / Arpeggio">
+  <h2>Solo / Arpeggio recorder</h2>
+  <p class="lead-intro">Tap notes in the order you want to play them. Each note is saved as tab in the active song section. Choose a technique before tapping the next note.</p>
+  <div class="lead-toolbar">
+    <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
+    <div class="lead-techniques" id="leadTechniques" aria-label="Technique for the next note">
+      <button class="lead-tech" type="button" data-tech="" aria-pressed="true">Clean</button>
+      <button class="lead-tech" type="button" data-tech="b">Bend</button>
+      <button class="lead-tech" type="button" data-tech="r">Release</button>
+      <button class="lead-tech" type="button" data-tech="p">Pull-off</button>
+      <button class="lead-tech" type="button" data-tech="h">Hammer-on</button>
+      <button class="lead-tech" type="button" data-tech="/">Slide ↑</button>
+      <button class="lead-tech" type="button" data-tech="\\">Slide ↓</button>
+      <button class="lead-tech" type="button" data-tech="~">Vibrato</button>
+      <button class="lead-tech" type="button" data-tech="x">Mute</button>
+    </div>
+  </div>
+  <div class="lead-board-wrap"><div class="lead-board" id="leadBoard" aria-label="Solo and arpeggio fretboard"></div></div>
+  <div class="lead-sequence" id="leadSequence" aria-live="polite"></div>
+  <div class="btn-row">
+    <button class="btn" id="btnLeadUndo" type="button">Undo note</button>
+    <button class="btn ghost" id="btnLeadClear" type="button">Clear solo</button>
   </div>
 </div>
 
@@ -1178,10 +1225,13 @@ let currentAlts=[];
 let shapes=[],shapeIdx=0,inShapeMode=false;
 
 // Sections model — the whole song lives here
-let sections=[];         // [{id, name, chords:[{root,suf,pcs,frets,rep}], lyrics}]
+let sections=[];         // [{id, name, chords, lead:[{s,f,t}], lyrics}]
 let activeSectionId=null;
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
+let leadTechnique='';
+const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
+const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
 
 let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
@@ -1206,6 +1256,7 @@ function projectSnapshot(){
     app:'Couch Batata',version:1,
     sections:sections.map(s=>({
       id:s.id, name:s.name, lyrics:s.lyrics||'',
+      lead:(s.lead||[]).map(n=>({s:n.s,f:n.f,t:n.t||''})),
       chords:s.chords.map(c=>({
         root:c.root, suf:c.suf, pcs:[...c.pcs], frets:[...c.frets], rep:c.rep||1
       }))
@@ -1262,11 +1313,17 @@ function restoreProject(d){
         rep:Number.isInteger(c.rep)&&c.rep>0&&c.rep<=8?c.rep:1
       };
     });
+    const lead=(Array.isArray(sec.lead)?sec.lead:[]).slice(0,1000).flatMap(n=>{
+      if(!n||!Number.isInteger(n.s)||!Number.isInteger(n.f)||n.s<0||n.s>5||n.f<0||n.f>12)return [];
+      const t=typeof n.t==='string'&&LEAD_TECHNIQUES.has(n.t)?n.t:'';
+      return [{s:n.s,f:n.f,t}];
+    });
     return {
       id,
       name:typeof sec.name==='string'&&sec.name.trim()?sec.name.slice(0,80):'Section',
       lyrics:typeof sec.lyrics==='string'?sec.lyrics.slice(0,100000):'',
-      chords
+      chords,
+      lead
     };
   });
   sections=normSections;
@@ -1296,7 +1353,7 @@ function ensureActiveSection(fallbackName='Intro'){
     activeSectionId = sections[sections.length-1].id;
     return activeSection();
   }
-  const s = {id:_nextId++, name:fallbackName, chords:[], lyrics:''};
+  const s = {id:_nextId++, name:fallbackName, chords:[], lead:[], lyrics:''};
   sections.push(s);
   activeSectionId = s.id;
   return s;
@@ -1319,6 +1376,69 @@ for(let s=0;s<6;s++){
   }
   board.appendChild(row);
 }
+
+/* ---------- solo / arpeggio recorder ---------- */
+const leadBoard=document.getElementById('leadBoard');
+for(let s=0;s<6;s++){
+  const row=document.createElement('div');row.className='lead-row';
+  const label=document.createElement('span');label.className='lead-string';label.textContent=STR_LABEL[s];
+  row.appendChild(label);
+  for(let f=0;f<=12;f++){
+    const cell=document.createElement('button');cell.type='button';cell.className='lead-cell';
+    cell.dataset.string=s;cell.dataset.fret=f;
+    cell.setAttribute('aria-label','Add '+pcName((OPEN[s]+f)%12)+' on '+STR_LABEL[s]+' string, '+(f===0?'open':'fret '+f));
+    row.appendChild(cell);
+  }
+  leadBoard.appendChild(row);
+}
+function leadEventLabel(note){
+  const technique=note.t?(' · '+LEAD_TECH_LABEL[note.t]):'';
+  return STR_LABEL[note.s]+' '+(note.f===0?'open':note.f)+' '+pcName((OPEN[note.s]+note.f)%12)+technique;
+}
+function renderLead(){
+  const target=document.getElementById('leadSectionName');
+  const out=document.getElementById('leadSequence');
+  const sec=activeSection();
+  target.textContent=sec?sec.name:'new Solo section';
+  out.innerHTML='';
+  const notes=sec?.lead||[];
+  if(!notes.length){
+    const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No solo notes yet — tap any fret to record it.';out.appendChild(empty);
+  }else{
+    notes.forEach((note,index)=>{
+      const event=document.createElement('button');event.type='button';event.className='lead-event';
+      event.textContent=(index+1)+'. '+leadEventLabel(note);event.title='Remove this recorded note';
+      event.setAttribute('aria-label','Remove '+leadEventLabel(note));
+      event.addEventListener('click',()=>{const cur=activeSection();if(!cur)return;cur.lead.splice(index,1);renderSong();save();});
+      out.appendChild(event);
+    });
+  }
+  document.getElementById('btnLeadUndo').disabled=!notes.length;
+  document.getElementById('btnLeadClear').disabled=!notes.length;
+  document.querySelectorAll('.lead-tech').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.tech===leadTechnique)));
+}
+function addLeadNote(s,f){
+  const sec=ensureActiveSection('Solo');
+  if(!Array.isArray(sec.lead))sec.lead=[];
+  sec.lead.push({s,f,t:leadTechnique});
+  activeSectionId=sec.id;
+  renderSong();save();
+  flash('Recorded '+leadEventLabel(sec.lead[sec.lead.length-1]));
+}
+leadBoard.addEventListener('click',event=>{
+  const cell=event.target.closest('.lead-cell');if(!cell)return;
+  addLeadNote(+cell.dataset.string,+cell.dataset.fret);
+});
+document.getElementById('leadTechniques').addEventListener('click',event=>{
+  const button=event.target.closest('.lead-tech');if(!button)return;
+  leadTechnique=button.dataset.tech;renderLead();
+});
+document.getElementById('btnLeadUndo').addEventListener('click',()=>{
+  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead.pop();renderSong();save();
+});
+document.getElementById('btnLeadClear').addEventListener('click',()=>{
+  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead=[];renderSong();save();
+});
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){
   document.querySelectorAll('.inlay').forEach(e=>e.remove());
@@ -1701,14 +1821,16 @@ function renderSong(){
   const host=document.getElementById('song');
   host.innerHTML='';
   const chords=allChords();
-  document.getElementById('btnExport').disabled=chords.length===0;
-  document.getElementById('btnCopy').disabled=chords.length===0;
+  const hasTabContent=chords.length>0||sections.some(s=>(s.lead||[]).length>0);
+  document.getElementById('btnExport').disabled=!hasTabContent;
+  document.getElementById('btnCopy').disabled=!hasTabContent;
   document.getElementById('btnBackup').disabled=sections.length===0;
 
   if(sections.length===0){
     host.innerHTML='<p class="placeholder">Add a section below (Intro, Chorus…) to start building your song. Chords you add will drop into whichever section is active — or Couch Batata will create an Intro automatically on your first add.</p>';
     currentKeyInfo=null;currentOutlierMap=new Map();currentCoveringMode=null;
     renderKey();
+    renderLead();
     updateAddBtn();
     return;
   }
@@ -1725,6 +1847,7 @@ function renderSong(){
   });
 
   renderKey();
+  renderLead();
   updateAddBtn();
   save();
 }
@@ -1786,6 +1909,11 @@ function buildSectionCard(sec,idx,primary){
     });
   }
   card.appendChild(wrap);
+  if((sec.lead||[]).length){
+    const summary=document.createElement('div');summary.className='lead-summary';
+    summary.textContent='🎸 '+sec.lead.length+' solo / arpeggio note'+(sec.lead.length===1?'':'s')+' recorded';
+    card.appendChild(summary);
+  }
 
   // Lyrics
   const box=document.createElement('div');box.className='sect-lyrics';
@@ -2222,7 +2350,8 @@ function secDupBtn(sec,idx){
         frets:[...c.frets],
         rep:c.rep||1
       })),
-      lyrics:sec.lyrics||''
+      lyrics:sec.lyrics||'',
+      lead:(sec.lead||[]).map(n=>({s:n.s,f:n.f,t:n.t||''}))
     };
     sections.splice(idx+1,0,newSec);
     activeSectionId=newSec.id;
@@ -2260,7 +2389,7 @@ document.getElementById('btnAddSection').addEventListener('click',()=>{
     while(sections.some(s=>s.name===name+' '+n))n++;
     name=name+' '+n;
   }
-  const s={id:_nextId++, name, chords:[], lyrics:''};
+  const s={id:_nextId++, name, chords:[], lead:[], lyrics:''};
   sections.push(s);
   activeSectionId=s.id;
   renderSong();
@@ -2279,9 +2408,9 @@ function buildExportText(){
   L.push('');
 
   const used=new Map(); // chord name → every distinct voicing used
-  const groups = sections.length ? sections : [{name:null, chords, lyrics:''}];
+  const groups = sections.length ? sections : [{name:null, chords, lead:[], lyrics:''}];
   groups.forEach(g=>{
-    if(!g.chords.length && !(g.lyrics||'').trim()) return;
+    if(!g.chords.length && !(g.lead||[]).length && !(g.lyrics||'').trim()) return;
     L.push('['+(g.name||'Section')+']');
     if(g.chords.length){
       const toks=g.chords.map(c=>{
@@ -2293,6 +2422,18 @@ function buildExportText(){
       });
       for(let r=0;r<toks.length;r+=8){
         L.push(toks.slice(r,r+8).map(n=>n.padEnd(12)).join('').replace(/\s+$/,''));
+      }
+    }
+    if((g.lead||[]).length){
+      L.push('Solo / arpeggio:');
+      const widths=g.lead.map(n=>Math.max(3,String(n.f).length+(n.t||'').length+2));
+      for(let s=0;s<6;s++){
+        let line=STR_LABEL[s]+'|';
+        g.lead.forEach((note,index)=>{
+          const token=note.s===s?String(note.f)+(note.t||''):'';
+          line+=token.padEnd(widths[index],'-');
+        });
+        L.push(line);
       }
     }
     const lyr=(g.lyrics||'').replace(/\r/g,'').replace(/\s+$/,'');

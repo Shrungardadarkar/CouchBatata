@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 — Solo and arpeggio recorder
+
+- Added a separate tappable lead fretboard that records notes into the active song section.
+- Added bend, release, pull-off, hammer-on, slide, vibrato, and mute tab techniques.
+- Added lead-tab export, local autosave, and JSON backup/restore support.
+
 ## 2026-07-18 — Fix forward section drag
 
 - Fixed forward section drags landing one slot too early in the song order.

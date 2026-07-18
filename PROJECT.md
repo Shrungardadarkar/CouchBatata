@@ -9,8 +9,9 @@ software. The primary loop is:
 2. Review the identified chord and alternate interpretations.
 3. Add the chord to the active song section.
 4. Arrange sections, repeats, and optional lyrics.
-5. Review key and scale guidance.
-6. export a readable chart or an editable project backup.
+5. Record a solo or arpeggio directly into the active section.
+6. Review key and scale guidance.
+7. Export a readable chart or an editable project backup.
 
 The product should feel playful and immediate rather than academic. Music-
 theory guidance must still be careful, explicit, and testable.
@@ -36,7 +37,8 @@ installable and offline-capable when served through HTTPS or localhost.
 selection[6]          selected fret per string; null or "x" are also valid
 current               identified chord on the fretboard
 currentAlts[]         alternate chord interpretations
-sections[]            ordered song sections, chords and lyrics
+sections[]            ordered song sections, chords, lead notes, and lyrics
+lead note             {s, f, t}: string, fret, and optional tab technique
 activeSectionId       section receiving newly added chords
 activeChip            selected song chord
 scaleActive           selected scale overlay
@@ -48,8 +50,8 @@ useFlats              note spelling preference
 
 - Browser key: `fretwork.song.v1`
 - Format version: `1`
-- Local data: sections, lyrics, chord shapes, repeats, active section, spelling,
-  scale state, panel state, and next section ID.
+- Local data: sections, lyrics, chord shapes, lead notes, repeats, active section,
+  spelling, scale state, panel state, and next section ID.
 - Editable backups use the same normalized JSON model.
 - Imported chords are rebuilt from known formulas instead of trusting arbitrary
   pitch-class or suffix data.
@@ -69,8 +71,8 @@ useFlats              note spelling preference
 
 ### Text chart
 
-Human-readable sections, chord repetitions, lyrics, tuning, and every distinct
-voicing. It is intentionally not an editable project format.
+Human-readable sections, chord repetitions, lead-tab lines, lyrics, tuning, and
+every distinct voicing. It is intentionally not an editable project format.
 
 ### JSON project
 

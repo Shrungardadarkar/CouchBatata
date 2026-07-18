@@ -297,14 +297,14 @@
     opacity:0;pointer-events:none;transition:opacity .22s,transform .32s var(--ease-out-back);z-index:50}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0) rotate(-1.5deg) scale(1)}
 
-  .install-card{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:90;
+  .install-card,.update-card{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:90;
     width:min(520px,calc(100% - 24px));transform:translateX(-50%);
     display:flex;align-items:center;gap:12px;padding:12px 14px;
     background:var(--paper);border:var(--outline);border-radius:14px;box-shadow:5px 5px 0 var(--ink)}
-  .install-card[hidden]{display:none}
-  .install-card-copy{flex:1;min-width:0;font-size:.82rem;line-height:1.4;font-weight:700;color:var(--ink-dim)}
-  .install-card-copy b{display:block;color:var(--ink);font-size:.9rem}
-  .install-card .btn{flex-shrink:0;padding:8px 12px}
+  .install-card[hidden],.update-card[hidden]{display:none}
+  .install-card-copy,.update-card-copy{flex:1;min-width:0;font-size:.82rem;line-height:1.4;font-weight:700;color:var(--ink-dim)}
+  .install-card-copy b,.update-card-copy b{display:block;color:var(--ink);font-size:.9rem}
+  .install-card .btn,.update-card .btn{flex-shrink:0;padding:8px 12px}
   .install-dismiss{width:32px;height:32px;border:0;background:transparent;color:var(--ink);
     font-size:1.15rem;font-weight:900;cursor:pointer;border-radius:50%}
   .install-dismiss:hover{background:var(--cream-2)}
@@ -635,6 +635,15 @@
   </div>
   <button class="btn primary" id="btnInstall" type="button">Install</button>
   <button class="install-dismiss" id="btnInstallDismiss" type="button" aria-label="Dismiss install message">×</button>
+</aside>
+
+<aside class="update-card" id="updateCard" hidden aria-live="polite">
+  <div class="update-card-copy">
+    <b>A newer Couch Batata is ready</b>
+    Update now to use the latest version.
+  </div>
+  <button class="btn primary" id="btnUpdate" type="button">Update now</button>
+  <button class="install-dismiss" id="btnUpdateDismiss" type="button" aria-label="Dismiss update message">×</button>
 </aside>
 
 <div class="wrap">
@@ -2611,11 +2620,23 @@ let deferredInstallPrompt=null;
 const installCard=document.getElementById('installCard');
 const installCopy=document.getElementById('installCopy');
 const btnInstall=document.getElementById('btnInstall');
+const updateCard=document.getElementById('updateCard');
 const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
 const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}));
+  const hadServiceWorker=!!navigator.serviceWorker.controller;
+  window.addEventListener('load',async()=>{
+    try{
+      const registration=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+      const offerUpdate=()=>{if(navigator.onLine)updateCard.hidden=false;};
+      if(hadServiceWorker){
+        navigator.serviceWorker.addEventListener('controllerchange',offerUpdate,{once:true});
+        if(registration.waiting)offerUpdate();
+      }
+      window.setInterval(()=>registration.update().catch(()=>{}),60*60*1000);
+    }catch{}
+  });
 }
 window.addEventListener('beforeinstallprompt',event=>{
   event.preventDefault();deferredInstallPrompt=event;
@@ -2635,6 +2656,8 @@ btnInstall.addEventListener('click',async()=>{
   }
 });
 document.getElementById('btnInstallDismiss').addEventListener('click',()=>installCard.hidden=true);
+document.getElementById('btnUpdate').addEventListener('click',()=>window.location.reload());
+document.getElementById('btnUpdateDismiss').addEventListener('click',()=>updateCard.hidden=true);
 if(isIOS&&!isStandalone){
   setTimeout(()=>{installCopy.innerHTML='<b>Use it offline on iPhone or iPad</b>In Safari, tap Share → Add to Home Screen.';installCard.hidden=false;},1800);
 }

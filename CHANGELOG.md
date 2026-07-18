@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — In-app update notice
+
+- Added a clear Update now prompt when an installed app detects a newer published version.
+- The app checks for a fresh version at launch and hourly while it remains open online.
+
 ## 2026-07-18 — Home-screen icon refresh
 
 - Replaced the undersized icon with a bold couch-potato illustration.

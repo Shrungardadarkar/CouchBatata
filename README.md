@@ -57,8 +57,11 @@ Users do not need an app-store download.
 index.html                 Complete application: HTML, CSS and JavaScript
 manifest.webmanifest       Installable-app metadata
 sw.js                      Offline cache and update behavior
-icon-192.png               Home-screen icon
-icon-512.png               Large/maskable app icon
+apple-touch-icon-v2.png    iPhone and iPad home-screen icon
+icon-192-v2.png            Standard home-screen icon
+icon-512-v2.png            Large home-screen icon
+icon-maskable-512-v2.png   Safely padded Android adaptive icon
+app-icon-master.png        Full-resolution editable icon artwork
 mascot.png                 Source mascot image
 og.png                     WhatsApp/LinkedIn social preview
 PROJECT.md                 Product and technical specification

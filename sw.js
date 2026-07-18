@@ -1,10 +1,12 @@
-const CACHE_NAME = "couch-batata-v2";
+const CACHE_NAME = "couch-batata-v3";
 const APP_URL = new URL("./index.html", self.registration.scope).href;
 const APP_SHELL = [
   "./index.html",
   "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png",
+  "./icon-192-v2.png",
+  "./icon-512-v2.png",
+  "./icon-maskable-512-v2.png",
+  "./apple-touch-icon-v2.png",
   "./mascot.png",
   "./og.png"
 ];

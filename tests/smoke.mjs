@@ -6,8 +6,9 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = name => readFile(join(root, name), "utf8");
 const required = [
-  "index.html", "manifest.webmanifest", "sw.js", "icon-192.png",
-  "icon-512.png", "mascot.png", "og.png", "README.md", "PROJECT.md",
+  "index.html", "manifest.webmanifest", "sw.js", "icon-192-v2.png",
+  "icon-512-v2.png", "icon-maskable-512-v2.png", "apple-touch-icon-v2.png",
+  "app-icon-master.png", "mascot.png", "og.png", "README.md", "PROJECT.md",
   "AGENTS.md", "LICENSE"
 ];
 
@@ -26,7 +27,8 @@ assert.match(html, /@media \(pointer:coarse\)/);
 assert.equal(manifest.start_url, "./index.html");
 assert.equal(manifest.scope, "./");
 assert.equal(manifest.display, "standalone");
-assert.equal(manifest.icons.length, 2);
+assert.equal(manifest.icons.length, 3);
+assert.ok(manifest.icons.some(icon => icon.purpose === "maskable"));
 assert.match(worker, /couch-batata-v\d+/);
 assert.match(worker, /request\.mode === "navigate"/);
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Unified fretboard controls
+
+- Grouped Chord/Solo, Notes/Tab, and ♯/♭ controls together above the shared
+  fretboard; Notes/Tab appears there in Solo mode.
+
 ## 2026-07-18 — Notes / Tab display fix
 
 - Made Notes / Tab visibly switch active scale-guide labels between note names

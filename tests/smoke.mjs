@@ -30,6 +30,8 @@ assert.match(html, /id="helpPanel"/);
 assert.match(html, /Need a hand\?/);
 assert.match(html, /btnBoardChord/);
 assert.match(html, /btnBoardLead/);
+assert.match(html, /class="fret-controls"/);
+assert.match(html, /id="boardLeadDisplay"/);
 assert.doesNotMatch(html, /id="leadBoard"/);
 assert.match(html, /data-tech="p"/);
 assert.match(html, /data-tech="b"/);

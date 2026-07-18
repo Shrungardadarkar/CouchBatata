@@ -113,16 +113,18 @@
   .tagline{color:var(--ink-soft);font-size:.9rem;font-weight:600;line-height:1.55;
     padding:20px 4px 4px;margin:0;text-align:left}
 
-  /* Note-spelling toggle → sliding switch on the Fretboard panel's top-right edge */
+  /* All fretboard controls live together above the instrument. */
   #tabPanel{position:relative}
-  #tabPanel .toggle{position:absolute;top:-18px;right:20px;z-index:5}
-  .board-mode{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;margin:0 0 10px 4px;box-shadow:1.5px 1.5px 0 var(--ink)}
+  #tabPanel .toggle{position:relative;z-index:1;flex:0 0 auto}
+  .fret-controls{display:flex;align-items:center;gap:9px;overflow-x:auto;padding:2px 4px 10px;margin:0 -4px;-webkit-overflow-scrolling:touch}
+  .board-mode{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;margin:0;box-shadow:1.5px 1.5px 0 var(--ink);flex:0 0 auto}
   .board-mode button{font:inherit;font-size:.76rem;font-weight:900;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:5px 10px;cursor:pointer;transition:transform .16s var(--ease-spring),background .14s,box-shadow .16s var(--ease-spring)}
   .board-mode button:hover{background:var(--sun);transform:translateY(-1px) rotate(-1deg)}
   .board-mode button:active{transform:translateY(1px) scale(.96);transition-duration:.05s}
   .board-mode button[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
   body.solo-mode #chordPanel{display:none}
   body:not(.solo-mode) #leadPanel{display:none}
+  body:not(.solo-mode) #boardLeadDisplay{display:none}
   .toggle{position:relative;display:inline-flex;align-items:center;
     width:72px;height:36px;padding:0;
     background:var(--paper);border:var(--outline);border-radius:999px;
@@ -640,10 +642,8 @@
     .tagline{padding:16px 4px 0;font-size:.86rem}
     .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}
     .panel[data-win]::before{left:16px;font-size:.68rem;padding:5px 11px}
-    /* Fretboard panel needs more top room so the toggle (right) clears the label pill (left) */
-    #tabPanel{margin-top:46px}
-    #tabPanel .toggle{top:-17px;right:14px}
-    .board-mode{margin-bottom:8px}
+    #tabPanel{margin-top:38px}
+    .fret-controls{gap:8px;padding-bottom:8px}
     .toggle{width:64px;height:33px}
     .acc-opt{font-size:1.05rem}
     .acc-knob{width:28px}
@@ -733,15 +733,21 @@
 </div>
 
 <div class="panel win-sun" data-win="Fretboard" id="tabPanel">
-  <button class="toggle" id="btnAccidental" type="button" role="switch" aria-checked="false"
-    aria-label="Note spelling: sharps or flats" title="Slide to toggle note spelling between sharps (♯) and flats (♭)">
-    <span class="acc-knob" aria-hidden="true"></span>
-    <span class="acc-opt acc-sharp" aria-hidden="true">♯</span>
-    <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
-  </button>
-  <div class="board-mode" role="group" aria-label="Fretboard mode">
-    <button id="btnBoardChord" type="button" aria-pressed="true">Chord</button>
-    <button id="btnBoardLead" type="button" aria-pressed="false">Solo / arpeggio</button>
+  <div class="fret-controls" aria-label="Fretboard controls">
+    <div class="board-mode" role="group" aria-label="Fretboard mode">
+      <button id="btnBoardChord" type="button" aria-pressed="true">Chord</button>
+      <button id="btnBoardLead" type="button" aria-pressed="false">Solo / arpeggio</button>
+    </div>
+    <div class="lead-view-toggle" id="boardLeadDisplay" aria-label="Solo marker display">
+      <button class="lead-view" id="btnLeadShowNotes" type="button" aria-pressed="true">Notes</button>
+      <button class="lead-view" id="btnLeadShowTab" type="button" aria-pressed="false">Tab</button>
+    </div>
+    <button class="toggle" id="btnAccidental" type="button" role="switch" aria-checked="false"
+      aria-label="Note spelling: sharps or flats" title="Slide to toggle note spelling between sharps (♯) and flats (♭)">
+      <span class="acc-knob" aria-hidden="true"></span>
+      <span class="acc-opt acc-sharp" aria-hidden="true">♯</span>
+      <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
+    </button>
   </div>
   <div class="board-wrap">
     <div class="board-outer">
@@ -772,10 +778,6 @@
   <p class="lead-intro">Use the original fretboard above: choose one or more notes, then press an action to save them together. Use several strings at once for double-stops and chord hits.</p>
   <div class="lead-toolbar">
     <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
-    <div class="lead-view-toggle" aria-label="Fretboard marker display">
-      <button class="lead-view" id="btnLeadShowNotes" type="button" aria-pressed="true">Notes</button>
-      <button class="lead-view" id="btnLeadShowTab" type="button" aria-pressed="false">Tab</button>
-    </div>
     <div class="lead-techniques" id="leadTechniques" aria-label="Save selected notes with an action">
       <button class="lead-tech" type="button" data-tech="">Clean</button>
       <button class="lead-tech" type="button" data-tech="b">Bend</button>

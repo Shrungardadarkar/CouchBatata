@@ -38,6 +38,8 @@ assert.match(html, /Save solo/);
 assert.match(html, /soloCreationTarget/);
 assert.match(html, /Edit solo/);
 assert.match(html, /attachSavedLeadDrag/);
+assert.match(html, /@keyframes leadPop/);
+assert.match(html, /lead-pop/);
 assert.doesNotMatch(html, /btnLeadUndo/);
 assert.match(html, /notes:\[\{s,f\}\]/);
 assert.match(html, /Solo \/ arpeggio:/);

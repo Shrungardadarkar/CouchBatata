@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-18 — Solo interaction polish and QA
+
+- Matched Solo mode controls, event chips, and edit actions to the app’s springy
+  sticker-button motion and added a pop-in for newly recorded events.
+- Completed desktop, phone, functional, layout, and reduced-motion QA for the
+  chord, scale, and solo workflows.
+
 ## 2026-07-18 — Clear solo save states
 
 - Changed Create solo to Save solo while editing an existing saved solo.

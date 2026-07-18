@@ -116,8 +116,10 @@
   /* Note-spelling toggle → sliding switch on the Fretboard panel's top-right edge */
   #tabPanel{position:relative}
   #tabPanel .toggle{position:absolute;top:-18px;right:20px;z-index:5}
-  .board-mode{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;margin:0 0 10px 4px}
-  .board-mode button{font:inherit;font-size:.76rem;font-weight:900;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:5px 10px;cursor:pointer}
+  .board-mode{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;margin:0 0 10px 4px;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .board-mode button{font:inherit;font-size:.76rem;font-weight:900;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:5px 10px;cursor:pointer;transition:transform .16s var(--ease-spring),background .14s,box-shadow .16s var(--ease-spring)}
+  .board-mode button:hover{background:var(--sun);transform:translateY(-1px) rotate(-1deg)}
+  .board-mode button:active{transform:translateY(1px) scale(.96);transition-duration:.05s}
   .board-mode button[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
   body.solo-mode #chordPanel{display:none}
   body:not(.solo-mode) #leadPanel{display:none}
@@ -302,24 +304,29 @@
   .lead-target{font-size:.8rem;font-weight:800;color:var(--ink-dim)}
   .lead-target b{color:var(--ink)}
   .lead-techniques{display:flex;gap:6px;flex-wrap:wrap}
-  .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer}
-  .lead-tech:hover{background:var(--sun)}
-  .lead-view-toggle{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px}
-  .lead-view{font:inherit;font-size:.72rem;font-weight:850;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:4px 7px;cursor:pointer}
+  .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  .lead-tech:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .lead-view-toggle{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .lead-view{font:inherit;font-size:.72rem;font-weight:850;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:4px 7px;cursor:pointer;transition:transform .16s var(--ease-spring),background .14s,box-shadow .16s var(--ease-spring)}
+  .lead-view:hover{background:var(--sun);transform:translateY(-1px)}
+  .lead-view:active{transform:translateY(1px) scale(.96);transition-duration:.05s}
   .lead-view[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
   .lead-tech:focus-visible,.lead-view:focus-visible,.board-mode button:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
-  .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y}
-  .lead-event:hover,.lead-event.selected{background:var(--sun)}
+  .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .lead-event:hover,.lead-event.selected{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
   .lead-event.dragging{opacity:.3}
+  .lead-event.lead-pop{animation:leadPop .34s var(--ease-bounce)}
+  @keyframes leadPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
   .lead-event-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
   .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
   .lead-summary-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
   .lead-summary-x:hover{background:var(--tomato);color:var(--cream)}
-  .lead-edit{font:inherit;font-size:.74rem;font-weight:900;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:4px 8px;cursor:pointer}
-  .lead-edit:hover{background:var(--sun)}
+  .lead-edit{font:inherit;font-size:.74rem;font-weight:900;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:4px 8px;cursor:pointer;box-shadow:1px 1px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .lead-edit:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:2px 2px 0 var(--ink)}
   .sect-lead{margin-top:10px;padding-top:9px;border-top:2px dashed rgba(90,47,62,.45)}
   .sect-lead .lead-sequence{margin:7px 0 0;min-height:0}
 
@@ -1253,6 +1260,7 @@ let leadSelectionSectionId=null;
 let leadDisplay='notes';
 let leadDraft=[];       // events being prepared before Create solo adds them to a section
 let leadDraftSourceSectionId=null; // section being edited, or null for a new solo
+let _popLeadDraftIndex=null;
 let boardMode='chord';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
@@ -1451,7 +1459,7 @@ function renderLead(){
     const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No saved solo events yet — select one or more notes, then press an action.';out.appendChild(empty);
   }else{
     events.forEach((leadEvent,index)=>{
-      const event=document.createElement('div');event.className='lead-event';
+      const event=document.createElement('div');event.className='lead-event'+(_popLeadDraftIndex===index?' lead-pop':'');
       event.title='Drag to reorder this solo event';
       event.setAttribute('aria-label','Solo event '+(index+1)+': '+leadEventLabel(leadEvent));
       const label=document.createElement('span');label.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.appendChild(label);
@@ -1461,6 +1469,7 @@ function renderLead(){
       event.appendChild(remove);attachLeadDraftDrag(event,index);
       out.appendChild(event);
     });
+    _popLeadDraftIndex=null;
   }
   const createButton=document.getElementById('btnLeadCreate');
   const editing=leadDraftSourceSectionId!==null;
@@ -1484,6 +1493,7 @@ function saveLeadEvent(t){
   if(!notes.length){flash('Select one or more notes first');return;}
   // Do not write to the song until the musician confirms with Create solo.
   leadDraft.push({notes,t});
+  _popLeadDraftIndex=leadDraft.length-1;
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
   render();renderLead();
   flash('Added '+leadEventLabel(leadDraft[leadDraft.length-1])+' to the draft');

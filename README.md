@@ -53,6 +53,7 @@ Users do not need an app-store download.
 - Local autosave with close/reload protection.
 - Responsive touch layout and accessible custom section menu.
 - Progressive Web App manifest, icons, and offline service worker.
+- A floating Help button with a quick start and in-app feature guide.
 
 ## Privacy and offline behavior
 

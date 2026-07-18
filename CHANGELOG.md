@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 — Floating Help
+
+- Added a small, bottom-right Help button with a non-blocking quick-start guide
+  and expandable how-to topics.
+- Covers chords, solos, sections, scales, export, offline use, and privacy.
+
 ## 2026-07-18 — Solo interaction polish and QA
 
 - Matched Solo mode controls, event chips, and edit actions to the app’s springy

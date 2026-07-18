@@ -349,6 +349,33 @@
     font-size:1.15rem;font-weight:900;cursor:pointer;border-radius:50%}
   .install-dismiss:hover{background:var(--cream-2)}
 
+  /* floating help — available without interrupting the music-making flow */
+  .help-fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:80;
+    width:48px;height:48px;border:2.5px solid var(--ink);border-radius:50%;background:var(--sun);color:var(--ink);
+    box-shadow:4px 4px 0 var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1.28rem;font-weight:900;cursor:pointer;
+    transition:transform .18s var(--ease-spring),box-shadow .18s var(--ease-spring),background .12s}
+  .help-fab:hover{background:var(--mint);transform:translate(-2px,-2px) rotate(-6deg);box-shadow:6px 6px 0 var(--ink)}
+  .help-fab:active{transform:translate(2px,2px) rotate(0);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
+  .help-fab:focus-visible{outline:3px solid var(--tomato);outline-offset:3px}
+  .help-fab.help-nudge{animation:helpNudge .75s var(--ease-bounce) 2}
+  @keyframes helpNudge{0%,100%{transform:rotate(0)}35%{transform:rotate(-10deg) scale(1.08)}70%{transform:rotate(9deg) scale(1.05)}}
+  .help-panel{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:76px;z-index:80;width:min(365px,calc(100% - 28px));max-height:min(640px,calc(100vh - 104px));overflow:auto;
+    background:var(--paper);border:var(--outline);border-radius:16px;box-shadow:6px 6px 0 var(--ink);padding:17px 17px 15px;
+    opacity:0;pointer-events:none;transform:translateY(18px) scale(.94) rotate(1deg);transform-origin:bottom right;transition:opacity .18s ease,transform .3s var(--ease-out-back)}
+  .help-panel.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1) rotate(0)}
+  .help-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .help-head h2{font-family:"Arial Black",Arial,sans-serif;color:var(--ink);font-size:1.05rem;margin:0;flex:1}
+  .help-close{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-size:1.25rem;font-weight:900;cursor:pointer;transition:transform .18s var(--ease-spring),background .12s}
+  .help-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}
+  .help-intro{color:var(--ink-dim);font-size:.84rem;font-weight:650;line-height:1.45;margin:0 0 11px}
+  .help-quick{margin:0 0 10px;padding:10px 12px 10px 29px;background:var(--mint);border:2px solid var(--ink);border-radius:10px;font-size:.8rem;font-weight:750;line-height:1.55}
+  .help-panel details{border-top:2px dashed rgba(90,47,62,.4);padding:8px 0}
+  .help-panel summary{cursor:pointer;color:var(--ink);font-size:.84rem;font-weight:900;list-style:none;display:flex;align-items:center;gap:7px}
+  .help-panel summary::-webkit-details-marker{display:none}
+  .help-panel summary::before{content:'+';display:inline-grid;place-items:center;width:18px;height:18px;border:2px solid var(--ink);border-radius:50%;background:var(--cream);font-size:.9rem;line-height:1}
+  .help-panel details[open] summary::before{content:'–';background:var(--sun)}
+  .help-panel details p{margin:7px 0 1px 27px;color:var(--ink-dim);font-size:.8rem;font-weight:650;line-height:1.45}
+
   /* themed confirm modal (replaces native confirm on file:// URLs) */
   .modal-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
     background:rgba(90,47,62,.42);padding:20px;opacity:0;transition:opacity .18s ease}
@@ -631,6 +658,8 @@
     .board{grid-template-rows:repeat(6,42px)}
     .install-card{align-items:flex-start;flex-wrap:wrap}
     .install-card-copy{flex-basis:calc(100% - 44px)}
+    .help-fab{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:46px;height:46px}
+    .help-panel{right:12px;bottom:70px;width:calc(100% - 24px);max-height:calc(100vh - 94px)}
   }
 
   /* Preserve native page scrolling on touch screens. Desktop drag-and-drop remains
@@ -646,13 +675,14 @@
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.song-sect,.chip,
     .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
-    #toast,.modal-dialog{transition-duration:.12s !important;transition-timing-function:ease !important}
+    #toast,.modal-dialog,.help-fab,.help-panel,.help-close{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
     .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover{transform:none !important}
     .mascot:hover{animation:none !important}
     #toast{transform:translateX(-50%) translateY(12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     .modal-dialog{transform:none !important}
+    .help-fab:hover,.help-close:hover{transform:none !important}
   }
 </style>
 
@@ -807,6 +837,44 @@
   <pre id="exportPre" tabindex="0" aria-label="Exported chord chart preview"></pre>
 </div>
 </div>
+
+<button class="help-fab" id="btnHelp" type="button" aria-label="Open help" aria-expanded="false" aria-controls="helpPanel" title="How to use Couch Batata">?</button>
+<aside class="help-panel" id="helpPanel" role="dialog" aria-modal="false" aria-labelledby="helpTitle" aria-hidden="true">
+  <div class="help-head">
+    <h2 id="helpTitle">Need a hand?</h2>
+    <button class="help-close" id="btnHelpClose" type="button" aria-label="Close help">×</button>
+  </div>
+  <p class="help-intro">A quick guide to turn an idea on the couch into a shareable chord chart or tab.</p>
+  <ol class="help-quick">
+    <li>Choose <b>Chord</b> or <b>Solo / arpeggio</b> on the fretboard.</li>
+    <li>Tap notes, then add the chord or create the solo.</li>
+    <li>Arrange sections and export when the idea feels right.</li>
+  </ol>
+  <details open>
+    <summary>Fretboard &amp; chords</summary>
+    <p>Tap one fret per string to build a chord. Tap a string label to mute it. Check alternate shapes, then use <b>Add to…</b> to place the chord in the active song section.</p>
+  </details>
+  <details>
+    <summary>Solo / arpeggio</summary>
+    <p>Switch modes, select one or more notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Use Notes / Tab to change the display. Drag events to reorder them.</p>
+  </details>
+  <details>
+    <summary>Saving &amp; editing a solo</summary>
+    <p><b>Create solo</b> adds a new draft to an active chord section or creates a Solo section. <b>Edit solo</b> loads it back into the recorder; the button becomes <b>Save solo</b>.</p>
+  </details>
+  <details>
+    <summary>Song sections</summary>
+    <p>Click a section to make it active. Drag chord chips to reorder or move them; drag the <b>⋮⋮</b> handle to reorder whole sections. Use × to delete.</p>
+  </details>
+  <details>
+    <summary>Key, scales &amp; notes</summary>
+    <p>Key &amp; Scales suggests a musical home for your song. Click a scale to display it on the fretboard, including in Solo mode. Use ♯ / ♭ to change note spelling.</p>
+  </details>
+  <details>
+    <summary>Offline, sharing &amp; privacy</summary>
+    <p>Your work auto-saves on this device. Back up a project for safekeeping, or export/copy tab to share it. After the first visit, the app works offline. No account or tracking is used.</p>
+  </details>
+</aside>
 
 <script>
 "use strict";
@@ -2967,6 +3035,38 @@ document.getElementById('btnClearSong').addEventListener('click',async ()=>{
   renderSong();
   flash('Song cleared');
 });
+
+/* ---------- help ---------- */
+const btnHelp=document.getElementById('btnHelp');
+const helpPanel=document.getElementById('helpPanel');
+const btnHelpClose=document.getElementById('btnHelpClose');
+let helpWasOpened=false;
+function setHelpOpen(open){
+  helpPanel.classList.toggle('open',open);
+  helpPanel.setAttribute('aria-hidden',String(!open));
+  btnHelp.setAttribute('aria-expanded',String(open));
+  if(open){
+    helpWasOpened=true;
+    try{localStorage.setItem('couch-batata.help.v1.seen','1');}catch{}
+    btnHelp.classList.remove('help-nudge');
+    requestAnimationFrame(()=>btnHelpClose.focus());
+  }else if(helpWasOpened){
+    requestAnimationFrame(()=>btnHelp.focus());
+  }
+}
+btnHelp.addEventListener('click',()=>setHelpOpen(!helpPanel.classList.contains('open')));
+btnHelpClose.addEventListener('click',()=>setHelpOpen(false));
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&helpPanel.classList.contains('open')){event.preventDefault();setHelpOpen(false);}
+});
+document.addEventListener('click',event=>{
+  if(helpPanel.classList.contains('open')&&!helpPanel.contains(event.target)&&!btnHelp.contains(event.target))setHelpOpen(false);
+});
+try{
+  if(!localStorage.getItem('couch-batata.help.v1.seen')){
+    setTimeout(()=>{btnHelp.classList.add('help-nudge');setTimeout(()=>btnHelp.classList.remove('help-nudge'),1700);},1100);
+  }
+}catch{}
 
 /* init */
 const _wasRestored = load() && sections.length>0;

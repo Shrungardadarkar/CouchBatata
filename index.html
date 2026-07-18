@@ -548,13 +548,10 @@
   .scale-panel-body{padding:0 22px 22px}
   .scale-panel-body .guidance{margin-top:0}
 
-  /* muted strings */
-  .str-lbl{background:none;border:0;color:var(--ink);font-family:"Arial Black",Arial,sans-serif;
-    font-size:.9rem;font-weight:900;cursor:pointer;padding:4px 2px;border-radius:5px;
-    transition:color .15s,background .15s;min-height:22px;line-height:1}
-  .str-lbl:hover{color:var(--ink-dim);background:rgba(26,24,21,.08)}
-  .str-lbl:focus-visible{outline:2.5px solid var(--tomato);outline-offset:1px}
-  .str-lbl.muted{color:var(--tomato);font-size:1.05rem}
+  /* muted strings — the nut is the sole mute control and marker */
+  .str-lbl{color:var(--ink);font-family:"Arial Black",Arial,sans-serif;
+    font-size:.9rem;font-weight:900;padding:4px 2px;min-height:22px;line-height:1}
+  .str-lbl.muted{color:var(--ink-faint);opacity:.58}
   .row.muted .cell::before{opacity:.25}
   .mute-mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
     color:var(--tomato);font-size:1.5rem;font-weight:900;line-height:1;
@@ -728,7 +725,7 @@
 </aside>
 
 <div class="wrap">
-<p class="tagline">Click the notes you're playing. Click a string label to mute (×) it. Couch Batata names the chord, drops it into the active section, and suggests scales for soloing over the whole progression.</p>
+<p class="tagline">Every string begins open. Tap a fret to move that string’s note, or tap its open note on the nut to mute it. Couch Batata names the chord, drops it into the active section, and suggests scales for soloing over the whole progression.</p>
 
 <div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
   <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
@@ -788,11 +785,11 @@
 
 <div class="panel win-sky" data-win="Chord" id="chordPanel">
   <h2>Chord</h2>
-  <div id="chordOut"><p class="placeholder">Nothing selected yet — click a string at any fret (the light strip on the left is the open string).</p></div>
+  <div id="chordOut"><p class="placeholder">Every string starts open. Tap a fret to move that string’s note, or tap its nut to mute it.</p></div>
   <div class="btn-row">
     <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
     <button class="btn" id="btnShapes" disabled title="Browse alternate voicings for this chord — same notes, different fret shapes">Show other shapes</button>
-    <button class="btn ghost" id="btnClear" disabled title="Remove all notes from the fretboard to start fresh">Clear board</button>
+    <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
   </div>
   <div class="shape-nav" id="shapeNav" hidden>
     <button class="btn" id="btnPrevShape" title="Previous voicing">◀</button>
@@ -847,7 +844,7 @@
     Click a section card (or its badge) to <b>activate</b> it — new chords land there.
     <b>Drag chords</b> to reorder or move them across sections. Grab the <b>⋮⋮</b> handle on a section header to reorder whole sections.
     Chips with a <b style="color:var(--tomato)">●</b> dot are outside the current key — see <b>Musical guidance</b> for replacements.
-    Click <b>⧉</b> to duplicate a section. Click a <b>string label</b> to mute (×). Your song <b>auto-saves</b>.
+    Click <b>⧉</b> to duplicate a section. Tap an <b>open note on the nut</b> to mute (×) its string. Your song <b>auto-saves</b>.
   </p>
 </div>
 
@@ -871,7 +868,7 @@
   </ol>
   <details open>
     <summary>Fretboard &amp; chords</summary>
-    <p>Tap one fret per string to build a chord. Tap a string label to mute it. Check alternate shapes, then use <b>Add to…</b> to place the chord in the active song section.</p>
+    <p>Every string starts open. Tap a fret to move that string’s note, or tap its open note on the nut to mute it. Check alternate shapes, then use <b>Add to…</b> to place the chord in the active song section.</p>
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
@@ -1332,7 +1329,7 @@ function replaceChord(secId,cIdx,newRoot,newSuf){
 }
 
 /* ================= state ================= */
-let selection=new Array(6).fill(null);
+let selection=new Array(6).fill(0);
 let current=null;
 let currentAlts=[];
 let shapes=[],shapeIdx=0,inShapeMode=false;
@@ -1365,6 +1362,7 @@ const SECTION_PRESETS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Solo','In
 const findSection = id => sections.find(s=>s.id===id) || null;
 const activeSection = () => findSection(activeSectionId);
 const allChords = () => sections.flatMap(s=>s.chords);
+function resetChordSelection(){selection=new Array(6).fill(0);}
 
 /* ---------- persistence (localStorage) ---------- */
 const _SAVE_KEY='fretwork.song.v1';
@@ -1640,21 +1638,9 @@ window.addEventListener('resize',placeInlays);
 
 const sl=document.getElementById('stringLabels');
 STR_LABEL.forEach((t,s)=>{
-  const b=document.createElement('button');
+  const b=document.createElement('span');
   b.className='str-lbl';b.dataset.string=s;b.textContent=t;
-  b.title='Click to mute/unmute this string';
-  b.setAttribute('aria-label',t+' string — click to toggle mute');
   sl.appendChild(b);
-});
-sl.addEventListener('click',e=>{
-  const b=e.target.closest('.str-lbl');if(!b)return;
-  if(boardMode==='solo'){flash('Mute is available in Chord mode');return;}
-  const s=+b.dataset.string;
-  exitShapes();
-  const wasActive=activeChip!==null;activeChip=null;
-  selection[s]=selection[s]==='x'?null:'x';
-  analyze();
-  if(wasActive)renderSong();
 });
 const fn=document.getElementById('fretNums');
 for(let f=0;f<=12;f++){const d=document.createElement('div');d.textContent=f===0?'open':f;fn.appendChild(d)}
@@ -1666,8 +1652,8 @@ function render(){
   // update string labels + row dim state
   document.querySelectorAll('.str-lbl').forEach(b=>{
     const s=+b.dataset.string;
-    if(!soloMode&&selection[s]==='x'){b.classList.add('muted');b.textContent='×';}
-    else{b.classList.remove('muted');b.textContent=STR_LABEL[s];}
+    b.classList.toggle('muted',!soloMode&&selection[s]==='x');
+    b.textContent=STR_LABEL[s];
   });
   for(let s=0;s<6;s++){
     board.children[s].classList.toggle('muted',!soloMode&&selection[s]==='x');
@@ -1817,7 +1803,8 @@ function updateAddBtn(){
 // Reconcile board-dependent button states — call after any change to `selection`
 function reconcileBoardState(){
   const hasNote=selection.some(v=>typeof v==='number'&&v>=0);
-  document.getElementById('btnClear').disabled=!hasNote;
+  const isOpenTuning=selection.every(v=>v===0);
+  document.getElementById('btnClear').disabled=isOpenTuning;
   // Shape browser only makes sense when there's actually a chord on the board
   if(!hasNote&&inShapeMode)exitShapes();
 }
@@ -1829,7 +1816,9 @@ board.addEventListener('click',e=>{
   if(boardMode==='solo'){toggleLeadNote(s,f);return;}
   exitShapes();
   const wasActive=activeChip!==null;activeChip=null;
-  selection[s]=(selection[s]===f)?null:f;
+  // In Chord mode the nut is the one mute control. Fretted notes always stay
+  // selected when tapped, which avoids accidentally clearing a string.
+  selection[s]=f===0?(selection[s]==='x'?0:'x'):f;
   analyze();
   if(wasActive)renderSong();
 });
@@ -1838,7 +1827,7 @@ board.addEventListener('keydown',e=>{
 });
 
 document.getElementById('btnClear').addEventListener('click',()=>{
-  selection.fill(null);exitShapes();
+  resetChordSelection();exitShapes();
   const wasActive=activeChip!==null;activeChip=null;
   analyze();if(wasActive)renderSong();
 });
@@ -1910,7 +1899,7 @@ function loadShape(){
   const v=shapes[shapeIdx];
   if(!v||!Array.isArray(v.frets)){exitShapes();return;}
   // Rebuild selection so it always has exactly 6 elements
-  const newSel=new Array(6).fill(null);
+  const newSel=new Array(6).fill(0);
   for(let i=0;i<6;i++){
     const f=v.frets[i];
     if(f===-1)newSel[i]='x';
@@ -1957,7 +1946,7 @@ document.getElementById('btnAdd').addEventListener('click',()=>{
   });
   _popChip={sectionId:sec.id, chordIdx:sec.chords.length-1};  // animate this chip in
   activeChip=null;
-  selection.fill(null); exitShapes(); analyze();
+  resetChordSelection(); exitShapes(); analyze();
   renderSong();
   flash('Added '+label+' to '+sec.name);
 });
@@ -2593,7 +2582,7 @@ function chordDelBtn(sec,cIdx){
     const wasActiveChip=activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
     sec.chords.splice(cIdx,1);
     if(wasActiveChip){
-      activeChip=null;selection.fill(null);exitShapes();analyze();
+      activeChip=null;resetChordSelection();exitShapes();analyze();
     } else if(activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx>cIdx){
       activeChip.chordIdx--;
     }
@@ -2618,7 +2607,7 @@ function secDelBtn(sec,idx){
       activeSectionId = sections.length ? sections[Math.min(idx,sections.length-1)].id : null;
     }
     if(activeChip && activeChip.sectionId===sec.id){
-      activeChip=null;selection.fill(null);exitShapes();analyze();
+      activeChip=null;resetChordSelection();exitShapes();analyze();
     }
     renderSong();
   });
@@ -2667,7 +2656,7 @@ function secDupBtn(sec,idx){
 function toggleChip(sec,cIdx){
   const isSame = activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
   if(isSame){
-    activeChip=null;selection.fill(null);exitShapes();analyze();renderSong();return;
+    activeChip=null;resetChordSelection();exitShapes();analyze();renderSong();return;
   }
   activeChip={sectionId:sec.id, chordIdx:cIdx};
   activeSectionId = sec.id; // clicking a chord also activates its section
@@ -2806,7 +2795,7 @@ document.getElementById('projectFile').addEventListener('change',async e=>{
   try{
     const data=JSON.parse(await file.text());
     if(!restoreProject(data))throw new Error('Unsupported project format');
-    activeChip=null;selection.fill(null);exitShapes();
+    activeChip=null;resetChordSelection();exitShapes();
     setFlats(useFlats);
     analyze();renderSong();save(true);
     flash('Opened project "'+file.name+'"');
@@ -3054,7 +3043,7 @@ document.getElementById('btnClearSong').addEventListener('click',async ()=>{
   activeSectionId=null;
   activeChip=null;
   scaleActive=null;scaleBoxIdx=null;
-  selection.fill(null);
+  resetChordSelection();
   exitShapes();
   analyze();
   renderSong();

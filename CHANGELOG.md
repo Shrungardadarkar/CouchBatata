@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-18 — Open-string chord board
+
+- Chord mode now begins with all six strings selected as open notes.
+- The nut is the only mute control: tap an open note to show one × on that nut,
+  then tap it again to restore the open string.
+- Reset restores the standard open tuning, and string labels stay as plain names
+  so alternate-shape views never show a duplicate ×.
+
 ## 2026-07-18 — Fretboard technique drawer
 
 - Moved Solo / arpeggio technique pills into a sliding strip directly below the

@@ -1,6 +1,6 @@
-# Couch Batata
+# Couch Batata - A tab builder for singer-songwriter.
 
-**Build songs from the sofa.**
+**Explore Chords, Scales, Progressions and Create Tabs; always create music.**
 
 Couch Batata is a free, installable guitar chord and song builder for phones,
 tablets, and laptops. Pick notes on the fretboard, identify the chord, arrange

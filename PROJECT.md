@@ -21,8 +21,8 @@ theory guidance must still be careful, explicit, and testable.
 - Plum outlines and text.
 - Tomato, sunflower, mint, sky, and lilac sticker colors.
 - Thick borders, hard offset shadows, rounded cards, and physical button motion.
-- The potato guitarist mascot is embedded in the application and also available
-  as `mascot.png`.
+- The transparent potato-on-couch mascot is a normal project asset:
+  `mascot-v2.png`.
 
 ## Runtime model
 

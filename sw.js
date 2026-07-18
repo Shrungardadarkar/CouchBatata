@@ -1,4 +1,4 @@
-const CACHE_NAME = "couch-batata-v4";
+const CACHE_NAME = "couch-batata-v5";
 const APP_URL = new URL("./index.html", self.registration.scope).href;
 const APP_SHELL = [
   "./index.html",
@@ -7,7 +7,7 @@ const APP_SHELL = [
   "./icon-512-v2.png",
   "./icon-maskable-512-v2.png",
   "./apple-touch-icon-v2.png",
-  "./mascot.png",
+  "./mascot-v2.png",
   "./og.png"
 ];
 

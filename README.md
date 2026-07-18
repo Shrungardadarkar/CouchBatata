@@ -62,7 +62,7 @@ icon-192-v2.png            Standard home-screen icon
 icon-512-v2.png            Large home-screen icon
 icon-maskable-512-v2.png   Safely padded Android adaptive icon
 app-icon-master.png        Full-resolution editable icon artwork
-mascot.png                 Source mascot image
+mascot-v2.png              Transparent header mascot image
 og.png                     WhatsApp/LinkedIn social preview
 PROJECT.md                 Product and technical specification
 AGENTS.md                  Instructions for AI coding agents

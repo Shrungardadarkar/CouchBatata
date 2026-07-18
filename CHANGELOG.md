@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Header mascot refresh
+
+- Replaced the old embedded mascot with the supplied transparent acoustic-guitar artwork.
+- Added the new mascot to the offline app shell so installed users receive it too.
+
 ## 2026-07-18 — In-app update notice
 
 - Added a clear Update now prompt when an installed app detects a newer published version.

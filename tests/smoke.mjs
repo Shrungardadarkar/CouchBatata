@@ -8,7 +8,7 @@ const read = name => readFile(join(root, name), "utf8");
 const required = [
   "index.html", "manifest.webmanifest", "sw.js", "icon-192-v2.png",
   "icon-512-v2.png", "icon-maskable-512-v2.png", "apple-touch-icon-v2.png",
-  "app-icon-master.png", "mascot.png", "og.png", "README.md", "PROJECT.md",
+  "app-icon-master.png", "mascot-v2.png", "og.png", "README.md", "PROJECT.md",
   "AGENTS.md", "LICENSE"
 ];
 

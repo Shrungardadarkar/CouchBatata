@@ -1423,6 +1423,18 @@ function leadEventLabel(event){
 function copyLeadEvents(events){
   return (events||[]).map(event=>({notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),t:event.t||''}));
 }
+function soloCreationTarget(){
+  const sec=activeSection();
+  // A new solo belongs with the active progression only when that section has
+  // chords. An empty/Solo-only section should not silently absorb a new solo.
+  return sec&&sec.chords.length?sec:null;
+}
+function createSoloSection(){
+  const name=nextSectionName('Solo');
+  const sec={id:_nextId++,name,chords:[],lead:[],lyrics:''};
+  sections.push(sec);activeSectionId=sec.id;
+  return sec;
+}
 function renderLead(){
   const target=document.getElementById('leadSectionName');
   const out=document.getElementById('leadSequence');
@@ -1430,7 +1442,8 @@ function renderLead(){
   if(leadSelectionSectionId!==null&&leadSelectionSectionId!==sec?.id){
     leadSelection.fill(null);leadSelectionSectionId=sec?.id??null;
   }
-  const targetSection=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):sec;
+  let targetSection=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):soloCreationTarget();
+  if(leadDraftSourceSectionId!==null&&!targetSection)leadDraftSourceSectionId=null;
   target.textContent=targetSection?targetSection.name:'new Solo section';
   out.innerHTML='';
   const events=leadDraft;
@@ -1449,7 +1462,12 @@ function renderLead(){
       out.appendChild(event);
     });
   }
-  document.getElementById('btnLeadCreate').disabled=!events.length;
+  const createButton=document.getElementById('btnLeadCreate');
+  const editing=leadDraftSourceSectionId!==null;
+  createButton.disabled=!events.length;
+  createButton.textContent=editing?'Save solo':'Create solo';
+  createButton.title=editing?'Save changes to this solo':targetSection
+    ?'Add this solo to '+targetSection.name:'Create a new Solo section with this solo';
   document.getElementById('btnLeadClear').disabled=!events.length;
   document.getElementById('btnLeadClearSelection').disabled=!leadSelection.some(Number.isInteger);
   document.getElementById('btnLeadShowNotes').setAttribute('aria-pressed',String(leadDisplay==='notes'));
@@ -1477,7 +1495,7 @@ document.getElementById('leadTechniques').addEventListener('click',event=>{
 document.getElementById('btnLeadCreate').addEventListener('click',()=>{
   if(!leadDraft.length){flash('Add one or more solo events first');return;}
   const existing=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):null;
-  const sec=existing||ensureActiveSection('Solo');
+  const sec=existing||soloCreationTarget()||createSoloSection();
   if(existing)sec.lead=copyLeadEvents(leadDraft);
   else {
     if(!Array.isArray(sec.lead))sec.lead=[];

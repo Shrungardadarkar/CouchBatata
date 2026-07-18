@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 — Clear solo save states
+
+- Changed Create solo to Save solo while editing an existing saved solo.
+- New solos join the active section only when it has chords; otherwise Couch
+  Batata creates a separate Solo section.
+
 ## 2026-07-18 — Visible, editable saved solos
 
 - Show every saved solo event directly inside its Song section instead of only

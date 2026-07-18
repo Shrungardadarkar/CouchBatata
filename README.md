@@ -39,7 +39,9 @@ Users do not need an app-store download.
   note names or tab fret numbers. Draft events can be deleted or reordered,
   then **Create solo** adds them to the selected section (or a new Solo section).
 - Saved solos are visible in their Song section and can be reopened with
-  **Edit solo** for further changes.
+  **Edit solo** for further changes; the action becomes **Save solo** while
+  editing. A new solo joins an active chord section, or creates a Solo section
+  when no chord section is active.
 - Key and scale direction appears before the fretboard; an active scale overlay
   remains visible while recording a solo.
 - Standard tuning with sharps/flats spelling.

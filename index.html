@@ -1677,12 +1677,12 @@ function render(){
       if(!soloMode&&selection[s]==='x')continue;
       for(let f=0;f<=12;f++){
         const pc=(OPEN[s]+f)%12;
-        if(pcToInterval.has(pc)&&selection[s]!==f){
+        if(pcToInterval.has(pc)&&(soloMode||selection[s]!==f)){
           const iv=pcToInterval.get(pc);
           const outOfBox=!!activeBox&&!activeBox.perString[s].has(f);
           const d=document.createElement('div');
           d.className='dot-note scale '+scaleDegreeClass(iv)+(outOfBox?' out-of-box':'');
-          d.textContent=pcName(pc);
+          d.textContent=soloMode&&leadDisplay==='tab'?String(f):pcName(pc);
           cells[s][f].appendChild(d);
         }
       }

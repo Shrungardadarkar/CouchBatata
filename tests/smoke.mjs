@@ -35,6 +35,7 @@ assert.match(html, /data-tech="p"/);
 assert.match(html, /data-tech="b"/);
 assert.match(html, /btnLeadShowNotes/);
 assert.match(html, /btnLeadShowTab/);
+assert.match(html, /soloMode&&leadDisplay==='tab'\?String\(f\):pcName\(pc\)/);
 assert.match(html, /btnLeadCreate/);
 assert.match(html, /leadDraft/);
 assert.match(html, /Save solo/);

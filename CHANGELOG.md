@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Notes / Tab display fix
+
+- Made Notes / Tab visibly switch active scale-guide labels between note names
+  and fret numbers in Solo / arpeggio mode.
+
 ## 2026-07-18 — Floating Help
 
 - Added a small, bottom-right Help button with a non-blocking quick-start guide

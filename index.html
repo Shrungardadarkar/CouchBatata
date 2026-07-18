@@ -2139,8 +2139,10 @@ function commitDrop(){
     }
   } else if(drag.type==='section' && drag.dropIdx>=0){
     const [moved]=sections.splice(drag.sourceIdx,1);
-    let dropIdx=drag.dropIdx;
-    if(drag.sourceIdx<drag.dropIdx)dropIdx--;
+    // updateSectionDrop() ignores the section being dragged, so this is
+    // already the correct post-removal insertion index. Adjusting it again
+    // would place every forward same-section drag one slot too early.
+    const dropIdx=drag.dropIdx;
     sections.splice(dropIdx,0,moved);
     renderSong();
   }

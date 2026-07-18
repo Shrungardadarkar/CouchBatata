@@ -26,6 +26,8 @@ assert.match(html, /registration\.update\(\)/);
 assert.match(html, /controllerchange/);
 assert.match(html, /const chord=fromSec\.chords\.splice\(drag\.sourceIdx,1\)\[0\];[\s\S]{0,500}const dropIdx=drag\.dropIdx;[\s\S]{0,250}toSec\.chords\.splice\(dropIdx,0,chord\)/,
   "Forward same-section chord drags must use the post-removal insertion index");
+assert.match(html, /const \[moved\]=sections\.splice\(drag\.sourceIdx,1\);[\s\S]{0,500}const dropIdx=drag\.dropIdx;[\s\S]{0,250}sections\.splice\(dropIdx,0,moved\)/,
+  "Forward section drags must use the post-removal insertion index");
 assert.match(html, /fretwork\.song\.v1/);
 assert.match(html, /Back up project \(\.json\)/);
 assert.match(html, /@media \(pointer:coarse\)/);

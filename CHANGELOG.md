@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-07-18 — Desktop app title
+
+- Simplified installed desktop app metadata to read: “Couch Batata - A tab builder for singer-songwriters”.
+
 ## 2026-07-18 — Header mascot refresh
 
 - Replaced the old embedded mascot with the supplied transparent acoustic-guitar artwork.

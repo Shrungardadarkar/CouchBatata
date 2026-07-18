@@ -30,6 +30,8 @@ assert.match(html, /@media \(pointer:coarse\)/);
 assert.equal(manifest.start_url, "./index.html");
 assert.equal(manifest.scope, "./");
 assert.equal(manifest.display, "standalone");
+assert.equal(manifest.name, "Couch Batata");
+assert.match(html, /<title>A tab builder for singer-songwriters<\/title>/);
 assert.equal(manifest.icons.length, 3);
 assert.ok(manifest.icons.some(icon => icon.purpose === "maskable"));
 assert.match(worker, /couch-batata-v\d+/);

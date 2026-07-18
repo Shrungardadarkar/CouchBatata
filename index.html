@@ -825,7 +825,7 @@
 
   <div class="export-row">
     <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
-    <button class="btn" id="btnCopy" disabled title="Copy your song as text you can paste into any app (email, docs, Slack…)">Copy to clipboard</button>
+    <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
     <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Back up project (.json)</button>
     <button class="btn ghost" id="btnImport" title="Open an editable Couch Batata project backup">Open project</button>
     <input id="projectFile" type="file" accept="application/json,.json" hidden>
@@ -878,7 +878,7 @@
   </details>
   <details>
     <summary>Offline, sharing &amp; privacy</summary>
-    <p>Your work auto-saves on this device. Back up a project for safekeeping, or export/copy tab to share it. After the first visit, the app works offline. No account or tracking is used.</p>
+    <p>Your work auto-saves on this device. Back up a project for safekeeping, preview/export tab to share it. After the first visit, the app works offline. No account or tracking is used.</p>
   </details>
 </aside>
 
@@ -2761,9 +2761,11 @@ document.getElementById('btnExport').addEventListener('click',()=>{
   flash('Downloaded couch-batata-chart.txt');
 });
 document.getElementById('btnCopy').addEventListener('click',async()=>{
-  const txt=showExport();
-  try{await navigator.clipboard.writeText(txt);flash('Copied to clipboard');}
-  catch(e){flash('Preview shown below — select & copy');}
+  showExport();
+  const panel=document.getElementById('exportPanel');
+  panel.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>document.getElementById('exportPre').focus(),350);
+  flash('Preview ready');
 });
 
 function downloadText(filename,text,type){

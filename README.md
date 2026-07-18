@@ -48,7 +48,7 @@ Users do not need an app-store download.
 - Chord recognition, inversions, alternate interpretations, and voicing browser.
 - Song sections, repeats, lyrics, duplication, deletion, and reordering.
 - Key analysis, borrowed-chord guidance, scale suggestions, and position boxes.
-- Plain-text chord and lead-tab export and clipboard copy.
+- Plain-text chord and lead-tab preview and export.
 - Editable JSON project backup and restore.
 - Local autosave with close/reload protection.
 - Responsive touch layout and accessible custom section menu.

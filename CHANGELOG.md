@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Preview action
+
+- Replaced the ambiguous Copy to clipboard action with Preview, which opens the
+  complete in-app tab chart before export.
+
 ## 2026-07-18 — Whole-pill fretboard switches
 
 - Rebuilt Chord/Solo and Notes/Tab as single-click sliding switches that match

@@ -28,6 +28,7 @@ assert.match(html, /Solo \/ Arpeggio recorder/);
 assert.match(html, /id="btnHelp"/);
 assert.match(html, /id="helpPanel"/);
 assert.match(html, /Need a hand\?/);
+assert.match(html, /id="btnCopy"[^>]*>Preview<\/button>/);
 assert.match(html, /btnBoardMode/);
 assert.match(html, /class="fret-controls"/);
 assert.match(html, /id="boardLeadDisplay"/);

@@ -301,15 +301,19 @@
   .lead-tech[aria-pressed="true"]{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}
   .lead-tech:focus-visible,.lead-cell:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-board-wrap{overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
-  .lead-board{min-width:620px;border:var(--outline);border-radius:10px;overflow:hidden;background:var(--fretwood);box-shadow:var(--shadow-sm)}
-  .lead-row{display:grid;grid-template-columns:34px repeat(13,1fr);min-height:35px}
-  .lead-string{display:flex;align-items:center;justify-content:center;background:var(--cream);font-family:"Arial Black",Arial,sans-serif;font-size:.78rem;color:var(--ink);border-right:2px solid var(--ink)}
-  .lead-cell{border:0;border-right:1px solid rgba(90,47,62,.55);border-bottom:1px solid rgba(90,47,62,.5);background:transparent;color:var(--cream);font:inherit;font-weight:900;cursor:pointer;position:relative}
-  .lead-cell:hover{background:rgba(245,197,24,.45)}
-  .lead-cell::after{content:attr(data-fret);position:absolute;right:3px;bottom:1px;color:rgba(90,47,62,.48);font-size:.6rem;font-weight:800}
+  .lead-board{min-width:820px;border:var(--outline);border-radius:8px;overflow:hidden;background:var(--fretwood);box-shadow:var(--shadow)}
+  .lead-row{display:grid;grid-template-columns:56px 1.35fr 1.28fr 1.22fr 1.16fr 1.1fr 1.05fr 1fr .96fr .92fr .88fr .85fr .82fr;min-height:44px;position:relative}
+  .lead-string{display:flex;align-items:center;justify-content:center;background:var(--cream);font-family:"Arial Black",Arial,sans-serif;font-size:.85rem;color:var(--ink);border-right:3px solid var(--ink);z-index:2}
+  .lead-cell{border:0;background:transparent;font:inherit;cursor:pointer;position:relative;padding:0}
+  .lead-cell::before{content:"";position:absolute;left:0;right:0;top:50%;height:var(--lead-string,2px);transform:translateY(-50%);background:var(--fretstring);opacity:.95;box-shadow:0 1px 1.5px rgba(90,47,62,.25)}
+  .lead-row:nth-child(1){--lead-string:1.4px}.lead-row:nth-child(2){--lead-string:1.8px}.lead-row:nth-child(3){--lead-string:2.2px}.lead-row:nth-child(4){--lead-string:2.8px}.lead-row:nth-child(5){--lead-string:3.4px}.lead-row:nth-child(6){--lead-string:4px}
+  .lead-cell:not(.lead-open)::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;background:var(--fretstring);opacity:.75}
+  .lead-cell.lead-open{background:var(--cream);border-right:3px solid var(--ink)}
+  .lead-cell:hover{background-color:rgba(245,197,24,.38)}
+  .lead-cell:active{background-color:rgba(142,207,168,.7)}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
   .lead-event{font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 7px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink)}
-  .lead-event:hover{background:var(--sun)}
+  .lead-event:hover,.lead-event.selected{background:var(--sun)}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-summary{margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
 
@@ -717,10 +721,10 @@
 
 <div class="panel win-lilac" data-win="Solo / Arpeggio">
   <h2>Solo / Arpeggio recorder</h2>
-  <p class="lead-intro">Tap notes in the order you want to play them. Each note is saved as tab in the active song section. Choose a technique before tapping the next note.</p>
+  <p class="lead-intro">Tap notes in the order you want to play them. Each note is saved as tab in the active song section. Select a recorded note, then apply its technique.</p>
   <div class="lead-toolbar">
     <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
-    <div class="lead-techniques" id="leadTechniques" aria-label="Technique for the next note">
+    <div class="lead-techniques" id="leadTechniques" aria-label="Technique for the selected note">
       <button class="lead-tech" type="button" data-tech="" aria-pressed="true">Clean</button>
       <button class="lead-tech" type="button" data-tech="b">Bend</button>
       <button class="lead-tech" type="button" data-tech="r">Release</button>
@@ -1229,7 +1233,7 @@ let sections=[];         // [{id, name, chords, lead:[{s,f,t}], lyrics}]
 let activeSectionId=null;
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
-let leadTechnique='';
+let selectedLead=null;  // {sectionId,index} | null
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
 
@@ -1385,7 +1389,7 @@ for(let s=0;s<6;s++){
   row.appendChild(label);
   for(let f=0;f<=12;f++){
     const cell=document.createElement('button');cell.type='button';cell.className='lead-cell';
-    cell.dataset.string=s;cell.dataset.fret=f;
+    cell.dataset.string=s;cell.dataset.fret=f;cell.classList.toggle('lead-open',f===0);
     cell.setAttribute('aria-label','Add '+pcName((OPEN[s]+f)%12)+' on '+STR_LABEL[s]+' string, '+(f===0?'open':'fret '+f));
     row.appendChild(cell);
   }
@@ -1402,26 +1406,32 @@ function renderLead(){
   target.textContent=sec?sec.name:'new Solo section';
   out.innerHTML='';
   const notes=sec?.lead||[];
+  if(!selectedLead||selectedLead.sectionId!==sec?.id||selectedLead.index<0||selectedLead.index>=notes.length)selectedLead=null;
   if(!notes.length){
     const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No solo notes yet — tap any fret to record it.';out.appendChild(empty);
   }else{
     notes.forEach((note,index)=>{
       const event=document.createElement('button');event.type='button';event.className='lead-event';
-      event.textContent=(index+1)+'. '+leadEventLabel(note);event.title='Remove this recorded note';
-      event.setAttribute('aria-label','Remove '+leadEventLabel(note));
-      event.addEventListener('click',()=>{const cur=activeSection();if(!cur)return;cur.lead.splice(index,1);renderSong();save();});
+      const selected=selectedLead?.sectionId===sec.id&&selectedLead.index===index;
+      event.classList.toggle('selected',selected);
+      event.setAttribute('aria-pressed',String(selected));
+      event.textContent=(index+1)+'. '+leadEventLabel(note);event.title='Select this recorded note to edit its technique';
+      event.setAttribute('aria-label','Select '+leadEventLabel(note));
+      event.addEventListener('click',()=>{selectedLead={sectionId:sec.id,index};renderLead();});
       out.appendChild(event);
     });
   }
   document.getElementById('btnLeadUndo').disabled=!notes.length;
   document.getElementById('btnLeadClear').disabled=!notes.length;
-  document.querySelectorAll('.lead-tech').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.tech===leadTechnique)));
+  const selectedTechnique=selectedLead?notes[selectedLead.index]?.t||'':'';
+  document.querySelectorAll('.lead-tech').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.tech===selectedTechnique)));
 }
 function addLeadNote(s,f){
   const sec=ensureActiveSection('Solo');
   if(!Array.isArray(sec.lead))sec.lead=[];
-  sec.lead.push({s,f,t:leadTechnique});
+  sec.lead.push({s,f,t:''});
   activeSectionId=sec.id;
+  selectedLead={sectionId:sec.id,index:sec.lead.length-1};
   renderSong();save();
   flash('Recorded '+leadEventLabel(sec.lead[sec.lead.length-1]));
 }
@@ -1431,13 +1441,17 @@ leadBoard.addEventListener('click',event=>{
 });
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
-  leadTechnique=button.dataset.tech;renderLead();
+  const sec=activeSection();
+  if(!sec||!selectedLead||selectedLead.sectionId!==sec.id||!sec.lead[selectedLead.index]){
+    flash('Tap a solo note, then choose its technique');return;
+  }
+  sec.lead[selectedLead.index].t=button.dataset.tech;renderSong();save();
 });
 document.getElementById('btnLeadUndo').addEventListener('click',()=>{
-  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead.pop();renderSong();save();
+  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead.pop();selectedLead=null;renderSong();save();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
-  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead=[];renderSong();save();
+  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead=[];selectedLead=null;renderSong();save();
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Lead recorder interaction
+
+- Made the solo fretboard visually match the main guitar fretboard.
+- Techniques are now applied after selecting a recorded note, rather than before tapping it.
+
 ## 2026-07-18 — Solo and arpeggio recorder
 
 - Added a separate tappable lead fretboard that records notes into the active song section.

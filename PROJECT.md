@@ -9,7 +9,8 @@ software. The primary loop is:
 2. Review the identified chord and alternate interpretations.
 3. Add the chord to the active song section.
 4. Arrange sections, repeats, and optional lyrics.
-5. Record a solo or arpeggio directly into the active section.
+5. Switch the same fretboard to Solo / arpeggio mode and record into the active
+   section.
 6. Review key and scale guidance.
 7. Export a readable chart or an editable project backup.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 — One shared fretboard
+
+- Replaced the separate solo recorder fretboard with the original chord
+  fretboard, so both workflows use exactly the same visual instrument.
+- Added a Chord / Solo / arpeggio mode switch above the shared fretboard.
+
 ## 2026-07-18 — Lead recorder: grouped notes and tab display
 
 - Made the solo fretboard visually match the main guitar fretboard.

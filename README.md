@@ -37,6 +37,8 @@ Users do not need an app-store download.
   select one or more notes, then save the hit with clean, bend, release,
   pull-off, hammer-on, slides, vibrato, or mute; selected markers can show
   note names or tab fret numbers.
+- Key and scale direction appears before the fretboard; an active scale overlay
+  remains visible while recording a solo.
 - Standard tuning with sharps/flats spelling.
 - Chord recognition, inversions, alternate interpretations, and voicing browser.
 - Song sections, repeats, lyrics, duplication, deletion, and reordering.

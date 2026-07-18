@@ -674,6 +674,18 @@
 <div class="wrap">
 <p class="tagline">Click the notes you're playing. Click a string label to mute (×) it. Couch Batata names the chord, drops it into the active section, and suggests scales for soloing over the whole progression.</p>
 
+<div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
+  <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
+    <div class="key-line" id="keyLine"></div>
+    <span class="scale-panel-chevron" id="scalePanelChevron" aria-hidden="true">▾</span>
+  </button>
+  <div class="scale-panel-body" id="scalePanelBody" hidden>
+    <div class="guidance" id="guidance" hidden></div>
+    <div class="suggest" id="suggestOut" hidden></div>
+    <div class="scale-suggest" id="scaleSuggest" hidden></div>
+  </div>
+</div>
+
 <div class="panel win-sun" data-win="Fretboard" id="tabPanel">
   <button class="toggle" id="btnAccidental" type="button" role="switch" aria-checked="false"
     aria-label="Note spelling: sharps or flats" title="Slide to toggle note spelling between sharps (♯) and flats (♭)">
@@ -691,18 +703,6 @@
       <div class="board" id="board"></div>
       <div class="fret-nums" id="fretNums"></div>
     </div>
-  </div>
-</div>
-
-<div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
-  <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
-    <div class="key-line" id="keyLine"></div>
-    <span class="scale-panel-chevron" id="scalePanelChevron" aria-hidden="true">▾</span>
-  </button>
-  <div class="scale-panel-body" id="scalePanelBody" hidden>
-    <div class="guidance" id="guidance" hidden></div>
-    <div class="suggest" id="suggestOut" hidden></div>
-    <div class="scale-suggest" id="scaleSuggest" hidden></div>
   </div>
 </div>
 
@@ -1543,7 +1543,7 @@ function render(){
       cells[s][f].classList.toggle('in-box',inBox);
     }
   }
-  if(scaleActive&&!soloMode){
+  if(scaleActive){
     const S=SCALES[scaleActive.scale];
     // Map each scale pitch class back to its interval from the root
     const pcToInterval=new Map();
@@ -1551,7 +1551,7 @@ function render(){
       pcToInterval.set((scaleActive.root+iv)%12,iv);
     });
     for(let s=0;s<6;s++){
-      if(selection[s]==='x')continue;
+      if(!soloMode&&selection[s]==='x')continue;
       for(let f=0;f<=12;f++){
         const pc=(OPEN[s]+f)%12;
         if(pcToInterval.has(pc)&&selection[s]!==f){

@@ -10,7 +10,7 @@ software. The primary loop is:
 3. Add the chord to the active song section.
 4. Arrange sections, repeats, and optional lyrics.
 5. Switch the same fretboard to Solo / arpeggio mode and record into the active
-   section.
+   section, using any selected scale overlay as a visual guide.
 6. Review key and scale guidance.
 7. Export a readable chart or an editable project backup.
 

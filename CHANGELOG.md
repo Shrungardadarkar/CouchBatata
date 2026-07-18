@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 — Scale-guided solo mode
+
+- Moved Key & Scales above the shared fretboard for earlier musical direction.
+- Kept active scale notes visible in Solo / arpeggio mode until the scale is
+  deselected, with selected solo notes layered above the scale.
+
 ## 2026-07-18 — One shared fretboard
 
 - Replaced the separate solo recorder fretboard with the original chord

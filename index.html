@@ -2115,8 +2115,10 @@ function commitDrop(){
     const toSec=findSection(drag.dropSection);
     if(!fromSec||!toSec)return;
     const chord=fromSec.chords.splice(drag.sourceIdx,1)[0];
-    let dropIdx=drag.dropIdx;
-    if(fromSec.id===toSec.id && drag.sourceIdx<drag.dropIdx)dropIdx--;
+    // updateChordDrop() ignores the chip being dragged, so its index already
+    // matches the chord list after the splice above. Adjusting it again would
+    // place every forward same-section drag one slot too early.
+    const dropIdx=drag.dropIdx;
     toSec.chords.splice(dropIdx,0,chord);
 
     // Adjust activeChip pointer

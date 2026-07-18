@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 — Fix forward chord drag within a section
+
+- Fixed forward chord drags landing one slot too early in the same section.
+- Bumped the offline cache so installed users receive the fix.
+
 ## 2026-07-18 — Desktop app title
 
 - Simplified installed desktop app metadata to read: “Couch Batata - A tab builder for singer-songwriters”.

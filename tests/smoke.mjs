@@ -27,6 +27,9 @@ assert.match(html, /controllerchange/);
 assert.match(html, /Solo \/ Arpeggio recorder/);
 assert.match(html, /data-tech="p"/);
 assert.match(html, /data-tech="b"/);
+assert.match(html, /btnLeadShowNotes/);
+assert.match(html, /btnLeadShowTab/);
+assert.match(html, /notes:\[\{s,f\}\]/);
 assert.match(html, /Solo \/ arpeggio:/);
 assert.match(html, /const chord=fromSec\.chords\.splice\(drag\.sourceIdx,1\)\[0\];[\s\S]{0,500}const dropIdx=drag\.dropIdx;[\s\S]{0,250}toSec\.chords\.splice\(dropIdx,0,chord\)/,
   "Forward same-section chord drags must use the post-removal insertion index");

@@ -298,7 +298,10 @@
   .lead-target b{color:var(--ink)}
   .lead-techniques{display:flex;gap:6px;flex-wrap:wrap}
   .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer}
-  .lead-tech[aria-pressed="true"]{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}
+  .lead-tech:hover{background:var(--sun)}
+  .lead-view-toggle{display:inline-flex;align-items:center;gap:3px;padding:3px;background:var(--cream);border:2px solid var(--ink);border-radius:999px}
+  .lead-view{font:inherit;font-size:.72rem;font-weight:850;color:var(--ink);background:transparent;border:0;border-radius:999px;padding:4px 7px;cursor:pointer}
+  .lead-view[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
   .lead-tech:focus-visible,.lead-cell:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-board-wrap{overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
   .lead-board{min-width:820px;border:var(--outline);border-radius:8px;overflow:hidden;background:var(--fretwood);box-shadow:var(--shadow)}
@@ -311,6 +314,7 @@
   .lead-cell.lead-open{background:var(--cream);border-right:3px solid var(--ink)}
   .lead-cell:hover{background-color:rgba(245,197,24,.38)}
   .lead-cell:active{background-color:rgba(142,207,168,.7)}
+  .lead-dot{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;pointer-events:none;z-index:3;letter-spacing:.01em;background:var(--tomato);color:var(--cream);border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
   .lead-event{font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 7px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink)}
   .lead-event:hover,.lead-event.selected{background:var(--sun)}
@@ -583,7 +587,7 @@
   .cover-note b{color:var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1rem;font-weight:900}
 
   @media (prefers-reduced-motion:no-preference){
-    .dot-note.sel{animation:pop .32s var(--ease-bounce)}
+    .dot-note.sel,.lead-dot{animation:pop .32s var(--ease-bounce)}
     @keyframes pop{
       0%{transform:translate(-50%,-50%) scale(.3) rotate(-12deg)}
       60%{transform:translate(-50%,-50%) scale(1.15) rotate(4deg)}
@@ -721,11 +725,15 @@
 
 <div class="panel win-lilac" data-win="Solo / Arpeggio">
   <h2>Solo / Arpeggio recorder</h2>
-  <p class="lead-intro">Tap notes in the order you want to play them. Each note is saved as tab in the active song section. Select a recorded note, then apply its technique.</p>
+  <p class="lead-intro">Choose one or more notes on the fretboard, then press an action to save them together. Use several strings at once for double-stops and chord hits.</p>
   <div class="lead-toolbar">
     <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
-    <div class="lead-techniques" id="leadTechniques" aria-label="Technique for the selected note">
-      <button class="lead-tech" type="button" data-tech="" aria-pressed="true">Clean</button>
+    <div class="lead-view-toggle" aria-label="Fretboard marker display">
+      <button class="lead-view" id="btnLeadShowNotes" type="button" aria-pressed="true">Notes</button>
+      <button class="lead-view" id="btnLeadShowTab" type="button" aria-pressed="false">Tab</button>
+    </div>
+    <div class="lead-techniques" id="leadTechniques" aria-label="Save selected notes with an action">
+      <button class="lead-tech" type="button" data-tech="">Clean</button>
       <button class="lead-tech" type="button" data-tech="b">Bend</button>
       <button class="lead-tech" type="button" data-tech="r">Release</button>
       <button class="lead-tech" type="button" data-tech="p">Pull-off</button>
@@ -739,7 +747,8 @@
   <div class="lead-board-wrap"><div class="lead-board" id="leadBoard" aria-label="Solo and arpeggio fretboard"></div></div>
   <div class="lead-sequence" id="leadSequence" aria-live="polite"></div>
   <div class="btn-row">
-    <button class="btn" id="btnLeadUndo" type="button">Undo note</button>
+    <button class="btn" id="btnLeadUndo" type="button">Undo event</button>
+    <button class="btn" id="btnLeadClearSelection" type="button">Clear selection</button>
     <button class="btn ghost" id="btnLeadClear" type="button">Clear solo</button>
   </div>
 </div>
@@ -1229,11 +1238,13 @@ let currentAlts=[];
 let shapes=[],shapeIdx=0,inShapeMode=false;
 
 // Sections model — the whole song lives here
-let sections=[];         // [{id, name, chords, lead:[{s,f,t}], lyrics}]
+let sections=[];         // [{id, name, chords, lead:[{notes:[{s,f}],t}], lyrics}]
 let activeSectionId=null;
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
-let selectedLead=null;  // {sectionId,index} | null
+let leadSelection=new Array(6).fill(null); // one selected fret per string before saving
+let leadSelectionSectionId=null;
+let leadDisplay='notes';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
 
@@ -1260,7 +1271,10 @@ function projectSnapshot(){
     app:'Couch Batata',version:1,
     sections:sections.map(s=>({
       id:s.id, name:s.name, lyrics:s.lyrics||'',
-      lead:(s.lead||[]).map(n=>({s:n.s,f:n.f,t:n.t||''})),
+      lead:(s.lead||[]).map(event=>({
+        notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
+        t:event.t||''
+      })),
       chords:s.chords.map(c=>({
         root:c.root, suf:c.suf, pcs:[...c.pcs], frets:[...c.frets], rep:c.rep||1
       }))
@@ -1317,10 +1331,18 @@ function restoreProject(d){
         rep:Number.isInteger(c.rep)&&c.rep>0&&c.rep<=8?c.rep:1
       };
     });
-    const lead=(Array.isArray(sec.lead)?sec.lead:[]).slice(0,1000).flatMap(n=>{
-      if(!n||!Number.isInteger(n.s)||!Number.isInteger(n.f)||n.s<0||n.s>5||n.f<0||n.f>12)return [];
-      const t=typeof n.t==='string'&&LEAD_TECHNIQUES.has(n.t)?n.t:'';
-      return [{s:n.s,f:n.f,t}];
+    const lead=(Array.isArray(sec.lead)?sec.lead:[]).slice(0,1000).flatMap(event=>{
+      if(!event)return [];
+      // Accept previous one-note saves as well as the grouped-event format.
+      const rawNotes=Array.isArray(event.notes)?event.notes:[event];
+      const seen=new Set();
+      const notes=rawNotes.flatMap(n=>{
+        if(!n||!Number.isInteger(n.s)||!Number.isInteger(n.f)||n.s<0||n.s>5||n.f<0||n.f>12||seen.has(n.s))return [];
+        seen.add(n.s);return [{s:n.s,f:n.f}];
+      });
+      if(!notes.length)return [];
+      const t=typeof event.t==='string'&&LEAD_TECHNIQUES.has(event.t)?event.t:'';
+      return [{notes,t}];
     });
     return {
       id,
@@ -1390,68 +1412,99 @@ for(let s=0;s<6;s++){
   for(let f=0;f<=12;f++){
     const cell=document.createElement('button');cell.type='button';cell.className='lead-cell';
     cell.dataset.string=s;cell.dataset.fret=f;cell.classList.toggle('lead-open',f===0);
-    cell.setAttribute('aria-label','Add '+pcName((OPEN[s]+f)%12)+' on '+STR_LABEL[s]+' string, '+(f===0?'open':'fret '+f));
+    cell.setAttribute('aria-label','Select '+pcName((OPEN[s]+f)%12)+' on '+STR_LABEL[s]+' string, '+(f===0?'open':'fret '+f));
+    cell.setAttribute('aria-pressed','false');
     row.appendChild(cell);
   }
   leadBoard.appendChild(row);
 }
-function leadEventLabel(note){
-  const technique=note.t?(' · '+LEAD_TECH_LABEL[note.t]):'';
-  return STR_LABEL[note.s]+' '+(note.f===0?'open':note.f)+' '+pcName((OPEN[note.s]+note.f)%12)+technique;
+function leadEventLabel(event){
+  const notes=(event.notes||[]).map(note=>STR_LABEL[note.s]+' '+(note.f===0?'open':note.f)+' '+pcName((OPEN[note.s]+note.f)%12));
+  const technique=event.t?(' · '+LEAD_TECH_LABEL[event.t]):' · clean';
+  return notes.join(' + ')+technique;
+}
+function renderLeadBoard(){
+  document.querySelectorAll('.lead-dot').forEach(dot=>dot.remove());
+  document.querySelectorAll('.lead-cell').forEach(cell=>cell.setAttribute('aria-pressed','false'));
+  leadSelection.forEach((f,s)=>{
+    if(!Number.isInteger(f))return;
+    const cell=leadBoard.querySelector('.lead-cell[data-string="'+s+'"][data-fret="'+f+'"]');
+    if(!cell)return;
+    cell.setAttribute('aria-pressed','true');
+    const dot=document.createElement('span');dot.className='lead-dot';
+    dot.textContent=leadDisplay==='notes'?pcName((OPEN[s]+f)%12):String(f);
+    cell.appendChild(dot);
+  });
 }
 function renderLead(){
   const target=document.getElementById('leadSectionName');
   const out=document.getElementById('leadSequence');
   const sec=activeSection();
+  if(leadSelectionSectionId!==null&&leadSelectionSectionId!==sec?.id){
+    leadSelection.fill(null);leadSelectionSectionId=sec?.id??null;
+  }
   target.textContent=sec?sec.name:'new Solo section';
   out.innerHTML='';
-  const notes=sec?.lead||[];
-  if(!selectedLead||selectedLead.sectionId!==sec?.id||selectedLead.index<0||selectedLead.index>=notes.length)selectedLead=null;
-  if(!notes.length){
-    const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No solo notes yet — tap any fret to record it.';out.appendChild(empty);
+  const events=sec?.lead||[];
+  if(!events.length){
+    const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No saved solo events yet — select one or more notes, then press an action.';out.appendChild(empty);
   }else{
-    notes.forEach((note,index)=>{
+    events.forEach((leadEvent,index)=>{
       const event=document.createElement('button');event.type='button';event.className='lead-event';
-      const selected=selectedLead?.sectionId===sec.id&&selectedLead.index===index;
-      event.classList.toggle('selected',selected);
-      event.setAttribute('aria-pressed',String(selected));
-      event.textContent=(index+1)+'. '+leadEventLabel(note);event.title='Select this recorded note to edit its technique';
-      event.setAttribute('aria-label','Select '+leadEventLabel(note));
-      event.addEventListener('click',()=>{selectedLead={sectionId:sec.id,index};renderLead();});
+      event.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.title='Remove this recorded event';
+      event.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
+      event.addEventListener('click',()=>{
+        sec.lead.splice(index,1);renderSong();save();flash('Removed recorded event');
+      });
       out.appendChild(event);
     });
   }
-  document.getElementById('btnLeadUndo').disabled=!notes.length;
-  document.getElementById('btnLeadClear').disabled=!notes.length;
-  const selectedTechnique=selectedLead?notes[selectedLead.index]?.t||'':'';
-  document.querySelectorAll('.lead-tech').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.tech===selectedTechnique)));
+  document.getElementById('btnLeadUndo').disabled=!events.length;
+  document.getElementById('btnLeadClear').disabled=!events.length;
+  document.getElementById('btnLeadClearSelection').disabled=!leadSelection.some(Number.isInteger);
+  document.getElementById('btnLeadShowNotes').setAttribute('aria-pressed',String(leadDisplay==='notes'));
+  document.getElementById('btnLeadShowTab').setAttribute('aria-pressed',String(leadDisplay==='tab'));
+  renderLeadBoard();
 }
-function addLeadNote(s,f){
+function toggleLeadNote(s,f){
+  const sectionId=activeSection()?.id??null;
+  if(leadSelectionSectionId!==sectionId){leadSelection.fill(null);leadSelectionSectionId=sectionId;}
+  leadSelection[s]=leadSelection[s]===f?null:f;
+  renderLead();
+}
+function saveLeadEvent(t){
+  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  if(!notes.length){flash('Select one or more notes first');return;}
   const sec=ensureActiveSection('Solo');
   if(!Array.isArray(sec.lead))sec.lead=[];
-  sec.lead.push({s,f,t:''});
+  sec.lead.push({notes,t});
   activeSectionId=sec.id;
-  selectedLead={sectionId:sec.id,index:sec.lead.length-1};
+  leadSelection.fill(null);leadSelectionSectionId=sec.id;
   renderSong();save();
-  flash('Recorded '+leadEventLabel(sec.lead[sec.lead.length-1]));
+  flash('Saved '+leadEventLabel(sec.lead[sec.lead.length-1]));
 }
 leadBoard.addEventListener('click',event=>{
   const cell=event.target.closest('.lead-cell');if(!cell)return;
-  addLeadNote(+cell.dataset.string,+cell.dataset.fret);
+  toggleLeadNote(+cell.dataset.string,+cell.dataset.fret);
 });
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
-  const sec=activeSection();
-  if(!sec||!selectedLead||selectedLead.sectionId!==sec.id||!sec.lead[selectedLead.index]){
-    flash('Tap a solo note, then choose its technique');return;
-  }
-  sec.lead[selectedLead.index].t=button.dataset.tech;renderSong();save();
+  saveLeadEvent(button.dataset.tech);
 });
 document.getElementById('btnLeadUndo').addEventListener('click',()=>{
-  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead.pop();selectedLead=null;renderSong();save();
+  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead.pop();renderSong();save();
+});
+document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;renderLead();
+});
+document.getElementById('btnLeadShowNotes').addEventListener('click',()=>{
+  leadDisplay='notes';renderLead();
+});
+document.getElementById('btnLeadShowTab').addEventListener('click',()=>{
+  leadDisplay='tab';renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
-  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead=[];selectedLead=null;renderSong();save();
+  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead=[];renderSong();save();
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){
@@ -1925,7 +1978,7 @@ function buildSectionCard(sec,idx,primary){
   card.appendChild(wrap);
   if((sec.lead||[]).length){
     const summary=document.createElement('div');summary.className='lead-summary';
-    summary.textContent='🎸 '+sec.lead.length+' solo / arpeggio note'+(sec.lead.length===1?'':'s')+' recorded';
+    summary.textContent='🎸 '+sec.lead.length+' solo / arpeggio event'+(sec.lead.length===1?'':'s')+' recorded';
     card.appendChild(summary);
   }
 
@@ -2365,7 +2418,10 @@ function secDupBtn(sec,idx){
         rep:c.rep||1
       })),
       lyrics:sec.lyrics||'',
-      lead:(sec.lead||[]).map(n=>({s:n.s,f:n.f,t:n.t||''}))
+      lead:(sec.lead||[]).map(event=>({
+        notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
+        t:event.t||''
+      }))
     };
     sections.splice(idx+1,0,newSec);
     activeSectionId=newSec.id;
@@ -2440,11 +2496,15 @@ function buildExportText(){
     }
     if((g.lead||[]).length){
       L.push('Solo / arpeggio:');
-      const widths=g.lead.map(n=>Math.max(3,String(n.f).length+(n.t||'').length+2));
+      const widths=g.lead.map(event=>{
+        const longest=(event.notes||[]).reduce((max,n)=>Math.max(max,String(n.f).length),1);
+        return Math.max(3,longest+(event.t||'').length+2);
+      });
       for(let s=0;s<6;s++){
         let line=STR_LABEL[s]+'|';
-        g.lead.forEach((note,index)=>{
-          const token=note.s===s?String(note.f)+(note.t||''):'';
+        g.lead.forEach((event,index)=>{
+          const note=(event.notes||[]).find(n=>n.s===s);
+          const token=note?String(note.f)+(event.t||''):'';
           line+=token.padEnd(widths[index],'-');
         });
         L.push(line);

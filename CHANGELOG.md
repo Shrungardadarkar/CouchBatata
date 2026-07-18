@@ -1,9 +1,11 @@
 # Changelog
 
-## 2026-07-18 — Lead recorder interaction
+## 2026-07-18 — Lead recorder: grouped notes and tab display
 
 - Made the solo fretboard visually match the main guitar fretboard.
-- Techniques are now applied after selecting a recorded note, rather than before tapping it.
+- Select one note or multiple notes before choosing Clean, bend, release, pull-off,
+  hammer-on, slide, vibrato, or mute to save the whole hit as one event.
+- Added a Notes/Tab switch for selected fretboard markers and grouped-event tab export.
 
 ## 2026-07-18 — Solo and arpeggio recorder
 

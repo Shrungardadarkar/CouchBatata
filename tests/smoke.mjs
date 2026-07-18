@@ -1,0 +1,44 @@
+import assert from "node:assert/strict";
+import { readFile, access } from "node:fs/promises";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = fileURLToPath(new URL("..", import.meta.url));
+const read = name => readFile(join(root, name), "utf8");
+const required = [
+  "index.html", "manifest.webmanifest", "sw.js", "icon-192.png",
+  "icon-512.png", "mascot.png", "og.png", "README.md", "PROJECT.md",
+  "AGENTS.md", "LICENSE"
+];
+
+await Promise.all(required.map(name => access(join(root, name))));
+const [html, manifestText, worker] = await Promise.all([
+  read("index.html"), read("manifest.webmanifest"), read("sw.js")
+]);
+const manifest = JSON.parse(manifestText);
+
+assert.match(html, /<meta name="viewport"/);
+assert.match(html, /rel="manifest" href="\.\/manifest\.webmanifest"/);
+assert.match(html, /serviceWorker\.register\('\.\/sw\.js'/);
+assert.match(html, /fretwork\.song\.v1/);
+assert.match(html, /Back up project \(\.json\)/);
+assert.match(html, /@media \(pointer:coarse\)/);
+assert.equal(manifest.start_url, "./index.html");
+assert.equal(manifest.scope, "./");
+assert.equal(manifest.display, "standalone");
+assert.equal(manifest.icons.length, 2);
+assert.match(worker, /couch-batata-v\d+/);
+assert.match(worker, /request\.mode === "navigate"/);
+
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match => match[1]);
+assert.equal(scripts.length, 1, "Expected one inline application script");
+new Function(scripts[0]);
+new Function(worker);
+
+assert.doesNotMatch(html, /<(script|link)[^>]+(?:src|href)="https?:/i,
+  "Runtime scripts/styles must not load from the internet");
+
+console.log(`✓ ${required.length} required files present`);
+console.log("✓ manifest and service worker are valid");
+console.log("✓ application JavaScript parses");
+console.log("✓ no remote runtime dependencies or blocked vendor references");

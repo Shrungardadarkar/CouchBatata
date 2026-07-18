@@ -1,0 +1,2643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e8503a">
+<meta name="description" content="A free guitar chord and song builder for phones, tablets and laptops. Works offline after your first visit.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Couch Batata — Build songs from the sofa">
+<meta property="og:description" content="A free guitar chord and song builder for phones, tablets and laptops. Works offline after your first visit.">
+<meta property="og:url" content="https://shrungardadarkar.github.io/CouchBatata/">
+<meta property="og:image" content="https://shrungardadarkar.github.io/CouchBatata/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Couch Batata — Build songs from the sofa">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Couch Batata — Build songs from the sofa">
+<meta name="twitter:description" content="A free, installable guitar chord and song builder that works offline.">
+<meta name="twitter:image" content="https://shrungardadarkar.github.io/CouchBatata/og.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Couch Batata">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="icon" type="image/png" href="./icon-192.png">
+<title>Couch Batata — a guitar tab builder for singer-songwriters</title>
+<style>
+  :root{
+    /* Y2K retro-desktop palette — refined against reference sheets */
+    --cream:#f3eee3;          /* cleaner, lighter paper */
+    --cream-2:#eae2d2;
+    --paper:#fbf7ee;          /* window body — slightly brighter than desktop */
+    --ink:#5a2f3e;            /* warm plum-maroon — the signature retro outline/text color */
+    --ink-soft:#7a4b58;
+    --ink-dim:#7a5560;
+    --ink-faint:#a98a92;
+    --tomato:#e8503a;
+    --tomato-dk:#c33d2a;
+    --sky:#5b86c9;
+    --sky-dk:#3862a8;
+    --sun:#f5c518;
+    --sun-soft:#f7d873;       /* pastel butter for title bars */
+    --fretwood:#b8a894;       /* pastel greyish-brown fretboard */
+    --fretwood-2:#ad9c86;     /* slightly deeper edge for depth */
+    --fretstring:#f6f1e6;     /* light strings/frets so they read on the taupe */
+    --gold:#f0b400;
+    --mint:#8ecfa8;
+    --mint-soft:#b6e0c6;      /* pastel sage for title bars */
+    --mint-dk:#5aa77f;
+    --lilac:#b09bd9;
+    --lilac-dk:#8b6fc0;
+
+    /* semantic aliases so existing rules keep working */
+    --bg:var(--cream);
+    --bg-panel:var(--paper);
+    --bg-panel2:#efe6d5;
+    --amber:var(--gold);
+    --amber-soft:rgba(240,180,0,.18);
+    --amber-glow:rgba(240,180,0,.14);
+    --scale-blue:var(--sky);
+    --danger:var(--tomato);
+    --line:var(--ink);                    /* plum outlines everywhere */
+    --radius:16px;
+    --shadow:4px 4px 0 var(--ink);
+    --shadow-sm:3px 3px 0 var(--ink);
+    --outline:2.5px solid var(--ink);
+    /* funky easings — springy overshoot for a bouncy, sticker-y feel */
+    --ease-spring:cubic-bezier(.34,1.56,.64,1);      /* overshoots then settles */
+    --ease-bounce:cubic-bezier(.5,1.8,.5,.85);       /* punchier bounce for pops */
+    --ease-out-back:cubic-bezier(.18,.89,.32,1.28);  /* gentle back-out for slides */
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--cream);color:var(--ink);
+    font-family:"Helvetica Neue",Arial,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  /* Sticker-strewn desktop background — subtle radial doodads baked into the bg */
+  body{padding:0 0 0;max-width:none;margin:0;position:relative;
+    background-color:var(--cream);
+    background-image:
+      radial-gradient(circle at 6% 26%, rgba(91,134,201,.08) 0 7px, transparent 8px),
+      radial-gradient(circle at 94% 20%, rgba(232,80,58,.07) 0 6px, transparent 7px),
+      radial-gradient(circle at 12% 82%, rgba(240,180,0,.09) 0 8px, transparent 9px),
+      radial-gradient(circle at 88% 86%, rgba(176,155,217,.08) 0 7px, transparent 8px);
+    background-repeat:no-repeat}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px 20px}
+
+  /* ===== HEADER BANNER — tomato bar with fat outlined title ===== */
+  header{background:var(--tomato);border-bottom:var(--outline);
+    padding:4px 28px 4px 20px;margin-bottom:0;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+  .header-left{display:flex;align-items:center;gap:18px}
+  .mascot{width:74px;height:74px;object-fit:contain;line-height:1;flex-shrink:0;
+    filter:drop-shadow(2px 2px 0 rgba(90,47,62,.4));cursor:pointer;
+    transition:transform .2s var(--ease-spring)}
+  .mascot:hover{animation:mascotWiggle .5s ease-in-out}
+  @keyframes mascotWiggle{
+    0%{transform:rotate(0deg) scale(1)}
+    25%{transform:rotate(-6deg) scale(1.06)}
+    50%{transform:rotate(5deg) scale(1.06)}
+    75%{transform:rotate(-3deg) scale(1.03)}
+    100%{transform:rotate(0deg) scale(1)}
+  }
+  .header-title{display:flex;flex-direction:column;gap:0}
+  h1{font-family:"Arial Black","Arial Bold",Arial,sans-serif;font-weight:900;
+     font-style:normal;font-size:clamp(1.6rem,5vw,2.15rem);line-height:.95;letter-spacing:-.015em;
+     color:var(--cream);text-transform:uppercase;
+     -webkit-text-stroke:2px var(--ink);paint-order:stroke fill;
+     text-shadow:2.5px 2.5px 0 var(--ink)}
+  h1 .dot{color:var(--sun);-webkit-text-stroke:2px var(--ink)}
+  .header-subtitle{font-family:"Arial Black",Arial,sans-serif;font-weight:800;
+    color:#2b1520;font-size:clamp(.78rem,2.2vw,.92rem);letter-spacing:0;margin-top:2px}
+  .tagline{color:var(--ink-soft);font-size:.9rem;font-weight:600;line-height:1.55;
+    padding:20px 4px 4px;margin:0;text-align:left}
+
+  /* Note-spelling toggle → sliding switch on the Fretboard panel's top-right edge */
+  #tabPanel{position:relative}
+  #tabPanel .toggle{position:absolute;top:-18px;right:20px;z-index:5}
+  .toggle{position:relative;display:inline-flex;align-items:center;
+    width:72px;height:36px;padding:0;
+    background:var(--paper);border:var(--outline);border-radius:999px;
+    box-shadow:2.5px 2.5px 0 var(--ink);cursor:pointer;
+    font-family:inherit;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring);overflow:hidden}
+  .toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}
+  .toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
+  .toggle:focus-visible{outline:none;box-shadow:2.5px 2.5px 0 var(--ink),0 0 0 3px var(--mint)}
+  /* the two icons, always visible, one per half */
+  .acc-opt{flex:1;display:flex;align-items:center;justify-content:center;
+    font-size:1.15rem;font-weight:900;line-height:1;z-index:2;
+    transition:color .15s;pointer-events:none}
+  .acc-sharp{color:var(--ink)}            /* sharps active by default → dark */
+  .acc-flat{color:var(--ink-faint)}       /* inactive → faded */
+  .toggle.flats .acc-sharp{color:var(--ink-faint)}
+  .toggle.flats .acc-flat{color:var(--ink)}
+  /* sliding knob covers the active side */
+  .acc-knob{position:absolute;top:2.5px;left:2.5px;
+    width:32px;height:calc(100% - 5px);border-radius:999px;
+    background:var(--sun);border:2px solid var(--ink);z-index:1;
+    transition:transform .28s var(--ease-out-back),background .15s}
+  .toggle.flats .acc-knob{transform:translateX(31px);background:var(--mint)}
+
+  /* ---------- fretboard — sunflower yellow, black grid ---------- */
+  .board-wrap{overflow-x:auto;padding:14px 0 6px;-webkit-overflow-scrolling:touch}
+  .board-outer{min-width:820px;position:relative;user-select:none}
+  .string-labels{position:absolute;left:0;top:0;bottom:26px;width:26px;
+    display:flex;flex-direction:column;justify-content:space-around;align-items:center;
+    color:var(--ink);font-size:.9rem;font-weight:900;font-family:"Arial Black",Arial,sans-serif}
+  .board{margin-left:30px;position:relative;
+    background:var(--fretwood);
+    border:var(--outline);border-radius:8px;
+    box-shadow:var(--shadow);
+    display:grid;grid-template-rows:repeat(6,44px);}
+  .row{display:grid;grid-template-columns:56px repeat(12,1fr);position:relative}
+  .row{grid-template-columns:56px 1.35fr 1.28fr 1.22fr 1.16fr 1.1fr 1.05fr 1fr .96fr .92fr .88fr .85fr .82fr}
+  .cell{position:relative;cursor:pointer}
+  .cell:focus-visible{outline:3px solid var(--tomato);outline-offset:-3px;border-radius:4px}
+  .cell.nut{background:var(--cream);border-right:3px solid var(--ink)}
+  /* fret wires — light metal lines that read on the taupe board */
+  .cell:not(.nut)::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;
+    background:var(--fretstring);opacity:.75}
+  /* strings — light lines, thicker toward low E */
+  .cell::before{content:"";position:absolute;left:0;right:0;top:50%;height:var(--str-h,2px);
+    transform:translateY(-50%);background:var(--fretstring);opacity:.95;pointer-events:none;
+    box-shadow:0 1px 1.5px rgba(90,47,62,.25)}
+  .row:nth-child(1) .cell{--str-h:1.4px}
+  .row:nth-child(2) .cell{--str-h:1.8px}
+  .row:nth-child(3) .cell{--str-h:2.2px}
+  .row:nth-child(4) .cell{--str-h:2.8px}
+  .row:nth-child(5) .cell{--str-h:3.4px}
+  .row:nth-child(6) .cell{--str-h:4px}
+  .inlay{position:absolute;width:15px;height:15px;border-radius:50%;
+    background:var(--cream);opacity:.5;transform:translate(-50%,-50%);pointer-events:none;
+    box-shadow:inset 0 -1px 2px rgba(90,47,62,.2)}
+  .dot-note{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:.72rem;font-weight:800;pointer-events:none;z-index:3;letter-spacing:.01em}
+  /* played note — tomato sticker with black outline */
+  .dot-note.sel{background:var(--tomato);color:var(--cream);
+    border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)}
+  .dot-note.sel.root{background:var(--tomato);border:3px solid var(--ink);
+    box-shadow:0 0 0 2px var(--cream),2px 2px 0 var(--ink)}
+  .dot-note.scale{width:25px;height:25px;background:var(--cream);border:2.5px solid;
+    font-size:.6rem;opacity:1;z-index:2;transition:opacity .2s ease;
+    box-shadow:1.5px 1.5px 0 rgba(26,24,21,.5)}
+  .dot-note.scale.out-of-box{opacity:.16;box-shadow:none}
+  .cell{transition:background .2s ease}
+  .cell.in-box{background:rgba(246,241,230,.28)}
+  .cell.in-box.nut{background:var(--cream)}
+  /* Scale-degree color coding — dark-outlined sticker dots on the yellow board */
+  .dot-note.scale.sroot{border-color:var(--ink);background:var(--gold);
+    color:var(--ink);font-weight:900;opacity:1;box-shadow:2px 2px 0 var(--ink)}
+  .dot-note.scale.sthird{border-color:var(--sky-dk);background:var(--sky);color:var(--cream)}
+  .dot-note.scale.sfifth{border-color:var(--mint-dk);background:var(--mint);color:var(--ink)}
+  .dot-note.scale.sseventh{border-color:var(--lilac-dk);background:var(--lilac);color:var(--cream)}
+  .dot-note.scale.stension{border-color:var(--ink-faint);background:var(--cream);color:var(--ink-faint);opacity:.7}
+
+  /* Legend under the scale info panel */
+  .scale-legend{display:flex;flex-wrap:wrap;gap:10px 14px;margin-top:10px;padding-top:10px;
+    border-top:2px dashed var(--ink);font-size:.78rem;color:var(--ink-dim);align-items:center;font-weight:700}
+  .scale-legend .lg-item{display:inline-flex;align-items:center;gap:5px}
+  .scale-legend .lg-dot{display:inline-block;width:15px;height:15px;border-radius:50%;
+    border:2.5px solid var(--ink)}
+  .scale-legend .lg-dot.lg-sroot{background:var(--gold)}
+  .scale-legend .lg-dot.lg-sthird{background:var(--sky)}
+  .scale-legend .lg-dot.lg-sfifth{background:var(--mint)}
+  .scale-legend .lg-dot.lg-sseventh{background:var(--lilac)}
+  .scale-legend .lg-dot.lg-stension{background:var(--cream)}
+  .scale-legend .lg-hint{color:var(--ink-faint);font-style:italic;flex-basis:100%;margin-top:2px;font-size:.75rem;font-weight:600}
+
+  /* The color-coded note list inside the scale info panel */
+  .scale-notes-line{margin-top:10px;font-family:"Arial Black",Arial,sans-serif;
+    font-size:1rem;letter-spacing:.01em;line-height:1.9}
+  .scale-notes-line .lg-note{display:inline-block;padding:3px 9px;margin:2px 4px 2px 0;
+    border:2.5px solid var(--ink);border-radius:7px;background:var(--cream);
+    box-shadow:2px 2px 0 var(--ink);font-weight:900}
+  .scale-notes-line .lg-note sub{font-size:.6rem;opacity:.7;margin-left:2px;position:relative;top:-1px;font-weight:700}
+  .scale-notes-line .lg-note.lg-sroot{background:var(--gold);color:var(--ink)}
+  .scale-notes-line .lg-note.lg-sthird{background:var(--sky);color:var(--cream)}
+  .scale-notes-line .lg-note.lg-sfifth{background:var(--mint);color:var(--ink)}
+  .scale-notes-line .lg-note.lg-sseventh{background:var(--lilac);color:var(--cream)}
+  .scale-notes-line .lg-note.lg-stension{background:var(--cream);color:var(--ink-dim)}
+
+  /* Position-box selector chips */
+  .scale-boxes{margin-top:12px;padding-top:10px;border-top:2px dashed var(--ink);
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .scale-boxes .lg-boxes-label{font-size:.72rem;color:var(--ink);letter-spacing:.06em;
+    text-transform:uppercase;margin-right:4px;font-weight:900;font-family:"Courier New",monospace}
+  .box-chip{background:var(--cream);border:2.5px solid var(--ink);color:var(--ink);
+    padding:5px 11px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:800;
+    box-shadow:2px 2px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring);line-height:1.2}
+  .box-chip:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:4px 4px 0 var(--ink)}
+  .box-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .box-chip.on{background:var(--sun)}
+  .box-chip .box-frets{color:var(--ink-dim);font-size:.72rem;font-weight:700;margin-left:3px}
+  .box-chip.on .box-frets{color:var(--ink)}
+  .box-chip .root-tag{display:inline-block;background:var(--tomato);color:var(--cream);
+    font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;
+    padding:1px 6px;border-radius:4px;margin-left:4px;vertical-align:middle;border:1.5px solid var(--ink)}
+  .box-chip.on .root-tag{background:var(--tomato)}
+  .fret-nums{margin-left:30px;display:grid;
+    grid-template-columns:56px 1.35fr 1.28fr 1.22fr 1.16fr 1.1fr 1.05fr 1fr .96fr .92fr .88fr .85fr .82fr;
+    color:var(--ink-dim);font-size:.72rem;font-weight:800;padding-top:8px;text-align:center;font-family:"Courier New",monospace}
+
+  /* ---------- panels → clean sticker cards (no fake window chrome) ---------- */
+  .panel{background:var(--bg-panel);border:var(--outline);border-radius:18px;
+    padding:26px 24px 24px;margin-top:34px;box-shadow:var(--shadow);position:relative}
+  /* section label — a bold tab pill that sits over the card's top-left corner */
+  .panel[data-win]::before{content:attr(data-win);position:absolute;
+    top:-16px;left:22px;
+    background:var(--sun);color:var(--ink);border:var(--outline);
+    font-family:"Arial Black",Arial,sans-serif;font-weight:900;text-transform:uppercase;
+    font-size:.74rem;letter-spacing:.06em;
+    padding:5px 14px;border-radius:10px;box-shadow:2.5px 2.5px 0 var(--ink);
+    line-height:1.1}
+  .panel.win-tomato::before{background:var(--tomato);color:var(--cream)}
+  .panel.win-mint::before{background:var(--mint)}
+  .panel.win-sun::before{background:var(--sun)}
+  .panel.win-sky::before{background:var(--sky);color:var(--cream)}
+  .panel h2{font-family:"Arial Black",Arial,sans-serif;font-style:normal;font-size:.82rem;
+    text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);font-weight:900;margin-bottom:14px}
+  /* the label pill replaces the old h2 heading — hide h2 on labelled panels */
+  .panel[data-win] > h2{display:none}
+
+  .chord-name{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:2rem;line-height:1.05;color:var(--ink)}
+  .chord-name small{font-size:1rem;color:var(--ink-dim);font-weight:700}
+  .mood{color:var(--tomato);font-size:.95rem;margin-top:5px;font-weight:700;font-style:italic}
+  .notes-line{color:var(--ink-dim);font-size:.9rem;margin-top:8px;font-weight:600}
+  .alts{margin-top:12px;font-size:.85rem;color:var(--ink-dim);font-weight:600}
+  .alts button{background:var(--cream);border:2.5px solid var(--ink);border-radius:7px;color:var(--ink);
+    padding:4px 11px;margin:2px 5px 0 0;cursor:pointer;font-size:.82rem;font-weight:800;
+    box-shadow:2px 2px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s;font-family:inherit}
+  .alts button:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:4px 4px 0 var(--ink);background:var(--sun)}
+  .alts button:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .placeholder{color:var(--ink-dim);font-size:.95rem;font-weight:600}
+
+  /* ---------- chunky sticker buttons ---------- */
+  .btn-row{display:flex;flex-wrap:wrap;gap:12px;margin-top:16px}
+  .btn{border:2.5px solid var(--ink);background:var(--cream);color:var(--ink);
+    border-radius:9px;padding:10px 17px;font-size:.9rem;font-weight:800;cursor:pointer;
+    box-shadow:var(--shadow-sm);font-family:inherit;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .btn:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink)}
+  .btn:active{transform:translate(2px,2px) rotate(0deg);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .btn.primary{background:var(--sun);color:var(--ink);font-weight:900}
+  .btn.primary:hover{background:var(--gold)}
+  .btn.ghost{background:var(--mint)}
+  .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
+
+  .shape-nav{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .shape-nav[hidden]{display:none}
+  .shape-nav .btn{padding:8px 15px}
+  .shape-label{color:var(--ink-dim);font-size:.85rem;font-weight:700}
+
+  /* toast → sticker popup */
+  #toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(16px) rotate(-2deg) scale(.9);
+    background:var(--sun);color:var(--ink);font-weight:900;font-size:.88rem;
+    padding:11px 20px;border:2.5px solid var(--ink);border-radius:10px;box-shadow:var(--shadow);
+    opacity:0;pointer-events:none;transition:opacity .22s,transform .32s var(--ease-out-back);z-index:50}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0) rotate(-1.5deg) scale(1)}
+
+  .install-card{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:90;
+    width:min(520px,calc(100% - 24px));transform:translateX(-50%);
+    display:flex;align-items:center;gap:12px;padding:12px 14px;
+    background:var(--paper);border:var(--outline);border-radius:14px;box-shadow:5px 5px 0 var(--ink)}
+  .install-card[hidden]{display:none}
+  .install-card-copy{flex:1;min-width:0;font-size:.82rem;line-height:1.4;font-weight:700;color:var(--ink-dim)}
+  .install-card-copy b{display:block;color:var(--ink);font-size:.9rem}
+  .install-card .btn{flex-shrink:0;padding:8px 12px}
+  .install-dismiss{width:32px;height:32px;border:0;background:transparent;color:var(--ink);
+    font-size:1.15rem;font-weight:900;cursor:pointer;border-radius:50%}
+  .install-dismiss:hover{background:var(--cream-2)}
+
+  /* themed confirm modal (replaces native confirm on file:// URLs) */
+  .modal-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+    background:rgba(90,47,62,.42);padding:20px;opacity:0;transition:opacity .18s ease}
+  .modal-overlay.show{opacity:1}
+  .modal-dialog{background:var(--paper);border:var(--outline);border-radius:16px;
+    box-shadow:6px 6px 0 var(--ink);max-width:400px;width:100%;padding:22px 22px 20px;
+    transform:translateY(16px) scale(.9) rotate(-1.5deg);transition:transform .3s var(--ease-out-back)}
+  .modal-overlay.show .modal-dialog{transform:translateY(0) scale(1) rotate(0deg)}
+  .modal-msg{color:var(--ink);font-size:1rem;font-weight:700;line-height:1.5;margin-bottom:18px}
+  .modal-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+  .btn.danger{background:var(--tomato);color:var(--cream);font-weight:900}
+  .btn.danger:hover{background:var(--tomato-dk)}
+
+  #sectionSelect{-webkit-appearance:none;appearance:none;background-color:var(--cream);color:var(--ink);
+    border:2.5px solid var(--ink);border-radius:9px;padding:8px 32px 8px 12px;font-size:.85rem;
+    font-family:inherit;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);
+    background-repeat:no-repeat;background-position:right 10px center;background-size:12px 8px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  #sectionSelect:hover{background-color:var(--sun)}
+  #sectionSelect:focus-visible{outline:none;box-shadow:2px 2px 0 var(--ink),0 0 0 3px var(--sun)}
+  #sectionSelect option{font-family:"Helvetica Neue",Arial,sans-serif;font-weight:700;color:var(--ink);background:var(--paper)}
+
+  /* song = stack of section cards */
+  #song{display:flex;flex-direction:column;gap:14px}
+  .song-sect{border:2.5px solid var(--ink);border-radius:11px;background:var(--cream);
+    padding:12px 12px 14px;cursor:pointer;box-shadow:var(--shadow-sm);
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .song-sect:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+  .song-sect:focus-visible{outline:none;background:var(--cream-2)}
+  .song-sect.active{background:var(--sun);
+    box-shadow:4px 4px 0 var(--ink)}
+  .song-sect.menu-open{position:relative;z-index:30}
+
+  .sect-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  /* Fully custom section-name menu. Native <select> popups are drawn by the OS,
+     so their open state cannot reliably inherit this visual system. */
+  .sect-name-wrap{position:relative;z-index:2}
+  .sect-name-wrap.open{z-index:40}
+  .sect-name{display:block;background-color:var(--mint);color:var(--ink);
+    border:2.5px solid var(--ink);border-radius:9px;padding:6px 34px 6px 13px;cursor:pointer;
+    font-family:"Arial Black",Arial,sans-serif;font-style:normal;font-size:.95rem;
+    line-height:1.25;text-align:left;
+    letter-spacing:0;font-weight:900;box-shadow:2px 2px 0 var(--ink);
+    background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  .sect-name:hover{background-color:var(--mint-dk)}
+  .sect-name:focus-visible{outline:none;box-shadow:2px 2px 0 var(--ink),0 0 0 3px var(--sun)}
+  /* Active section → tomato fill needs a LIGHT (cream) chevron for contrast */
+  .song-sect.active .sect-name{background-color:var(--tomato);color:var(--cream);
+    background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23f3eee3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  .sect-name-wrap.open .sect-name{background-color:var(--tomato);color:var(--cream);
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23f3eee3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  .sect-name-menu{position:absolute;top:calc(100% + 8px);left:0;z-index:50;
+    width:max-content;min-width:220px;max-width:min(310px,calc(100vw - 48px));
+    max-height:min(420px,65vh);overflow-y:auto;padding:7px;
+    background:var(--paper);border:var(--outline);border-radius:12px;
+    box-shadow:5px 5px 0 var(--ink);font-family:"Helvetica Neue",Arial,sans-serif}
+  .sect-name-menu[hidden]{display:none}
+  .sect-name-option{display:block;width:100%;border:0;border-radius:7px;background:transparent;
+    color:var(--ink);padding:9px 12px;text-align:left;cursor:pointer;
+    font:800 .95rem/1.2 "Helvetica Neue",Arial,sans-serif}
+  .sect-name-option:hover,.sect-name-option:focus{outline:none;background:var(--sun);color:var(--ink)}
+  .sect-name-option[aria-selected="true"]{background:var(--ink);color:var(--cream)}
+  .sect-name-option[aria-selected="true"]::before{content:"✓";display:inline-block;width:22px;font-weight:900}
+  .sect-name-option:not([aria-selected="true"])::before{content:"";display:inline-block;width:22px}
+
+  .active-badge{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;
+    color:var(--ink);padding:4px 11px;border-radius:999px;border:2px solid var(--ink);
+    background:var(--cream);cursor:pointer;line-height:1;transition:transform .16s var(--ease-spring),background .12s;user-select:none;font-family:"Courier New",monospace}
+  .active-badge:hover{background:var(--cream-2);transform:scale(1.08) rotate(-2deg)}
+  .active-badge:active{transform:scale(.94);transition-duration:.05s}
+  .song-sect.active .active-badge{color:var(--cream);border-color:var(--ink);
+    background:var(--ink)}
+  .active-badge .pip{display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--ink-faint);margin-right:6px;vertical-align:middle;transition:background .15s}
+  .song-sect.active .active-badge .pip{background:var(--cream)}
+
+  .sect-bar-sp{flex:1;min-width:8px}
+  .sect-count{color:var(--ink-dim);font-size:.74rem;font-weight:800;letter-spacing:.02em;padding-right:2px}
+
+  .sect-chords{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:36px}
+  .empty-sect-hint{color:var(--ink-faint);font-size:.82rem;font-style:italic;padding:6px 2px;font-weight:600}
+  .song-sect.active .empty-sect-hint{color:var(--ink-dim);opacity:.85}
+
+  /* chord chip — even internal rhythm: [# name  roman] [rep] [×] */
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--cream);
+    border:2.5px solid var(--ink);border-radius:999px;padding:3px 6px 3px 4px;
+    box-shadow:2px 2px 0 var(--ink);
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .chip:hover{transform:translate(-1px,-1px) rotate(-1.5deg);box-shadow:3px 3px 0 var(--ink)}
+  .chip.chip-pop{animation:chipPop .34s var(--ease-bounce)}
+  @keyframes chipPop{
+    0%{transform:scale(.2) rotate(-14deg);opacity:0}
+    60%{transform:scale(1.12) rotate(5deg);opacity:1}
+    100%{transform:scale(1) rotate(0deg);opacity:1}
+  }
+  .chip.active{background:var(--tomato)}
+  .chip .rn{color:var(--tomato);font-size:.7rem;font-weight:900;letter-spacing:.02em}
+  .chip.active .rn{color:var(--cream)}
+  .chip .num{color:var(--ink-faint);font-size:.7rem;font-weight:800;font-variant-numeric:tabular-nums}
+  .chip.active .num{color:var(--cream);opacity:.85}
+  .chip-name{display:inline-flex;align-items:baseline;gap:6px;background:none;border:0;cursor:pointer;
+    color:var(--ink);font-size:.92rem;font-weight:800;padding:5px 4px 5px 8px;border-radius:999px;font-family:inherit}
+  .chip.active .chip-name{color:var(--cream)}
+  .rep-sel{-webkit-appearance:none;appearance:none;background-color:var(--cream);color:var(--ink-dim);
+    border:2px solid var(--ink);border-radius:6px;font-size:.72rem;font-family:inherit;
+    padding:3px 17px 3px 6px;cursor:pointer;font-weight:800;
+    background-repeat:no-repeat;background-position:right 5px center;background-size:8px 6px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  .rep-sel:focus-visible{outline:none;box-shadow:0 0 0 2px var(--sun)}
+  .rep-sel option{font-family:"Helvetica Neue",Arial,sans-serif;font-weight:700;color:var(--ink);background:var(--paper)}
+  .rep-sel.on{color:var(--ink);background-color:var(--sun)}
+  /* On the active tomato chip, rep-sel keeps a cream fill so its plum chevron stays visible */
+  .chip.active .rep-sel{background-color:var(--cream);color:var(--ink)}
+  .chip-x{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:1.1rem;font-weight:900;
+    width:24px;height:24px;border-radius:50%;line-height:1;
+    transition:color .12s,transform .2s var(--ease-spring)}
+  .chip-x:hover{color:var(--tomato);transform:rotate(90deg) scale(1.2)}
+  .chip.active .chip-x{color:var(--cream)}
+  .chip.active .chip-x:hover{color:var(--ink)}
+  .sect-dup{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:.95rem;
+    width:26px;height:26px;border-radius:6px;line-height:1;font-family:inherit;font-weight:800;
+    transition:color .12s,background .12s,transform .18s var(--ease-spring)}
+  .sect-dup:hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}
+  .sect-dup:active{transform:scale(.95);transition-duration:.05s}
+
+  .sect-lyrics{margin-top:10px}
+  .sect-lyrics textarea{width:100%;resize:vertical;background:var(--cream);color:var(--ink);
+    border:2.5px solid var(--ink);border-radius:8px;padding:9px 11px;font-family:inherit;
+    font-size:.88rem;line-height:1.5;font-weight:600;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
+  .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
+  .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
+
+  .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
+  .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
+  .export-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  #exportPre{white-space:pre;overflow-x:auto;font-family:"Courier New",monospace;
+    font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--cream);
+    border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
+  .key-line{font-size:1rem;flex:1;text-align:left;font-weight:700;color:var(--ink)}
+  .key-line strong{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.2rem;font-weight:900}
+  .suggest{margin-top:10px;color:var(--ink-dim);font-size:.9rem;line-height:1.9;font-weight:600}
+  .suggest .sug{display:inline-block;border:2px solid var(--ink);border-radius:7px;
+    padding:3px 10px;margin:2px 5px 2px 0;color:var(--ink);background:var(--cream);font-weight:800;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .hint{color:var(--ink-dim);font-size:.84rem;margin-top:12px;line-height:1.6;font-weight:600}
+
+  /* Collapsible key/scale panel — key always visible, rest expands on demand */
+  .scale-panel{padding:0;overflow:visible}
+  .scale-panel > *{margin-left:0;margin-right:0}
+  .scale-panel-header{width:100%;display:flex;align-items:center;gap:12px;
+    background:none;border:0;color:inherit;font-family:inherit;cursor:pointer;
+    padding:22px 22px 18px;text-align:left;border-radius:16px}
+  .scale-panel-header:hover{background:var(--cream-2)}
+  .scale-panel-chevron{color:var(--ink);font-size:1rem;font-weight:900;transition:transform .3s var(--ease-out-back);flex-shrink:0}
+  .scale-panel-header[aria-expanded="true"] .scale-panel-chevron{transform:rotate(180deg)}
+  .scale-panel.forced-open .scale-panel-header{cursor:default}
+  .scale-panel.forced-open .scale-panel-chevron{opacity:.35}
+  .scale-panel-forced-note{font-size:.72rem;color:var(--tomato);font-style:italic;font-weight:800;
+    flex-shrink:0;white-space:nowrap}
+  .scale-panel-body{padding:0 22px 22px}
+  .scale-panel-body .guidance{margin-top:0}
+
+  /* muted strings */
+  .str-lbl{background:none;border:0;color:var(--ink);font-family:"Arial Black",Arial,sans-serif;
+    font-size:.9rem;font-weight:900;cursor:pointer;padding:4px 2px;border-radius:5px;
+    transition:color .15s,background .15s;min-height:22px;line-height:1}
+  .str-lbl:hover{color:var(--ink-dim);background:rgba(26,24,21,.08)}
+  .str-lbl:focus-visible{outline:2.5px solid var(--tomato);outline-offset:1px}
+  .str-lbl.muted{color:var(--tomato);font-size:1.05rem}
+  .row.muted .cell::before{opacity:.25}
+  .mute-mark{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    color:var(--tomato);font-size:1.5rem;font-weight:900;line-height:1;
+    pointer-events:none;z-index:3}
+
+  /* scale suggestions → sticker cards */
+  .scale-suggest{margin-top:16px}
+  .scale-suggest h3{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink);font-weight:900;margin-bottom:10px;font-family:"Courier New",monospace}
+  .scale-chips{display:flex;flex-wrap:wrap;gap:10px}
+  .scale-chip{background:var(--cream);border:2.5px solid var(--ink);color:var(--ink);
+    border-radius:10px;padding:10px 13px;cursor:pointer;text-align:left;font-family:inherit;
+    display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow-sm);
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s;min-width:170px;max-width:240px}
+  .scale-chip:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink);background:var(--sun)}
+  .scale-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .scale-chip b{font-size:.9rem;color:var(--ink);font-weight:900}
+  .scale-chip .why{font-size:.76rem;color:var(--ink-dim);font-style:italic;line-height:1.35;font-weight:600}
+  .scale-chip.on{background:var(--mint)}
+  .scale-chip.on b{color:var(--ink)}
+  .scale-info{margin-top:12px;padding:12px 14px;background:var(--cream);
+    border:2.5px solid var(--ink);border-radius:10px;color:var(--ink-dim);
+    font-size:.88rem;line-height:1.55;font-weight:600;box-shadow:var(--shadow-sm)}
+  .scale-info b{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.05rem;font-weight:900}
+  .scale-info .notes{font-size:.8rem;color:var(--ink-faint)}
+
+  /* drag & drop */
+  .chip{cursor:grab;touch-action:none;user-select:none}
+  .chip:active{cursor:grabbing}
+  .sect-bar{cursor:grab;touch-action:none;user-select:none;position:relative;padding-left:22px}
+  .sect-bar::before{content:"⋮⋮";position:absolute;left:2px;top:50%;transform:translateY(-50%);
+    color:var(--ink);font-size:1rem;letter-spacing:-2px;line-height:1;font-weight:900;
+    transition:color .15s}
+  .sect-bar:hover::before{color:var(--ink-dim)}
+  .song-sect.dragging .sect-bar{cursor:grabbing}
+  .chip.dragging,.song-sect.dragging{opacity:.25}
+  .drag-ghost{position:fixed;z-index:200;pointer-events:none;opacity:.96;
+    box-shadow:6px 8px 0 var(--ink);transition:none;background:var(--cream);border-radius:12px;
+    border:2.5px solid var(--ink)}
+  .chip.drag-ghost{transform:rotate(-2.5deg);border-radius:999px}
+  .song-sect.drag-ghost{max-width:440px;transform:rotate(-1deg) scale(.97)}
+  .drop-indicator{background:var(--tomato);border-radius:999px;pointer-events:none;
+    animation:pulseInd .8s ease-in-out infinite alternate}
+  @keyframes pulseInd{from{opacity:.55}to{opacity:1}}
+  .chip-drop-indicator{width:4px;height:34px;align-self:center;flex-shrink:0}
+  .section-drop-indicator{height:4px;width:100%;margin:2px 0}
+
+  /* outlier / borrowed chord indicator */
+  .chip.outlier .chip-name::before{content:"";display:inline-block;
+    width:8px;height:8px;border-radius:50%;background:var(--tomato);border:1.5px solid var(--ink);
+    margin-right:5px;vertical-align:middle}
+  .chip.outlier.active .chip-name::before{background:var(--cream)}
+  .fit-badge{display:inline-block;padding:3px 10px;border-radius:999px;
+    background:var(--tomato);color:var(--cream);font-size:.72rem;border:2px solid var(--ink);
+    font-weight:900;margin-left:8px;letter-spacing:.02em}
+
+  /* musical guidance panel */
+  .guidance{margin-top:14px;padding:14px 16px;
+    background:var(--sun);border:2.5px solid var(--ink);
+    border-radius:11px;box-shadow:var(--shadow-sm)}
+  .guidance h3{font-size:.74rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink);font-weight:900;margin-bottom:10px;font-family:"Courier New",monospace}
+  .guidance-item{color:var(--ink-dim);font-size:.9rem;line-height:1.6;margin-bottom:8px;font-weight:600}
+  .guidance-item:last-child{margin-bottom:0}
+  .guidance-item b{color:var(--ink);font-weight:900}
+  .guidance-item .in-section{color:var(--tomato);font-style:italic;font-weight:800}
+  .repl-btn{display:inline-block;padding:3px 10px;border:2px solid var(--ink);
+    border-radius:7px;color:var(--ink);margin:0 2px;font-weight:800;cursor:pointer;
+    background:var(--cream);font-family:inherit;font-size:.82rem;box-shadow:1.5px 1.5px 0 var(--ink);
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .repl-btn:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:3.5px 3.5px 0 var(--ink);background:var(--mint)}
+  .repl-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .cover-note{color:var(--ink-dim);font-size:.86rem;margin-top:10px;padding-top:10px;
+    border-top:2px dashed var(--ink);line-height:1.55;font-weight:600}
+  .cover-note b{color:var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1rem;font-weight:900}
+
+  @media (prefers-reduced-motion:no-preference){
+    .dot-note.sel{animation:pop .32s var(--ease-bounce)}
+    @keyframes pop{
+      0%{transform:translate(-50%,-50%) scale(.3) rotate(-12deg)}
+      60%{transform:translate(-50%,-50%) scale(1.15) rotate(4deg)}
+      100%{transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+    }
+  }
+
+  /* ===== mobile polish ===== */
+  @media (max-width:520px){
+    header{padding:8px 16px 8px 12px}
+    .header-left{gap:16px}
+    .mascot{width:70px;height:70px;margin:0}
+    .wrap{padding:0 12px 16px}
+    .tagline{padding:16px 4px 0;font-size:.86rem}
+    .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}
+    .panel[data-win]::before{left:16px;font-size:.68rem;padding:5px 11px}
+    /* Fretboard panel needs more top room so the toggle (right) clears the label pill (left) */
+    #tabPanel{margin-top:46px}
+    #tabPanel .toggle{top:-17px;right:14px}
+    .toggle{width:64px;height:33px}
+    .acc-opt{font-size:1.05rem}
+    .acc-knob{width:28px}
+    .toggle.flats .acc-knob{transform:translateX(29px)}
+    .scale-panel{padding:0}
+    .scale-panel-header{padding:22px 15px 16px}
+    .scale-panel-body{padding-left:15px;padding-right:15px}
+    .btn{padding:9px 13px;font-size:.85rem}
+    .btn-row{gap:9px}
+    .scale-chip{min-width:140px}
+    .board-outer{min-width:720px}
+    .board{grid-template-rows:repeat(6,42px)}
+    .install-card{align-items:flex-start;flex-wrap:wrap}
+    .install-card-copy{flex-basis:calc(100% - 44px)}
+  }
+
+  /* Preserve native page scrolling on touch screens. Desktop drag-and-drop remains
+     available; touch users can edit, delete and duplicate without the page locking. */
+  @media (pointer:coarse){
+    .chip,.sect-bar{touch-action:pan-y}
+    .song-sect:hover,.chip:hover,.btn:hover,.toggle:hover{transform:none}
+  }
+
+  /* Respect users who prefer reduced motion — keep interactions functional but calm:
+     strip the springy rotations/scales and playful keyframes, keep simple state changes. */
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important}
+    .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.song-sect,.chip,
+    .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
+    #toast,.modal-dialog{transition-duration:.12s !important;transition-timing-function:ease !important}
+    .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
+    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover{transform:none !important}
+    .mascot:hover{animation:none !important}
+    #toast{transform:translateX(-50%) translateY(12px) !important}
+    #toast.show{transform:translateX(-50%) translateY(0) !important}
+    .modal-dialog{transform:none !important}
+  }
+</style>
+
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <img class="mascot" alt="A potato in an armchair playing a Les Paul guitar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKgAAAC0CAMAAAA3gZdmAAAB/lBMVEXg4eDc5d/d3t0nHRjc06uepp7fqFlbi5dZZWOnlmSztLSm0eJaeYS7kDLQ0NDMupl6enreqjI6SU/fy2h2XTVPMh+mbCS4ubi6u7tbq8GNY0DCfT05PEJxi2l4wdaoucS3yZ2y39++wMDhs7PDw71GPEBVqlV///+NLSGqVaqCf4mRkW2zwXuq/6q+wL7/AP/Cf0PEvcQAAAD9/fzstGeZy+L1127oq1xTRTj+/v5zVThHOTDZpzPprmGUxtuk1+xrWUmndzuNaEVrpbfGlTRPSUVWmatnSzJ0ZE8xKii4iS46NDFVVVOMZTiRdk/Kh0WIuc3X1tXo6OdztMic0+mvhk+DXDqt5PmpeUPPl1T3xHJ1dHDKycjPqGdsaWf35q5UZmtqm6uYlpCOiYb95nT02I5ao7bVpVOOhXSEe3C1lFhuh4/XtW7nsza4trLCizCqqaptrcKrpZL5+vn5+fn79c+Jp7PqyYqsqaaZczn25I7s2q/20lqxmGr29vb4+PgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAy6WSdAAAAgHRSTlMj913//v3/////E/3//6D/Av///////1ug//////////EadRkr/wMC/wP/B/8DowH/JwD+//////8C///////////////////////////////9/P////////////v/////////////////////////A///0K7///////////9ykGZBAYsAACqeSURBVHjazX0HQ9vKtrWNOyWkJ+fc+srXO5bxoAFbLrIkSxauuBsXjCsQnNDDOX/97T2SXBKSOPeEfHcgYPry2m3tPSPFtvVH187O1tbK7x8+fPjNtrWz9WjL9odxAsz3fmP99ohIbX8Yp+13/3T9/nhIbX8U584H/9xaeTSktj/on4s4/e9t/2yM7rC1tfW7f3E9GqW2fxCl+dMrJr62QE/ZgydbOzv/LEAZEptt5bff35vhnhUd1esse2hf3fonAYowbSu/v5+3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">
+    <div class="header-title">
+      <h1>Couch Batata<span class="dot">.</span></h1>
+      <p class="header-subtitle">A tab builder for singer-songwriters</p>
+    </div>
+  </div>
+</header>
+
+<aside class="install-card" id="installCard" hidden aria-live="polite">
+  <div class="install-card-copy" id="installCopy">
+    <b>Keep Couch Batata on this device</b>
+    Install it for quick access and offline use.
+  </div>
+  <button class="btn primary" id="btnInstall" type="button">Install</button>
+  <button class="install-dismiss" id="btnInstallDismiss" type="button" aria-label="Dismiss install message">×</button>
+</aside>
+
+<div class="wrap">
+<p class="tagline">Click the notes you're playing. Click a string label to mute (×) it. Couch Batata names the chord, drops it into the active section, and suggests scales for soloing over the whole progression.</p>
+
+<div class="panel win-sun" data-win="Fretboard" id="tabPanel">
+  <button class="toggle" id="btnAccidental" type="button" role="switch" aria-checked="false"
+    aria-label="Note spelling: sharps or flats" title="Slide to toggle note spelling between sharps (♯) and flats (♭)">
+    <span class="acc-knob" aria-hidden="true"></span>
+    <span class="acc-opt acc-sharp" aria-hidden="true">♯</span>
+    <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
+  </button>
+  <div class="board-wrap">
+    <div class="board-outer">
+      <div class="string-labels" id="stringLabels"></div>
+      <div class="board" id="board"></div>
+      <div class="fret-nums" id="fretNums"></div>
+    </div>
+  </div>
+</div>
+
+<div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
+  <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
+    <div class="key-line" id="keyLine"></div>
+    <span class="scale-panel-chevron" id="scalePanelChevron" aria-hidden="true">▾</span>
+  </button>
+  <div class="scale-panel-body" id="scalePanelBody" hidden>
+    <div class="guidance" id="guidance" hidden></div>
+    <div class="suggest" id="suggestOut" hidden></div>
+    <div class="scale-suggest" id="scaleSuggest" hidden></div>
+  </div>
+</div>
+
+<div class="panel win-sky" data-win="Chord" id="chordPanel">
+  <h2>Chord</h2>
+  <div id="chordOut"><p class="placeholder">Nothing selected yet — click a string at any fret (the light strip on the left is the open string).</p></div>
+  <div class="btn-row">
+    <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
+    <button class="btn" id="btnShapes" disabled title="Browse alternate voicings for this chord — same notes, different fret shapes">Show other shapes</button>
+    <button class="btn ghost" id="btnClear" disabled title="Remove all notes from the fretboard to start fresh">Clear board</button>
+  </div>
+  <div class="shape-nav" id="shapeNav" hidden>
+    <button class="btn" id="btnPrevShape" title="Previous voicing">◀</button>
+    <span class="shape-label" id="shapeLabel"></span>
+    <button class="btn" id="btnNextShape" title="Next voicing">▶</button>
+  </div>
+</div>
+
+<div class="panel win-tomato" data-win="Song">
+  <h2>Song</h2>
+  <div id="song"></div>
+
+  <div class="add-sect-row">
+    <label class="add-sect-label" for="sectionSelect">New section</label>
+    <select id="sectionSelect" aria-label="Section type to add">
+      <option value="Intro">Intro</option>
+      <option value="Verse">Verse</option>
+      <option value="Pre-Chorus">Pre-Chorus</option>
+      <option value="Chorus">Chorus</option>
+      <option value="Bridge">Bridge</option>
+      <option value="Solo">Solo</option>
+      <option value="Instrumental">Instrumental</option>
+      <option value="Outro">Outro</option>
+      <option value="__custom">Custom…</option>
+    </select>
+    <button class="btn" id="btnAddSection" title="Add a new section (Intro, Verse, Chorus…)">+ Add section</button>
+    <button class="btn ghost" id="btnClearSong" title="Delete every section and every chord — starts a completely fresh song">Clear song</button>
+  </div>
+
+  <div class="export-row">
+    <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
+    <button class="btn" id="btnCopy" disabled title="Copy your song as text you can paste into any app (email, docs, Slack…)">Copy to clipboard</button>
+    <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Back up project (.json)</button>
+    <button class="btn ghost" id="btnImport" title="Open an editable Couch Batata project backup">Open project</button>
+    <input id="projectFile" type="file" accept="application/json,.json" hidden>
+  </div>
+  <p class="hint">
+    Click a section card (or its badge) to <b>activate</b> it — new chords land there.
+    <b>Drag chords</b> to reorder or move them across sections. Grab the <b>⋮⋮</b> handle on a section header to reorder whole sections.
+    Chips with a <b style="color:var(--tomato)">●</b> dot are outside the current key — see <b>Musical guidance</b> for replacements.
+    Click <b>⧉</b> to duplicate a section. Click a <b>string label</b> to mute (×). Your song <b>auto-saves</b>.
+  </p>
+</div>
+
+<div class="panel win-sky" data-win="Tab preview" id="exportPanel" hidden>
+  <h2>Tab preview</h2>
+  <pre id="exportPre" tabindex="0" aria-label="Exported chord chart preview"></pre>
+</div>
+</div>
+
+<script>
+"use strict";
+/* ================= music theory core ================= */
+const SHARP=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const FLAT =['C','D♭','D','E♭','E','F','G♭','G','A♭','A','B♭','B'];
+let useFlats=false;
+const pcName=pc=>(useFlats?FLAT:SHARP)[((pc%12)+12)%12];
+const escapeHtml=value=>String(value).replace(/[&<>"']/g,ch=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+}[ch]));
+
+const OPEN=[64,59,55,50,45,40];
+const STR_LABEL=['e','B','G','D','A','E'];
+
+const FORMULAS=[
+ {suf:'',      iv:[0,4,7],        pr:10, mood:'bright, open, resolved'},
+ {suf:'m',     iv:[0,3,7],        pr:10, mood:'melancholy, introspective'},
+ {suf:'7',     iv:[0,4,7,10],     pr:9,  mood:'bluesy — wants to move somewhere'},
+ {suf:'maj7',  iv:[0,4,7,11],     pr:9,  mood:'dreamy, jazzy warmth'},
+ {suf:'m7',    iv:[0,3,7,10],     pr:9,  mood:'smooth, mellow, late-night'},
+ {suf:'sus4',  iv:[0,5,7],        pr:8,  mood:'suspended tension, wants to resolve'},
+ {suf:'sus2',  iv:[0,2,7],        pr:8,  mood:'open, airy, unresolved'},
+ {suf:'add9',  iv:[0,2,4,7],      pr:8,  mood:'shimmering, modern'},
+ {suf:'madd9', iv:[0,2,3,7],      pr:7,  mood:'wistful shimmer'},
+ {suf:'6',     iv:[0,4,7,9],      pr:7,  mood:'sweet, vintage, settled'},
+ {suf:'m6',    iv:[0,3,7,9],      pr:7,  mood:'noir, bittersweet'},
+ {suf:'dim',   iv:[0,3,6],        pr:6,  mood:'tense, unstable'},
+ {suf:'aug',   iv:[0,4,8],        pr:6,  mood:'unsettled, dreamlike'},
+ {suf:'5',     iv:[0,7],          pr:6,  mood:'raw power — neither major nor minor'},
+ {suf:'dim7',  iv:[0,3,6,9],      pr:6,  mood:'dramatic, spiraling tension'},
+ {suf:'m7♭5',  iv:[0,3,6,10],     pr:6,  mood:'dark, jazzy tension'},
+ {suf:'7sus4', iv:[0,5,7,10],     pr:6,  mood:'floating, funky suspension'},
+ {suf:'mMaj7', iv:[0,3,7,11],     pr:5,  mood:'haunted, film-noir'},
+ {suf:'9',     iv:[0,2,4,7,10],   pr:6,  mood:'funky, rich'},
+ {suf:'maj9',  iv:[0,2,4,7,11],   pr:6,  mood:'lush, floating'},
+ {suf:'m9',    iv:[0,2,3,7,10],   pr:6,  mood:'deep, soulful'},
+ {suf:'6/9',   iv:[0,2,4,7,9],    pr:5,  mood:'breezy, jazzy sparkle'},
+ {suf:'7♯9',   iv:[0,3,4,7,10],   pr:5,  mood:'the Hendrix chord — biting, dissonant swagger'},
+ {suf:'7♭9',   iv:[0,1,4,7,10],   pr:5,  mood:'flamenco tension, dark dominant'},
+ {suf:'7♯5',   iv:[0,4,8,10],     pr:5,  mood:'off-kilter dominant — jazz turnaround fuel'},
+];
+const IVNAME={0:'root',1:'♭2',2:'2nd',3:'♭3',4:'3rd',5:'4th',6:'♭5',7:'5th',8:'♯5',9:'6th',10:'♭7',11:'7th'};
+
+function setEq(a,b){if(a.size!==b.length)return false;for(const x of b)if(!a.has(x))return false;return true}
+
+function identify(midis){
+  const pcs=[...new Set(midis.map(m=>m%12))];
+  const bassPc=Math.min(...midis)%12;
+  const results=[];
+  for(const root of pcs){
+    const ivs=new Set(pcs.map(p=>((p-root)+12)%12));
+    for(const f of FORMULAS){
+      // Exact match
+      if(setEq(ivs,f.iv)){
+        results.push({root,suf:f.suf,mood:f.mood,pcs,
+          score:f.pr+(root===bassPc?3:0),
+          slash:root!==bassPc?bassPc:null});
+        continue;
+      }
+      // Extension chords (5+ tones) with the P5 omitted — Hendrix voicing pattern
+      if(f.iv.length>=5 && f.iv.includes(7)){
+        const no5=f.iv.filter(i=>i!==7);
+        if(setEq(ivs,no5)){
+          results.push({root,suf:f.suf,mood:f.mood,pcs,
+            score:f.pr+(root===bassPc?3:0)-1, // slight preference for the full voicing when both fit
+            slash:root!==bassPc?bassPc:null});
+        }
+      }
+    }
+  }
+  results.sort((a,b)=>b.score-a.score);
+  return results;
+}
+const chordLabel=c=>pcName(c.root)+c.suf+(c.slash!==null?'/'+pcName(c.slash):'');
+
+/* ============ voicing generator ============ */
+function findVoicings(rootPc,ivs){
+  const tonePcs=new Set(ivs.map(i=>(rootPc+i)%12));
+  const needAll=[...tonePcs];
+  const out=[];const seen=new Set();
+  for(let pos=0;pos<=9;pos++){
+    const opts=[];
+    for(let s=0;s<6;s++){
+      const o=[-1];
+      const lo=pos===0?0:pos, hi=pos===0?3:pos+3;
+      for(let f=lo;f<=hi&&f<=12;f++)
+        if(tonePcs.has((OPEN[s]+f)%12))o.push(f);
+      if(pos>0&&pos<=2&&tonePcs.has(OPEN[s]%12))o.push(0);
+      opts.push(o);
+    }
+    const cur=new Array(6).fill(-1);
+    (function rec(s){
+      if(s===6){
+        const played=[];for(let i=0;i<6;i++)if(cur[i]>=0)played.push(i);
+        if(played.length<Math.max(3,needAll.length))return;
+        const got=new Set(played.map(i=>(OPEN[i]+cur[i])%12));
+        for(const pc of needAll)if(!got.has(pc))return;
+        const key=cur.join(',');if(seen.has(key))return;seen.add(key);
+        const midis=played.map(i=>OPEN[i]+cur[i]);
+        const bassIsRoot=(Math.min(...midis)%12)===rootPc;
+        const fretted=cur.filter(f=>f>0);
+        const span=fretted.length?Math.max(...fretted)-Math.min(...fretted):0;
+        if(span>3)return;
+        let inner=0;
+        for(let i=played[0];i<=played[played.length-1];i++)if(cur[i]<0)inner++;
+        if(inner>1)return;
+        const minF=fretted.length?Math.min(...fretted):0;
+        const opens=cur.filter(f=>f===0).length;
+        const score=played.length*2+(bassIsRoot?6:0)-inner*4-minF*0.5-span*0.3+opens*0.4;
+        out.push({frets:cur.slice(),score,minF});
+      } else for(const f of opts[s]){cur[s]=f;rec(s+1);cur[s]=-1;}
+    })(0);
+  }
+  out.sort((a,b)=>b.score-a.score);
+  const picked=[];const usedPos=new Set();
+  for(const v of out){
+    const bucket=Math.floor(v.minF/2);
+    if(!usedPos.has(bucket)){picked.push(v);usedPos.add(bucket);}
+    if(picked.length>=5)break;
+  }
+  for(const v of out){
+    if(picked.length>=5)break;
+    if(!picked.includes(v))picked.push(v);
+  }
+  picked.sort((a,b)=>a.minF-b.minF);
+  return picked;
+}
+
+/* ============ key detection ============ */
+const MAJ_SCALE=[0,2,4,5,7,9,11];
+const DEG_RN=['I','ii','iii','IV','V','vi','vii°'];
+function scaleSet(tonic){return new Set(MAJ_SCALE.map(i=>(tonic+i)%12))}
+function diatonicTriads(tonic){
+  return MAJ_SCALE.map((deg,i)=>{
+    const r=(tonic+deg)%12;
+    const third=(tonic+MAJ_SCALE[(i+2)%7]+(i+2>=7?12:0))%12;
+    const fifth=(tonic+MAJ_SCALE[(i+4)%7]+(i+4>=7?12:0))%12;
+    const iv3=((third-r)+12)%12, iv5=((fifth-r)+12)%12;
+    let suf=iv3===4?'':(iv5===6?'dim':'m');
+    return {root:r,suf,rn:DEG_RN[i]};
+  });
+}
+function findKeys(chordPcsList){
+  const keys=[];
+  for(let t=0;t<12;t++){
+    const ss=scaleSet(t);
+    if(chordPcsList.every(pcs=>pcs.every(pc=>ss.has(pc))))keys.push(t);
+  }
+  return keys;
+}
+
+/* ============ scale library for soloing ============ */
+const SCALES={
+  major:   {name:'Major',            intervals:[0,2,4,5,7,9,11], desc:'Bright, resolved. Contains every diatonic chord tone in the key.'},
+  minor:   {name:'Natural minor',    intervals:[0,2,3,5,7,8,10], desc:'The dark side of the same 7 notes — melancholy, contemplative.'},
+  melMin:  {name:'Melodic minor',    intervals:[0,2,3,5,7,9,11], desc:'Minor with raised 6 and 7 — jazz staple. Sophisticated, restless.'},
+  harmMin: {name:'Harmonic minor',   intervals:[0,2,3,5,7,8,11], desc:'Dramatic ♯7 leap over a minor sound — flamenco, cinematic tension.'},
+  majPent: {name:'Major pentatonic', intervals:[0,2,4,7,9],       desc:'5-note subset with no half-steps — sweet, no wrong notes over I / IV / V.'},
+  minPent: {name:'Minor pentatonic', intervals:[0,3,5,7,10],      desc:"The guitarist's bread and butter. Bluesy, forgiving, works almost everywhere."},
+  blues:   {name:'Blues',            intervals:[0,3,5,6,7,10],    desc:'Minor pent + the ♭5 "blue note". Grit and swagger.'},
+  majBlues:{name:'Major blues',      intervals:[0,2,3,4,7,9],     desc:'Major pentatonic with a ♭3 passing tone — country, gospel, honky-tonk.'},
+  dorian:  {name:'Dorian',           intervals:[0,2,3,5,7,9,10],  desc:'Minor with a bright ♮6 — jazzy, funky, hopeful minor. Santana territory.'},
+  mixo:    {name:'Mixolydian',       intervals:[0,2,4,5,7,9,10],  desc:'Major with a ♭7 — dominant-7 flavour. Rock and blues staple.'},
+  lydian:  {name:'Lydian',           intervals:[0,2,4,6,7,9,11],  desc:'Major with a ♯4 — dreamy, spacey, floating. Film-score bright.'},
+  phrygian:{name:'Phrygian',         intervals:[0,1,3,5,7,8,10],  desc:'Minor with a ♭2 — Spanish, dark tension, exotic minor.'},
+  locrian: {name:'Locrian',          intervals:[0,1,3,5,6,8,10],  desc:'The theoretical seventh mode — starts on the ♭5. Rare in songs, useful over m7♭5.'},
+};
+
+// Classify an interval into its harmonic role for color-coded scale display.
+// Root / 3rd / 5th / 7th are the "landing pad" chord tones every soloist targets.
+// Everything else (2, 4, 6, ♭5, etc.) is a passing/tension tone.
+function scaleDegreeClass(iv){
+  if(iv===0)return 'sroot';
+  if(iv===3||iv===4)return 'sthird';    // ♭3 or M3 — defines minor/major
+  if(iv===7)return 'sfifth';             // perfect 5th
+  if(iv===10||iv===11)return 'sseventh'; // ♭7 or M7
+  return 'stension';                     // 2, 4, ♭5/♯4, ♯5/♭6, 6 — color tones
+}
+
+// Compute box/position windows for the active scale — one per scale degree,
+// matching the standard movable box system every guitarist learns (the same
+// system that produces the "5 pentatonic boxes"), generalized to any scale.
+//
+// How real boxes work: each position is anchored where a scale tone falls on
+// the low E string. Around that anchor, each string keeps whatever scale tones
+// sit in a natural hand-span window (verified against the standard A minor
+// pentatonic box diagrams — this reproduces them exactly, string for string).
+function computeScaleBoxes(){
+  if(!scaleActive)return [];
+  const S=SCALES[scaleActive.scale];
+  const scalePcs=new Set(S.intervals.map(i=>(scaleActive.root+i)%12));
+  const lowE=OPEN[5];
+  // Anchor points: every fret in one octave (0–11) where a scale tone falls on the low E string
+  const anchors=[];
+  for(let f=0;f<12;f++){
+    if(scalePcs.has((lowE+f)%12))anchors.push(f);
+  }
+  return anchors.map((anchorFret,i)=>{
+    // Hand-span window around the anchor — verified to reproduce the standard
+    // pentatonic box shapes exactly when compared against reference diagrams.
+    const lo=Math.max(0,anchorFret-1), hi=Math.min(12,anchorFret+3);
+    const perString=[]; // perString[s] = Set of frets that are "in the box" for that string
+    let minF=99,maxF=-1;
+    for(let s=0;s<6;s++){
+      const frets=new Set();
+      for(let f=lo;f<=hi;f++){
+        if(scalePcs.has((OPEN[s]+f)%12)){
+          frets.add(f);
+          if(f<minF)minF=f;
+          if(f>maxF)maxF=f;
+        }
+      }
+      perString.push(frets);
+    }
+    const isRoot=((lowE+anchorFret)%12)===scaleActive.root;
+    return {
+      anchorFret,
+      startFret:minF===99?anchorFret:minF,
+      endFret:maxF===-1?anchorFret:maxF,
+      label:'Box '+(i+1),
+      startNote:pcName((lowE+anchorFret)%12),
+      isRoot,
+      perString // exact per-string fret sets — used for accurate cell highlighting
+    };
+  });
+}
+
+function suggestScales(primary){
+  const rel=(primary+9)%12;
+  const cs=allChords();
+  const sugs=[];
+  // Dominant/blues context — a blues progression is not one fixed Mixolydian
+  // scale: IV7 and V7 introduce tones outside tonic Mixolydian.
+  if(currentKeyInfo && currentKeyInfo.dominantContext){
+    sugs.push({root:primary,scale:'blues',why:'★ Classic whole-progression blues vocabulary — resolve phrases to each chord.'});
+    sugs.push({root:primary,scale:'minPent',why:'A practical tonic-centered sound; bend or resolve notes against each chord.'});
+    sugs.push({root:primary,scale:'majBlues',why:'Brighter country/gospel blues color over the tonal center.'});
+    sugs.push({root:primary,scale:'mixo',why:'Fits the I7 chord; follow IV7 and V7 with their own Mixolydian roots for exact chord-tone coverage.'});
+    return sugs;
+  }
+  // Modal detections come first when we spot the signal
+  const hasI7=cs.some(c=>c.root===primary && (c.suf==='7'||c.suf==='9'));
+  if(hasI7)sugs.push({root:primary,scale:'mixo',why:'The I7 in your progression signals a bluesy dominant sound.'});
+  const ivPc=(primary+5)%12;
+  const hasMinorIV=cs.some(c=>c.root===ivPc && c.suf.startsWith('m') && !c.suf.startsWith('maj'));
+  if(hasMinorIV)sugs.push({root:primary,scale:'dorian',why:'Your minor IV chord opens the door to Dorian.'});
+  const minorHeavy=cs.filter(c=>c.suf.startsWith('m')&&!c.suf.startsWith('maj')).length>cs.length/2;
+  // Safe defaults — minor pent is the most forgiving over almost any progression
+  sugs.push({root:rel,scale:'minPent',why:'The bluesy, guitar-shaped go-to — safe over the whole progression.'});
+  sugs.push({root:rel,scale:'blues',why:'Same shapes as minor pent, plus the ♭5 for grit.'});
+  sugs.push({root:primary,scale:'major',why:'The parent scale — hits every chord tone.'});
+  sugs.push({root:primary,scale:'majPent',why:'Fewer notes, fewer traps — great for melodies over I / IV / V.'});
+  if(minorHeavy)sugs.push({root:rel,scale:'minor',why:'Full natural minor for a darker melodic vocabulary.'});
+  // If a covering mode exists for borrowed chords, promote it to the top
+  if(currentCoveringMode){
+    const cm=currentCoveringMode;
+    // dedupe if already suggested
+    const existing=sugs.findIndex(s=>s.root===cm.root && s.scale===cm.scale);
+    if(existing>=0)sugs.splice(existing,1);
+    sugs.unshift({
+      root:cm.root, scale:cm.scale,
+      why:'★ Covers every chord including your borrowed ones — sound musical no matter what.'
+    });
+  }
+  // Dedupe
+  const seen=new Set();
+  return sugs.filter(s=>{const k=s.root+':'+s.scale;if(seen.has(k))return false;seen.add(k);return true;});
+}
+
+/* ============ fuzzy key analysis + outlier guidance ============ */
+// Called by renderSong to compute the best-fit key even when no key is perfect
+function analyzeKey(){
+  const chords=allChords();
+  if(chords.length<2)return null;
+
+  // Special case only for an I7/IV7/V7-style dominant blues. Do not classify every
+  // all-dominant sequence as Mixolydian: jazz turnarounds can change tonal centers,
+  // and IV7/V7 contain chord tones outside tonic Mixolydian.
+  const isDominant = c => c.suf==='7'||c.suf==='9'||c.suf==='13'||c.suf==='7sus4'||c.suf==='7♯9'||c.suf==='7♭9'||c.suf==='7♯5';
+  const allDom=chords.every(isDominant);
+  const firstRoot=chords[0].root;
+  const bluesRoots=new Set([firstRoot,(firstRoot+5)%12,(firstRoot+7)%12]);
+  const dominantBlues=allDom&&chords.every(c=>bluesRoots.has(c.root));
+  if(dominantBlues){
+    const tonic=firstRoot;
+    return {
+      tonic,
+      outIdxs:new Set(),
+      inChords:chords.length,
+      totalChords:chords.length,
+      isPerfectFit:true,       // coherent blues context; not a claim of one-scale note coverage
+      alsoFits:[],
+      dominantContext:true,    // scale suggestions will lead with Mixolydian/Blues
+      modeLabel:'Dominant blues'
+    };
+  }
+
+  const chordPcsList=chords.map(c=>c.pcs);
+  const scored=[];
+  for(let t=0;t<12;t++){
+    const ss=scaleSet(t);
+    const outIdxs=[];
+    chordPcsList.forEach((pcs,i)=>{
+      if(!pcs.every(pc=>ss.has(pc)))outIdxs.push(i);
+    });
+    const inChords=chordPcsList.length-outIdxs.length;
+    // Prefer keys whose tonic is a major-flavored chord root
+    const majAnchor=chords.some(c=>c.root===t && (c.suf===''||c.suf==='maj7'||c.suf==='add9'||c.suf==='6'));
+    const minAnchor=chords.some(c=>c.root===t && (c.suf==='m'||c.suf==='m7'));
+    const rootBonus=majAnchor?4:(minAnchor?2:0);
+    const firstBonus=chords[0].root===t?2:0;
+    scored.push({tonic:t,outIdxs,inChords,
+      score:inChords*10+rootBonus+firstBonus-outIdxs.length*2});
+  }
+  scored.sort((a,b)=>b.score-a.score);
+  const best=scored[0];
+  const perfect=scored.filter(s=>s.outIdxs.length===0);
+  const alsoFits=perfect.filter(s=>s.tonic!==best.tonic).map(s=>s.tonic);
+  return {
+    tonic:best.tonic,
+    outIdxs:new Set(best.outIdxs),
+    inChords:best.inChords,
+    totalChords:chordPcsList.length,
+    isPerfectFit:best.outIdxs.length===0,
+    alsoFits,
+    dominantContext:false
+  };
+}
+
+// Map global outlier indices to per-section {sectionId → Set of local chord idx}
+function buildOutlierMap(keyInfo){
+  const map=new Map();
+  if(!keyInfo||keyInfo.isPerfectFit)return map;
+  let g=0;
+  sections.forEach(sec=>{
+    const set=new Set();
+    sec.chords.forEach((c,cIdx)=>{
+      if(keyInfo.outIdxs.has(g))set.add(cIdx);
+      g++;
+    });
+    if(set.size)map.set(sec.id,set);
+  });
+  return map;
+}
+
+// Look up an outlier chord by its global index
+function chordAtGlobalIdx(gIdx){
+  let g=0;
+  for(const sec of sections){
+    for(let i=0;i<sec.chords.length;i++){
+      if(g===gIdx)return {chord:sec.chords[i],sec,cIdx:i};
+      g++;
+    }
+  }
+  return null;
+}
+
+// Find the closest diatonic chord in the given key to use as a replacement
+// Scores by (1) shared notes with the outlier, (2) root proximity, (3) quality match
+function findReplacement(chord,tonic){
+  const tris=diatonicTriads(tonic);
+  const outlierPcs=new Set(chord.pcs);
+  const isOutMinor=chord.suf.startsWith('m')&&!chord.suf.startsWith('maj');
+  const isOutDim=chord.suf.includes('dim');
+  const isOutMajor=!isOutMinor&&!isOutDim;
+  const scored=tris.map(t=>{
+    const formula=FORMULAS.find(f=>f.suf===t.suf);
+    const tPcs=formula.iv.map(iv=>(t.root+iv)%12);
+    const shared=tPcs.filter(pc=>outlierPcs.has(pc)).length;
+    const rootDist=Math.min(
+      ((t.root-chord.root)+12)%12,
+      ((chord.root-t.root)+12)%12
+    );
+    const isTMinor=t.suf==='m';
+    const isTMajor=t.suf==='';
+    const isTDim=t.suf==='dim';
+    const qualityMatch=(isOutMajor&&isTMajor)||(isOutMinor&&isTMinor)||(isOutDim&&isTDim);
+    const dimPenalty=(isTDim&&!isOutDim)?2:0;
+    return {...t,score:-shared*2 + rootDist*0.5 + dimPenalty - (qualityMatch?1:0)};
+  });
+  scored.sort((a,b)=>a.score-b.score);
+  return scored[0];
+}
+
+// Find a scale/mode that covers every chord tone in the progression
+function findCoveringMode(keyInfo){
+  if(!keyInfo||keyInfo.isPerfectFit)return null;
+  const allPcs=new Set();
+  allChords().forEach(c=>c.pcs.forEach(pc=>allPcs.add(pc)));
+  const tonic=keyInfo.tonic;
+  const rel=(tonic+9)%12;
+  // Try modes rooted at the closest-key tonic first, then relative minor
+  const attempts=[
+    {root:tonic,scale:'mixo'},
+    {root:tonic,scale:'dorian'},
+    {root:tonic,scale:'lydian'},
+    {root:tonic,scale:'phrygian'},
+    {root:rel,scale:'dorian'},
+    {root:rel,scale:'phrygian'},
+    {root:rel,scale:'minor'},
+    {root:rel,scale:'harmMin'},
+  ];
+  for(const a of attempts){
+    const set=new Set(SCALES[a.scale].intervals.map(i=>(a.root+i)%12));
+    let covers=true;
+    for(const pc of allPcs){if(!set.has(pc)){covers=false;break;}}
+    if(covers)return a;
+  }
+  return null;
+}
+
+// Replace a chord in place, regenerating a decent voicing
+function replaceChord(secId,cIdx,newRoot,newSuf){
+  const sec=findSection(secId);
+  if(!sec)return;
+  const orig=sec.chords[cIdx];
+  if(!orig)return;
+  const formula=FORMULAS.find(f=>f.suf===newSuf);
+  if(!formula)return;
+  const newPcs=formula.iv.map(iv=>(newRoot+iv)%12);
+  const voicings=findVoicings(newRoot,formula.iv);
+  const frets=voicings.length?voicings[0].frets:new Array(6).fill(-1);
+  sec.chords[cIdx]={
+    root:newRoot,suf:newSuf,pcs:newPcs,frets,rep:orig.rep||1
+  };
+  activeChip={sectionId:secId,chordIdx:cIdx};
+  activeSectionId=secId;
+  // Load the new chord onto the board too
+  enterShapesFor(
+    {root:newRoot,suf:newSuf,pcs:newPcs,mood:moodFor(newSuf),slash:null},
+    frets
+  );
+  renderSong();
+  flash('Replaced with '+pcName(newRoot)+newSuf);
+}
+
+/* ================= state ================= */
+let selection=new Array(6).fill(null);
+let current=null;
+let currentAlts=[];
+let shapes=[],shapeIdx=0,inShapeMode=false;
+
+// Sections model — the whole song lives here
+let sections=[];         // [{id, name, chords:[{root,suf,pcs,frets,rep}], lyrics}]
+let activeSectionId=null;
+let activeChip=null;     // {sectionId, chordIdx} | null
+let _nextId=1;
+
+let scaleActive=null;    // {root:pc, scale:key} | null
+let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
+let currentKeyInfo=null; // {tonic, outIdxs (Set), inChords, totalChords, isPerfectFit, alsoFits}
+let currentOutlierMap=new Map(); // sectionId → Set of local chord idxs that are outliers
+let currentCoveringMode=null;    // {root, scale} that covers all chords incl. outliers, or null
+let scalePanelExpanded=false;    // manual open/closed state, persisted
+let _hadOutliers=false;          // tracks outlier presence to auto-open once on appearance
+let _popChip=null;               // {sectionId,chordIdx} of a chip to pop-in animate once
+
+const SECTION_PRESETS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Solo','Instrumental','Outro'];
+const findSection = id => sections.find(s=>s.id===id) || null;
+const activeSection = () => findSection(activeSectionId);
+const allChords = () => sections.flatMap(s=>s.chords);
+
+/* ---------- persistence (localStorage) ---------- */
+const _SAVE_KEY='fretwork.song.v1';
+let _saveTimer=null;
+let _saveFailedNotified=false;
+function projectSnapshot(){
+  return {
+    app:'Couch Batata',version:1,
+    sections:sections.map(s=>({
+      id:s.id, name:s.name, lyrics:s.lyrics||'',
+      chords:s.chords.map(c=>({
+        root:c.root, suf:c.suf, pcs:[...c.pcs], frets:[...c.frets], rep:c.rep||1
+      }))
+    })),
+    activeSectionId,
+    useFlats,
+    scaleActive:scaleActive?{root:scaleActive.root,scale:scaleActive.scale}:null,
+    scaleBoxIdx,
+    scalePanelExpanded,
+    nextId:_nextId
+  };
+}
+function save(immediate){
+  const doSave=()=>{
+    try{
+      localStorage.setItem(_SAVE_KEY, JSON.stringify(projectSnapshot()));
+      _saveFailedNotified=false;
+      return true;
+    }catch(e){
+      if(!_saveFailedNotified && document.visibilityState!=='hidden'){
+        _saveFailedNotified=true;
+        flash('Autosave is unavailable — back up your project to avoid losing work');
+      }
+      return false;
+    }
+  };
+  if(_saveTimer){clearTimeout(_saveTimer);_saveTimer=null;}
+  if(immediate)doSave();
+  else _saveTimer=setTimeout(doSave,350);
+}
+// Synchronous localStorage writes are small and safe here. Flushing when the page
+// is hidden prevents a quick reload/close from cancelling the debounced save.
+window.addEventListener('pagehide',()=>save(true));
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden')save(true);
+});
+
+function restoreProject(d){
+  if(!d||d.version!==1||!Array.isArray(d.sections))return false;
+  let maxId=0;
+  const normSections=d.sections.map(sec=>{
+    const id=Number.isInteger(sec.id)&&sec.id>0?sec.id:++maxId;
+    if(id>maxId)maxId=id;
+    const chords=(Array.isArray(sec.chords)?sec.chords:[]).map(c=>{
+      const root=Number.isInteger(c.root)?((c.root%12)+12)%12:0;
+      const formula=FORMULAS.find(f=>f.suf===c.suf)||FORMULAS[0];
+      return {
+        root,
+        suf:formula.suf,
+        pcs:formula.iv.map(iv=>(root+iv)%12),
+        frets:Array.isArray(c.frets)&&c.frets.length===6
+          ?c.frets.map(f=>Number.isInteger(f)&&f>=0&&f<=12?f:-1)
+          :new Array(6).fill(-1),
+        rep:Number.isInteger(c.rep)&&c.rep>0&&c.rep<=8?c.rep:1
+      };
+    });
+    return {
+      id,
+      name:typeof sec.name==='string'&&sec.name.trim()?sec.name.slice(0,80):'Section',
+      lyrics:typeof sec.lyrics==='string'?sec.lyrics.slice(0,100000):'',
+      chords
+    };
+  });
+  sections=normSections;
+  activeSectionId=normSections.some(s=>s.id===d.activeSectionId)
+    ?d.activeSectionId:(normSections[0]?.id||null);
+  useFlats=!!d.useFlats;
+  scaleActive=d.scaleActive&&Number.isInteger(d.scaleActive.root)&&SCALES[d.scaleActive.scale]
+    ?{root:((d.scaleActive.root%12)+12)%12,scale:d.scaleActive.scale}:null;
+  scaleBoxIdx=Number.isInteger(d.scaleBoxIdx)&&d.scaleBoxIdx>=0?d.scaleBoxIdx:null;
+  scalePanelExpanded=!!d.scalePanelExpanded;
+  _nextId=Math.max(maxId+1,Number.isInteger(d.nextId)?d.nextId:1);
+  return true;
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(_SAVE_KEY);
+    if(!raw)return false;
+    const d=JSON.parse(raw);
+    return restoreProject(d);
+  }catch(e){return false;}
+}
+function ensureActiveSection(fallbackName='Intro'){
+  const cur = activeSection();
+  if(cur) return cur;
+  if(sections.length){
+    // sections exist but active pointer is stale — pick the last one
+    activeSectionId = sections[sections.length-1].id;
+    return activeSection();
+  }
+  const s = {id:_nextId++, name:fallbackName, chords:[], lyrics:''};
+  sections.push(s);
+  activeSectionId = s.id;
+  return s;
+}
+
+/* ================= build board ================= */
+const board=document.getElementById('board');
+const cells=[];
+for(let s=0;s<6;s++){
+  const row=document.createElement('div');row.className='row';
+  row.dataset.string=s;
+  cells[s]=[];
+  for(let f=0;f<=12;f++){
+    const c=document.createElement('div');
+    c.className='cell'+(f===0?' nut':'');
+    c.tabIndex=0;c.dataset.s=s;c.dataset.f=f;
+    c.setAttribute('role','button');
+    c.setAttribute('aria-label',STR_LABEL[s]+' string, '+(f===0?'open':'fret '+f));
+    row.appendChild(c);cells[s][f]=c;
+  }
+  board.appendChild(row);
+}
+const boardRect=()=>board.getBoundingClientRect();
+function placeInlays(){
+  document.querySelectorAll('.inlay').forEach(e=>e.remove());
+  const marks=[3,5,7,9];
+  for(const f of marks){
+    const r=cells[2][f].getBoundingClientRect(), b=boardRect();
+    const d=document.createElement('div');d.className='inlay';
+    d.style.left=(r.left-b.left+r.width/2)+'px';
+    d.style.top=(b.height/2)+'px';
+    board.appendChild(d);
+  }
+  const r12=cells[0][12].getBoundingClientRect(), b=boardRect();
+  for(const y of [0.30,0.70]){
+    const d=document.createElement('div');d.className='inlay';
+    d.style.left=(r12.left-b.left+r12.width/2)+'px';
+    d.style.top=(b.height*y)+'px';
+    board.appendChild(d);
+  }
+}
+window.addEventListener('resize',placeInlays);
+
+const sl=document.getElementById('stringLabels');
+STR_LABEL.forEach((t,s)=>{
+  const b=document.createElement('button');
+  b.className='str-lbl';b.dataset.string=s;b.textContent=t;
+  b.title='Click to mute/unmute this string';
+  b.setAttribute('aria-label',t+' string — click to toggle mute');
+  sl.appendChild(b);
+});
+sl.addEventListener('click',e=>{
+  const b=e.target.closest('.str-lbl');if(!b)return;
+  const s=+b.dataset.string;
+  exitShapes();
+  const wasActive=activeChip!==null;activeChip=null;
+  selection[s]=selection[s]==='x'?null:'x';
+  analyze();
+  if(wasActive)renderSong();
+});
+const fn=document.getElementById('fretNums');
+for(let f=0;f<=12;f++){const d=document.createElement('div');d.textContent=f===0?'open':f;fn.appendChild(d)}
+
+/* ================= rendering ================= */
+function render(){
+  document.querySelectorAll('.dot-note, .mute-mark').forEach(e=>e.remove());
+  // update string labels + row dim state
+  document.querySelectorAll('.str-lbl').forEach(b=>{
+    const s=+b.dataset.string;
+    if(selection[s]==='x'){b.classList.add('muted');b.textContent='×';}
+    else{b.classList.remove('muted');b.textContent=STR_LABEL[s];}
+  });
+  for(let s=0;s<6;s++){
+    board.children[s].classList.toggle('muted',selection[s]==='x');
+  }
+  /* scale overlay — color-coded by scale degree so the "spine" is visible */
+  // Determine the active box (or null for whole neck)
+  let activeBox=null;
+  if(scaleActive&&scaleBoxIdx!==null){
+    const boxes=computeScaleBoxes();
+    activeBox=boxes[scaleBoxIdx]||null;
+  }
+  // Tint cells that are inside the active box — using the exact per-string shape,
+  // not a uniform rectangle (real boxes are irregular; that's what makes them recognizable)
+  for(let s=0;s<6;s++){
+    for(let f=0;f<=12;f++){
+      const inBox=!!activeBox&&activeBox.perString[s].has(f);
+      cells[s][f].classList.toggle('in-box',inBox);
+    }
+  }
+  if(scaleActive){
+    const S=SCALES[scaleActive.scale];
+    // Map each scale pitch class back to its interval from the root
+    const pcToInterval=new Map();
+    S.intervals.forEach(iv=>{
+      pcToInterval.set((scaleActive.root+iv)%12,iv);
+    });
+    for(let s=0;s<6;s++){
+      if(selection[s]==='x')continue;
+      for(let f=0;f<=12;f++){
+        const pc=(OPEN[s]+f)%12;
+        if(pcToInterval.has(pc)&&selection[s]!==f){
+          const iv=pcToInterval.get(pc);
+          const outOfBox=!!activeBox&&!activeBox.perString[s].has(f);
+          const d=document.createElement('div');
+          d.className='dot-note scale '+scaleDegreeClass(iv)+(outOfBox?' out-of-box':'');
+          d.textContent=pcName(pc);
+          cells[s][f].appendChild(d);
+        }
+      }
+    }
+  }
+  /* selected notes + mute marks on the nut */
+  const rootPc=current?current.root:null;
+  for(let s=0;s<6;s++){
+    const v=selection[s];
+    if(typeof v==='number'){
+      const pc=(OPEN[s]+v)%12;
+      const d=document.createElement('div');
+      d.className='dot-note sel'+(pc===rootPc?' root':'');
+      d.textContent=pcName(pc);
+      cells[s][v].appendChild(d);
+    } else if(v==='x'){
+      const d=document.createElement('div');
+      d.className='mute-mark';d.textContent='×';
+      cells[s][0].appendChild(d);
+    }
+  }
+}
+
+function analyze(){
+  const midis=[];
+  for(let s=0;s<6;s++){
+    const v=selection[s];
+    if(typeof v==='number')midis.push(OPEN[s]+v);
+  }
+  const out=document.getElementById('chordOut');
+  const btnShapes=document.getElementById('btnShapes');
+  current=null;currentAlts=[];
+  if(midis.length===0){
+    out.innerHTML='<p class="placeholder">Nothing selected yet — click a string at any fret (the light strip on the left is the open string).</p>';
+    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();render();return;
+  }
+  const names=[...new Set(midis.slice().sort((a,b)=>a-b).map(m=>pcName(m%12)))];
+  if(midis.length===1){
+    out.innerHTML='<div class="chord-name">'+names[0]+'</div><p class="notes-line">Single note. Add more to build a chord.</p>';
+    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();render();return;
+  }
+  const matches=identify(midis);
+  if(matches.length===0){
+    const uniq=[...new Set(midis.map(m=>m%12))];
+    let intervalInfo='';
+    if(uniq.length===2){
+      const iv=((uniq[1]-uniq[0])+12)%12;
+      intervalInfo='Interval: '+(IVNAME[iv]||iv+' semitones')+' / '+(IVNAME[(12-iv)%12]||'');
+    }
+    out.innerHTML='<div class="chord-name" style="font-size:1.3rem;color:var(--ink-dim)">No standard chord name</div>'+
+      '<p class="notes-line">Notes: '+names.join(' – ')+'. '+intervalInfo+'</p>'+
+      '<p class="notes-line">Could be a fragment — try adding or removing a note.</p>';
+    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();render();return;
+  }
+  current=matches[0];currentAlts=matches.slice(1,4);
+  showChord();btnShapes.disabled=false;updateAddBtn();reconcileBoardState();render();
+}
+
+function showChord(){
+  const out=document.getElementById('chordOut');
+  const c=current;
+  const ivDesc=[...new Set(c.pcs.map(p=>((p-c.root)+12)%12))].sort((a,b)=>a-b)
+    .map(iv=>pcName((c.root+iv)%12)+' ('+(IVNAME[iv]||iv)+')').join(' · ');
+  const qual=fullQuality(c.suf)+(c.slash!==null?', '+pcName(c.slash)+' in bass':'');
+  let html='<div class="chord-name">'+chordLabel(c)+' <small>'+qual+'</small></div>';
+  html+='<p class="mood">'+c.mood+'</p>';
+  html+='<p class="notes-line">'+ivDesc+'</p>';
+  if(currentAlts.length){
+    html+='<div class="alts">Could also be: '+currentAlts.map((a,i)=>
+      '<button data-alt="'+i+'" title="Interpret these same notes as '+chordLabel(a)+' instead">'+chordLabel(a)+'</button>').join('')+'</div>';
+  }
+  out.innerHTML=html;
+  out.querySelectorAll('[data-alt]').forEach(b=>b.addEventListener('click',()=>{
+    const a=currentAlts[+b.dataset.alt];
+    currentAlts=[current,...currentAlts.filter(x=>x!==a)];
+    current=a;showChord();render();updateAddBtn();
+  }));
+}
+function fullQuality(suf){
+  const m={'':'major','m':'minor','7':'dominant 7','maj7':'major 7','m7':'minor 7',
+   'sus4':'suspended 4','sus2':'suspended 2','add9':'added 9','madd9':'minor add 9',
+   '6':'major 6','m6':'minor 6','dim':'diminished','aug':'augmented','5':'power chord',
+   'dim7':'diminished 7','m7♭5':'half-diminished','7sus4':'7 suspended 4','mMaj7':'minor-major 7',
+   '9':'dominant 9','maj9':'major 9','m9':'minor 9','6/9':'six-nine'};
+  return m[suf]||'';
+}
+
+function updateAddBtn(){
+  const btn=document.getElementById('btnAdd');
+  if(!current){btn.disabled=true;btn.textContent='Add to progression';btn.title='';return;}
+  btn.disabled=false;
+  const sec=activeSection();
+  if(sec){
+    btn.textContent='Add to '+sec.name;
+    btn.title='Adds this chord to the active section: '+sec.name;
+  } else {
+    btn.textContent='Add to progression';
+    btn.title='Will create an Intro section and add there';
+  }
+}
+
+// Reconcile board-dependent button states — call after any change to `selection`
+function reconcileBoardState(){
+  const hasNote=selection.some(v=>typeof v==='number'&&v>=0);
+  document.getElementById('btnClear').disabled=!hasNote;
+  // Shape browser only makes sense when there's actually a chord on the board
+  if(!hasNote&&inShapeMode)exitShapes();
+}
+
+/* ================= interactions ================= */
+board.addEventListener('click',e=>{
+  const cell=e.target.closest('.cell');if(!cell)return;
+  exitShapes();
+  const wasActive=activeChip!==null;activeChip=null;
+  const s=+cell.dataset.s,f=+cell.dataset.f;
+  selection[s]=(selection[s]===f)?null:f;
+  analyze();
+  if(wasActive)renderSong();
+});
+board.addEventListener('keydown',e=>{
+  if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.click()}
+});
+
+document.getElementById('btnClear').addEventListener('click',()=>{
+  selection.fill(null);exitShapes();
+  const wasActive=activeChip!==null;activeChip=null;
+  analyze();if(wasActive)renderSong();
+});
+
+function setFlats(v){useFlats=v;
+  const btn=document.getElementById('btnAccidental');
+  if(btn){
+    btn.classList.toggle('flats',v);
+    btn.setAttribute('aria-checked',v?'true':'false');
+    btn.title=v?'Showing flats (♭) — slide for sharps (♯)':'Showing sharps (♯) — slide for flats (♭)';
+  }
+  analyze();renderSong();
+}
+document.getElementById('btnAccidental').addEventListener('click',()=>setFlats(!useFlats));
+
+/* ---------- shapes ---------- */
+function enterShapesFor(chordObj,playedFrets){
+  if(!chordObj||typeof chordObj.root!=='number'||!Array.isArray(chordObj.pcs)){
+    // Corrupt input — refuse to enter shape mode
+    return;
+  }
+  const ivs=[...new Set(chordObj.pcs.map(p=>((p-chordObj.root)+12)%12))];
+  let gen=findVoicings(chordObj.root,ivs);
+  if(Array.isArray(playedFrets)&&playedFrets.length>0){
+    const pf=new Array(6).fill(-1);
+    for(let i=0;i<6;i++){
+      const f=playedFrets[i];
+      if(typeof f==='number'&&f>=0)pf[i]=f;
+    }
+    gen=gen.filter(v=>v.frets.join()!==pf.join());
+    const fr=pf.filter(f=>f>0);
+    const minF=fr.length?Math.min(...fr):0;
+    shapes=[{frets:pf,minF,asPlayed:true},...gen];
+  } else {
+    shapes=gen;
+  }
+  if(shapes.length===0){
+    shapes=[{frets:selection.map(f=>(f===null||f==='x')?-1:f),minF:0}];
+  }
+  current=chordObj;currentAlts=[];
+  inShapeMode=true;shapeIdx=0;
+  document.getElementById('shapeNav').hidden=false;
+  loadShape();
+}
+document.getElementById('btnShapes').addEventListener('click',()=>{
+  if(!current)return;
+  enterShapesFor(current,selection.slice());
+});
+function loadShape(){
+  // Defensive: if state is corrupted or empty, exit cleanly instead of crashing
+  if(!inShapeMode)return;
+  if(!Array.isArray(shapes)||shapes.length===0){exitShapes();return;}
+  if(shapeIdx<0||shapeIdx>=shapes.length)shapeIdx=0;
+  const v=shapes[shapeIdx];
+  if(!v||!Array.isArray(v.frets)){exitShapes();return;}
+  // Rebuild selection so it always has exactly 6 elements
+  const newSel=new Array(6).fill(null);
+  for(let i=0;i<6;i++){
+    const f=v.frets[i];
+    if(f===-1)newSel[i]='x';
+    else if(typeof f==='number'&&f>=0)newSel[i]=f;
+  }
+  selection=newSel;
+  const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
+  document.getElementById('shapeLabel').textContent=
+    'Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName;
+  const keep=current;
+  analyze();
+  if(current&&keep){
+    const same=[current,...currentAlts].find(c=>c.root===keep.root&&c.suf===keep.suf);
+    if(same&&same!==current){
+      currentAlts=[current,...currentAlts.filter(x=>x!==same)];
+      current=same;showChord();render();updateAddBtn();
+    }
+  }
+}
+document.getElementById('btnPrevShape').addEventListener('click',()=>{
+  if(!inShapeMode||!Array.isArray(shapes)||shapes.length===0){exitShapes();return;}
+  shapeIdx=(shapeIdx-1+shapes.length)%shapes.length;loadShape();
+});
+document.getElementById('btnNextShape').addEventListener('click',()=>{
+  if(!inShapeMode||!Array.isArray(shapes)||shapes.length===0){exitShapes();return;}
+  shapeIdx=(shapeIdx+1)%shapes.length;loadShape();
+});
+function exitShapes(){
+  if(!inShapeMode)return;
+  inShapeMode=false;
+  shapes=[];shapeIdx=0;  // clear state so a stale click can't reach into old data
+  document.getElementById('shapeNav').hidden=true;
+}
+
+/* ---------- add chord to progression ---------- */
+document.getElementById('btnAdd').addEventListener('click',()=>{
+  if(!current)return;
+  const sec = ensureActiveSection('Intro');
+  const label = pcName(current.root)+current.suf;
+  const frets = selection.map(f=>(f===null||f==='x')?-1:f);
+  sec.chords.push({
+    root:current.root, suf:current.suf,
+    pcs:[...new Set(current.pcs)], frets, rep:1
+  });
+  _popChip={sectionId:sec.id, chordIdx:sec.chords.length-1};  // animate this chip in
+  activeChip=null;
+  selection.fill(null); exitShapes(); analyze();
+  renderSong();
+  flash('Added '+label+' to '+sec.name);
+});
+
+function flash(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(flash._t);flash._t=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* In-app confirmation dialog.
+   Native window.confirm() is unreliable when the app runs from a local file:// URL
+   (some browsers suppress or auto-dismiss it), which would silently cancel destructive
+   actions. This themed modal always works and matches the app's look.
+   Returns a Promise that resolves true (confirmed) or false (cancelled). */
+function confirmModal(message, opts){
+  opts=opts||{};
+  const confirmText=opts.confirmText||'Delete';
+  const cancelText=opts.cancelText||'Keep';
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.className='modal-overlay';
+    const dialog=document.createElement('div');
+    dialog.className='modal-dialog';
+    dialog.setAttribute('role','alertdialog');
+    dialog.setAttribute('aria-modal','true');
+
+    const msg=document.createElement('p');
+    msg.className='modal-msg';msg.textContent=message;
+    dialog.appendChild(msg);
+
+    const row=document.createElement('div');row.className='modal-btns';
+    const cancelBtn=document.createElement('button');
+    cancelBtn.className='btn';cancelBtn.textContent=cancelText;
+    const okBtn=document.createElement('button');
+    okBtn.className='btn danger';okBtn.textContent=confirmText;
+    row.appendChild(cancelBtn);row.appendChild(okBtn);
+    dialog.appendChild(row);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(()=>overlay.classList.add('show'));
+
+    let done=false;
+    const close=(result)=>{
+      if(done)return;done=true;
+      overlay.classList.remove('show');
+      document.removeEventListener('keydown',onKey);
+      setTimeout(()=>overlay.remove(),180);
+      resolve(result);
+    };
+    const onKey=(e)=>{
+      if(e.key==='Escape')close(false);
+      else if(e.key==='Enter')close(true);
+    };
+    cancelBtn.addEventListener('click',()=>close(false));
+    okBtn.addEventListener('click',()=>close(true));
+    overlay.addEventListener('click',e=>{if(e.target===overlay)close(false);});
+    document.addEventListener('keydown',onKey);
+    requestAnimationFrame(()=>okBtn.focus());
+  });
+}
+
+/* ---------- song rendering ---------- */
+function renderSong(){
+  const host=document.getElementById('song');
+  host.innerHTML='';
+  const chords=allChords();
+  document.getElementById('btnExport').disabled=chords.length===0;
+  document.getElementById('btnCopy').disabled=chords.length===0;
+  document.getElementById('btnBackup').disabled=sections.length===0;
+
+  if(sections.length===0){
+    host.innerHTML='<p class="placeholder">Add a section below (Intro, Chorus…) to start building your song. Chords you add will drop into whichever section is active — or Couch Batata will create an Intro automatically on your first add.</p>';
+    currentKeyInfo=null;currentOutlierMap=new Map();currentCoveringMode=null;
+    renderKey();
+    updateAddBtn();
+    return;
+  }
+
+  // Analyze the whole progression once for outliers + covering scale
+  currentKeyInfo = analyzeKey();
+  currentOutlierMap = buildOutlierMap(currentKeyInfo);
+  currentCoveringMode = findCoveringMode(currentKeyInfo);
+
+  const primary = currentKeyInfo ? currentKeyInfo.tonic : null;
+
+  sections.forEach((sec,idx)=>{
+    host.appendChild(buildSectionCard(sec,idx,primary));
+  });
+
+  renderKey();
+  updateAddBtn();
+  save();
+}
+
+function buildSectionCard(sec,idx,primary){
+  const isActive = sec.id===activeSectionId;
+  const card=document.createElement('div');
+  card.className='song-sect'+(isActive?' active':'');
+  card.tabIndex=0;
+  card.dataset.sectionId=sec.id;
+  card.setAttribute('role','group');
+  card.setAttribute('aria-label',sec.name+(isActive?' — active section':''));
+
+  // Activate on background click (but not on interactive controls)
+  card.addEventListener('click',e=>{
+    if(e.target.closest('button, select, textarea, input, .chip'))return;
+    if(activeSectionId!==sec.id){
+      activeSectionId=sec.id;
+      renderSong();
+    }
+  });
+
+  // Header
+  const bar=document.createElement('div');bar.className='sect-bar';
+  bar.title='Drag to reorder this section';
+  attachSectionDrag(bar,card,idx);
+  bar.appendChild(sectNameSelect(sec));
+
+  const badge=document.createElement('button');
+  badge.type='button';badge.className='active-badge';
+  badge.innerHTML='<span class="pip"></span>'+(isActive?'active':'activate');
+  badge.title=isActive?'This section is receiving new chords':'Make this the active section';
+  badge.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(activeSectionId!==sec.id){activeSectionId=sec.id;renderSong();}
+  });
+  bar.appendChild(badge);
+
+  const cnt=document.createElement('span');cnt.className='sect-count';
+  cnt.textContent=sec.chords.length+(sec.chords.length===1?' chord':' chords');
+  bar.appendChild(cnt);
+
+  const sp=document.createElement('span');sp.className='sect-bar-sp';bar.appendChild(sp);
+  bar.appendChild(secDupBtn(sec,idx));
+  bar.appendChild(secDelBtn(sec,idx));
+  card.appendChild(bar);
+
+  // Chords
+  const wrap=document.createElement('div');wrap.className='sect-chords';
+  if(sec.chords.length===0){
+    const empty=document.createElement('span');empty.className='empty-sect-hint';
+    empty.textContent=isActive
+      ? 'Find a chord above and press "Add to '+sec.name+'" — it lands here.'
+      : 'No chords yet. Click to activate this section, then add chords.';
+    wrap.appendChild(empty);
+  } else {
+    sec.chords.forEach((c,cIdx)=>{
+      wrap.appendChild(buildChip(sec,cIdx,c,primary));
+    });
+  }
+  card.appendChild(wrap);
+
+  // Lyrics
+  const box=document.createElement('div');box.className='sect-lyrics';
+  const ta=document.createElement('textarea');
+  ta.rows=2;
+  ta.placeholder='lyrics for '+sec.name.toLowerCase()+' (optional) — flows into the export';
+  ta.value=sec.lyrics||'';
+  ta.addEventListener('input',()=>{sec.lyrics=ta.value;save();});
+  ta.addEventListener('focus',()=>{
+    if(activeSectionId!==sec.id){activeSectionId=sec.id;renderSong();
+      // restore focus after re-render
+      requestAnimationFrame(()=>{
+        const nta=host.querySelectorAll('.song-sect')[sections.findIndex(s=>s.id===sec.id)]
+          ?.querySelector('textarea');
+        if(nta){nta.focus();nta.setSelectionRange(nta.value.length,nta.value.length);}
+      });
+    }
+  });
+  box.appendChild(ta);
+  card.appendChild(box);
+
+  return card;
+}
+
+function buildChip(sec,cIdx,c,primary){
+  const isActive=activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
+  const isOutlier=(currentOutlierMap.get(sec.id)||new Set()).has(cIdx);
+  const num=cIdx+1;
+  const chip=document.createElement('span');
+  const isPop=_popChip && _popChip.sectionId===sec.id && _popChip.chordIdx===cIdx;
+  chip.className='chip'+(isActive?' active':'')+(isOutlier?' outlier':'')+(isPop?' chip-pop':'');
+  if(isPop)_popChip=null;  // consume so it only animates once
+  chip.title=isOutlier
+    ? "Borrowed chord — outside the current key. See Musical guidance below."
+    : 'Drag to reorder or move to another section';
+  attachChipDrag(chip,sec,cIdx);
+  let rn='';
+  if(primary!==null){
+    const tri=diatonicTriads(primary).find(t=>t.root===c.root && startsLike(t.suf,c.suf));
+    if(tri) rn='<span class="rn">'+tri.rn+'</span>';
+  }
+  const nameBtn=document.createElement('button');nameBtn.className='chip-name';
+  nameBtn.innerHTML='<span class="num">'+num+'</span><span>'+pcName(c.root)+c.suf+'</span>'+rn;
+  nameBtn.setAttribute('aria-pressed',isActive?'true':'false');
+  nameBtn.title='Click to load this chord and browse shapes';
+  nameBtn.addEventListener('click',e=>{e.stopPropagation();toggleChip(sec,cIdx);});
+  chip.appendChild(nameBtn);
+  chip.appendChild(repSelect(c));
+  chip.appendChild(chordDelBtn(sec,cIdx));
+  return chip;
+}
+
+function repSelect(c){
+  const rep=c.rep||1;
+  const sel=document.createElement('select');sel.className='rep-sel'+(rep>1?' on':'');
+  sel.title='How many times this chord repeats';
+  sel.setAttribute('aria-label','Repeat count');
+  for(let n=1;n<=8;n++){
+    const o=document.createElement('option');o.value=n;o.textContent='×'+n;
+    if(n===rep)o.selected=true;sel.appendChild(o);
+  }
+  sel.addEventListener('click',e=>e.stopPropagation());
+  sel.addEventListener('change',e=>{e.stopPropagation();c.rep=+sel.value;renderSong();});
+  return sel;
+}
+
+function closeSectNameMenu(wrap,restoreFocus){
+  if(!wrap)return;
+  const trigger=wrap.querySelector('.sect-name');
+  const menu=wrap.querySelector('.sect-name-menu');
+  if(menu)menu.hidden=true;
+  wrap.classList.remove('open');
+  wrap.closest('.song-sect')?.classList.remove('menu-open');
+  if(trigger)trigger.setAttribute('aria-expanded','false');
+  if(restoreFocus&&trigger)trigger.focus();
+}
+function closeAllSectNameMenus(except){
+  document.querySelectorAll('.sect-name-wrap.open').forEach(w=>{
+    if(w!==except)closeSectNameMenu(w,false);
+  });
+}
+document.addEventListener('click',e=>{
+  document.querySelectorAll('.sect-name-wrap.open').forEach(w=>{
+    if(!w.contains(e.target))closeSectNameMenu(w,false);
+  });
+});
+
+function sectNameSelect(sec){
+  const wrap=document.createElement('div');wrap.className='sect-name-wrap';
+  const trigger=document.createElement('button');
+  trigger.type='button';trigger.className='sect-name';trigger.textContent=sec.name;
+  trigger.title='Rename this section';
+  trigger.setAttribute('aria-haspopup','listbox');
+  trigger.setAttribute('aria-expanded','false');
+  trigger.setAttribute('aria-label','Section name: '+sec.name+'. Choose a new name');
+
+  const menu=document.createElement('div');
+  menu.className='sect-name-menu';menu.hidden=true;menu.setAttribute('role','listbox');
+  menu.setAttribute('aria-label','Choose a section name');
+  menu.id='sect-name-menu-'+sec.id;trigger.setAttribute('aria-controls',menu.id);
+
+  const values=[...SECTION_PRESETS];
+  if(!values.includes(sec.name))values.unshift(sec.name);
+  values.push('__custom');
+
+  const choose=value=>{
+    closeSectNameMenu(wrap,false);
+    if(value==='__custom'){
+      const nm=(prompt('Section name:',sec.name)||'').trim().slice(0,80);
+      if(!nm){trigger.focus();return;}
+      sec.name=nm;
+    } else {
+      if(value===sec.name){trigger.focus();return;}
+      sec.name=value;
+    }
+    renderSong();
+    requestAnimationFrame(()=>{
+      const card=document.querySelector('.song-sect[data-section-id="'+sec.id+'"]');
+      card?.querySelector('.sect-name')?.focus();
+    });
+  };
+
+  values.forEach(value=>{
+    const option=document.createElement('button');
+    option.type='button';option.className='sect-name-option';
+    option.setAttribute('role','option');
+    option.setAttribute('aria-selected',value===sec.name?'true':'false');
+    option.dataset.value=value;
+    option.textContent=value==='__custom'?'Custom…':value;
+    option.addEventListener('click',e=>{e.stopPropagation();choose(value);});
+    menu.appendChild(option);
+  });
+
+  const options=()=>[...menu.querySelectorAll('.sect-name-option')];
+  const openMenu=focusIndex=>{
+    closeAllSectNameMenus(wrap);
+    menu.hidden=false;wrap.classList.add('open');wrap.closest('.song-sect')?.classList.add('menu-open');
+    trigger.setAttribute('aria-expanded','true');
+    requestAnimationFrame(()=>{
+      const items=options();
+      const selected=Math.max(0,items.findIndex(o=>o.getAttribute('aria-selected')==='true'));
+      const idx=focusIndex==='last'?items.length-1:(focusIndex==='first'?0:selected);
+      items[idx]?.focus();
+    });
+  };
+  trigger.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(wrap.classList.contains('open'))closeSectNameMenu(wrap,true);else openMenu('selected');
+  });
+  trigger.addEventListener('keydown',e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();openMenu(e.key==='ArrowUp'?'last':'first');
+    }
+  });
+  menu.addEventListener('keydown',e=>{
+    const items=options();const i=items.indexOf(document.activeElement);
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();
+      items[(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();
+    } else if(e.key==='Home'||e.key==='End'){
+      e.preventDefault();items[e.key==='Home'?0:items.length-1]?.focus();
+    } else if(e.key==='Escape'){
+      e.preventDefault();closeSectNameMenu(wrap,true);
+    } else if(e.key==='Tab'){
+      closeSectNameMenu(wrap,false);
+    }
+  });
+
+  wrap.appendChild(trigger);wrap.appendChild(menu);
+  return wrap;
+}
+
+/* ---------- drag & drop for chords and sections ---------- */
+let drag=null; // {type, sourceSection, sourceIdx?, startX, startY, ghost, ghostOffsetX, ghostOffsetY, origEl, indicator, dropSection, dropIdx, started}
+let _suppressNextClick=false;
+
+function attachChipDrag(chip,sec,cIdx){
+  chip.addEventListener('pointerdown',e=>{
+    if(e.target.closest('select, .chip-x'))return;
+    if(e.pointerType==='mouse' && e.button!==0)return;
+    const rect=chip.getBoundingClientRect();
+    drag={
+      type:'chord',
+      sourceSection:sec.id,
+      sourceIdx:cIdx,
+      startX:e.clientX,startY:e.clientY,
+      ghostOffsetX:e.clientX-rect.left,
+      ghostOffsetY:e.clientY-rect.top,
+      origEl:chip,
+      started:false,
+      dropSection:null,dropIdx:-1,
+      pointerId:e.pointerId,
+    };
+  });
+}
+
+function attachSectionDrag(bar,card,secIdx){
+  bar.addEventListener('pointerdown',e=>{
+    if(e.target.closest('select, .chip-x, .active-badge, .sect-name-wrap'))return;
+    if(e.pointerType==='mouse' && e.button!==0)return;
+    const rect=card.getBoundingClientRect();
+    drag={
+      type:'section',
+      sourceIdx:secIdx,
+      startX:e.clientX,startY:e.clientY,
+      ghostOffsetX:e.clientX-rect.left,
+      ghostOffsetY:e.clientY-rect.top,
+      origEl:card,
+      started:false,
+      dropIdx:-1,
+      pointerId:e.pointerId,
+    };
+  });
+}
+
+document.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(e.pointerId!==drag.pointerId)return;
+  if(!drag.started){
+    const dx=e.clientX-drag.startX, dy=e.clientY-drag.startY;
+    if(Math.hypot(dx,dy)<6)return;
+    startDrag(e);
+  }
+  positionGhost(e);
+  updateDropTarget(e);
+});
+
+document.addEventListener('pointerup',e=>{
+  if(!drag)return;
+  if(e.pointerId!==drag.pointerId)return;
+  if(drag.started){
+    _suppressNextClick=true;
+    commitDrop();
+  }
+  cleanupDrag();
+});
+document.addEventListener('pointercancel',()=>{ if(drag)cleanupDrag(); });
+
+// suppress the click that would otherwise fire on the origEl after a drag
+document.addEventListener('click',e=>{
+  if(_suppressNextClick){
+    _suppressNextClick=false;
+    e.stopPropagation();e.preventDefault();
+  }
+},true);
+
+function startDrag(e){
+  drag.started=true;
+  drag.origEl.classList.add('dragging');
+  // Ghost
+  const g=drag.origEl.cloneNode(true);
+  g.classList.add('drag-ghost');
+  g.classList.remove('dragging');
+  const rect=drag.origEl.getBoundingClientRect();
+  g.style.width=rect.width+'px';
+  document.body.appendChild(g);
+  drag.ghost=g;
+  // Indicator
+  const ind=document.createElement('div');
+  ind.className='drop-indicator '+(drag.type==='chord'?'chip-drop-indicator':'section-drop-indicator');
+  drag.indicator=ind;
+}
+
+function positionGhost(e){
+  drag.ghost.style.left=(e.clientX-drag.ghostOffsetX)+'px';
+  drag.ghost.style.top=(e.clientY-drag.ghostOffsetY)+'px';
+}
+
+function updateDropTarget(e){
+  const el=document.elementFromPoint(e.clientX,e.clientY);
+  if(drag.type==='chord')updateChordDrop(el,e);
+  else updateSectionDrop(el,e);
+}
+
+function updateChordDrop(el,e){
+  if(drag.indicator.parentNode)drag.indicator.remove();
+  drag.dropSection=null;drag.dropIdx=-1;
+  if(!el)return;
+  const card=el.closest('.song-sect');
+  if(!card)return;
+  const secId=+card.dataset.sectionId;
+  drag.dropSection=secId;
+
+  const wrap=card.querySelector('.sect-chords');
+  if(!wrap)return;
+  const chips=[...wrap.querySelectorAll('.chip:not(.dragging)')];
+
+  if(chips.length===0){
+    // drop into empty section
+    wrap.appendChild(drag.indicator);
+    drag.dropIdx=0;
+    return;
+  }
+  // Find insertion point by comparing to chip midpoints
+  let insertBefore=null,insertIdx=chips.length;
+  for(let i=0;i<chips.length;i++){
+    const r=chips[i].getBoundingClientRect();
+    const mid=r.left+r.width/2;
+    if(e.clientX<mid){insertBefore=chips[i];insertIdx=i;break;}
+  }
+  if(insertBefore)wrap.insertBefore(drag.indicator,insertBefore);
+  else wrap.appendChild(drag.indicator);
+  drag.dropIdx=insertIdx;
+}
+
+function updateSectionDrop(el,e){
+  if(drag.indicator.parentNode)drag.indicator.remove();
+  drag.dropIdx=-1;
+  const host=document.getElementById('song');
+  const cards=[...host.querySelectorAll('.song-sect:not(.dragging)')];
+  if(cards.length===0)return;
+
+  let insertBefore=null,insertIdx=cards.length;
+  for(let i=0;i<cards.length;i++){
+    const r=cards[i].getBoundingClientRect();
+    const mid=r.top+r.height/2;
+    if(e.clientY<mid){insertBefore=cards[i];insertIdx=i;break;}
+  }
+  if(insertBefore)host.insertBefore(drag.indicator,insertBefore);
+  else host.appendChild(drag.indicator);
+  drag.dropIdx=insertIdx;
+}
+
+function commitDrop(){
+  if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
+    const fromSec=findSection(drag.sourceSection);
+    const toSec=findSection(drag.dropSection);
+    if(!fromSec||!toSec)return;
+    const chord=fromSec.chords.splice(drag.sourceIdx,1)[0];
+    let dropIdx=drag.dropIdx;
+    if(fromSec.id===toSec.id && drag.sourceIdx<drag.dropIdx)dropIdx--;
+    toSec.chords.splice(dropIdx,0,chord);
+
+    // Adjust activeChip pointer
+    if(activeChip){
+      if(activeChip.sectionId===fromSec.id && activeChip.chordIdx===drag.sourceIdx){
+        activeChip={sectionId:toSec.id,chordIdx:dropIdx};
+      } else if(activeChip.sectionId===fromSec.id && activeChip.chordIdx>drag.sourceIdx){
+        activeChip.chordIdx--;
+      } else if(activeChip.sectionId===toSec.id && activeChip.chordIdx>=dropIdx && fromSec.id!==toSec.id){
+        activeChip.chordIdx++;
+      }
+    }
+    // Cross-section move activates the destination
+    if(fromSec.id!==toSec.id)activeSectionId=toSec.id;
+    renderSong();
+    if(fromSec.id!==toSec.id){
+      flash('Moved chord to '+toSec.name);
+    }
+  } else if(drag.type==='section' && drag.dropIdx>=0){
+    const [moved]=sections.splice(drag.sourceIdx,1);
+    let dropIdx=drag.dropIdx;
+    if(drag.sourceIdx<drag.dropIdx)dropIdx--;
+    sections.splice(dropIdx,0,moved);
+    renderSong();
+  }
+}
+
+function cleanupDrag(){
+  if(drag){
+    if(drag.origEl)drag.origEl.classList.remove('dragging');
+    if(drag.ghost)drag.ghost.remove();
+    if(drag.indicator&&drag.indicator.parentNode)drag.indicator.remove();
+  }
+  drag=null;
+}
+
+/* chord delete */
+function chordDelBtn(sec,cIdx){
+  const b=document.createElement('button');b.className='chip-x';b.textContent='×';
+  b.title='Remove chord';b.setAttribute('aria-label','Remove chord');
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const wasActiveChip=activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
+    sec.chords.splice(cIdx,1);
+    if(wasActiveChip){
+      activeChip=null;selection.fill(null);exitShapes();analyze();
+    } else if(activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx>cIdx){
+      activeChip.chordIdx--;
+    }
+    renderSong();
+  });
+  return b;
+}
+
+/* section delete */
+function secDelBtn(sec,idx){
+  const b=document.createElement('button');b.className='chip-x';b.textContent='×';
+  b.title='Delete section (and its chords)';b.setAttribute('aria-label','Delete section');
+  b.addEventListener('click',async e=>{
+    e.stopPropagation();
+    if(sec.chords.length){
+      const ok=await confirmModal('Delete "'+sec.name+'" and its '+sec.chords.length+' chord'+(sec.chords.length===1?'':'s')+'?',
+        {confirmText:'Delete section',cancelText:'Keep'});
+      if(!ok)return;
+    }
+    sections.splice(idx,1);
+    if(activeSectionId===sec.id){
+      activeSectionId = sections.length ? sections[Math.min(idx,sections.length-1)].id : null;
+    }
+    if(activeChip && activeChip.sectionId===sec.id){
+      activeChip=null;selection.fill(null);exitShapes();analyze();
+    }
+    renderSong();
+  });
+  return b;
+}
+
+/* section duplicate */
+function nextSectionName(baseName){
+  const m=baseName.match(/^(.*?)(?:\s+(\d+))?$/);
+  const stem=(m[1]||baseName).trim();
+  let n=m[2]?parseInt(m[2])+1:2;
+  while(sections.some(s=>s.name===stem+' '+n))n++;
+  return stem+' '+n;
+}
+function secDupBtn(sec,idx){
+  const b=document.createElement('button');b.className='sect-dup';b.textContent='⧉';
+  b.title='Duplicate this section (chords + lyrics)';
+  b.setAttribute('aria-label','Duplicate section');
+  b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const newName=nextSectionName(sec.name);
+    const newSec={
+      id:_nextId++,
+      name:newName,
+      chords:sec.chords.map(c=>({
+        root:c.root, suf:c.suf,
+        pcs:[...c.pcs],
+        frets:[...c.frets],
+        rep:c.rep||1
+      })),
+      lyrics:sec.lyrics||''
+    };
+    sections.splice(idx+1,0,newSec);
+    activeSectionId=newSec.id;
+    renderSong();
+    flash('Duplicated → '+newName);
+  });
+  return b;
+}
+
+/* click a chip to load its chord and browse shapes */
+function toggleChip(sec,cIdx){
+  const isSame = activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
+  if(isSame){
+    activeChip=null;selection.fill(null);exitShapes();analyze();renderSong();return;
+  }
+  activeChip={sectionId:sec.id, chordIdx:cIdx};
+  activeSectionId = sec.id; // clicking a chord also activates its section
+  const c = sec.chords[cIdx];
+  enterShapesFor({root:c.root, suf:c.suf, pcs:[...c.pcs], mood:moodFor(c.suf), slash:null}, c.frets);
+  renderSong();
+}
+function moodFor(suf){const f=FORMULAS.find(x=>x.suf===suf);return f?f.mood:''}
+
+/* ---------- add section button ---------- */
+document.getElementById('btnAddSection').addEventListener('click',()=>{
+  const sel=document.getElementById('sectionSelect');
+  let name=sel.value;
+  if(name==='__custom'){
+    name=(prompt('Section name:','Verse 2')||'').trim();
+    if(!name)return;
+  }
+  // Auto-suffix if a section with this name already exists
+  if(sections.some(s=>s.name===name)){
+    let n=2;
+    while(sections.some(s=>s.name===name+' '+n))n++;
+    name=name+' '+n;
+  }
+  const s={id:_nextId++, name, chords:[], lyrics:''};
+  sections.push(s);
+  activeSectionId=s.id;
+  renderSong();
+  flash('Added section "'+name+'" — now active');
+});
+
+/* ---------- export ---------- */
+function buildExportText(){
+  const chords=allChords();
+  const keys=chords.length?findKeys(chords.map(p=>p.pcs)):[];
+  const primary=keys.length?pickPrimaryKey(keys):null;
+  const L=[];
+  L.push('COUCH BATATA — CHORD CHART');
+  if(primary!==null)L.push('Key: '+pcName(primary)+' major / '+pcName((primary+9)%12)+' minor');
+  L.push('Tuning: EADGBE   ·   frets read low E → high e   ·   x = muted');
+  L.push('');
+
+  const used=new Map(); // chord name → every distinct voicing used
+  const groups = sections.length ? sections : [{name:null, chords, lyrics:''}];
+  groups.forEach(g=>{
+    if(!g.chords.length && !(g.lyrics||'').trim()) return;
+    L.push('['+(g.name||'Section')+']');
+    if(g.chords.length){
+      const toks=g.chords.map(c=>{
+        const nm=pcName(c.root)+c.suf;
+        if(!used.has(nm))used.set(nm,[]);
+        const shape=c.frets.join(',');
+        if(!used.get(nm).some(f=>f.join(',')===shape))used.get(nm).push(c.frets);
+        return nm+((c.rep||1)>1?'×'+c.rep:'');
+      });
+      for(let r=0;r<toks.length;r+=8){
+        L.push(toks.slice(r,r+8).map(n=>n.padEnd(12)).join('').replace(/\s+$/,''));
+      }
+    }
+    const lyr=(g.lyrics||'').replace(/\r/g,'').replace(/\s+$/,'');
+    if(lyr.trim()) lyr.split('\n').forEach(line=>L.push(line));
+    else L.push('');
+    L.push('');
+  });
+  if(used.size){
+    L.push('— CHORD SHAPES —');
+    for(const [name,voicings] of used){
+      voicings.forEach((frets,i)=>{
+        const lowToHigh=[5,4,3,2,1,0].map(s=>{const f=frets[s];return f<0?'x':String(f)});
+        const label=voicings.length>1?name+' ['+(i+1)+']':name;
+        L.push(label.padEnd(12)+lowToHigh.join(' '));
+      });
+    }
+    L.push('');
+  }
+  L.push('made with Couch Batata');
+  return L.join('\n');
+}
+function showExport(){
+  const txt=buildExportText();
+  document.getElementById('exportPanel').hidden=false;
+  document.getElementById('exportPre').textContent=txt;
+  return txt;
+}
+document.getElementById('btnExport').addEventListener('click',()=>{
+  const txt=showExport();
+  const blob=new Blob([txt],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='couch-batata-chart.txt';
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  flash('Downloaded couch-batata-chart.txt');
+});
+document.getElementById('btnCopy').addEventListener('click',async()=>{
+  const txt=showExport();
+  try{await navigator.clipboard.writeText(txt);flash('Copied to clipboard');}
+  catch(e){flash('Preview shown below — select & copy');}
+});
+
+function downloadText(filename,text,type){
+  const blob=new Blob([text],{type:type||'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+document.getElementById('btnBackup').addEventListener('click',()=>{
+  save(true);
+  downloadText('couch-batata-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
+  flash('Downloaded editable project backup');
+});
+document.getElementById('btnImport').addEventListener('click',()=>{
+  document.getElementById('projectFile').click();
+});
+document.getElementById('projectFile').addEventListener('change',async e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value='';
+  if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());
+    if(!restoreProject(data))throw new Error('Unsupported project format');
+    activeChip=null;selection.fill(null);exitShapes();
+    setFlats(useFlats);
+    analyze();renderSong();save(true);
+    flash('Opened project "'+file.name+'"');
+  }catch(err){
+    flash('Could not open that project file');
+  }
+});
+
+/* ---------- key analysis ---------- */
+function startsLike(diatonicSuf,playedSuf){
+  if(diatonicSuf==='')return ['','maj7','6','add9','sus2','sus4','9','maj9','6/9','7','7sus4','5','7♯9','7♭9','7♯5'].includes(playedSuf);
+  if(diatonicSuf==='m')return ['m','m7','m6','madd9','m9','5'].includes(playedSuf);
+  if(diatonicSuf==='dim')return ['dim','m7♭5','dim7'].includes(playedSuf);
+  return diatonicSuf===playedSuf;
+}
+function pickPrimaryKey(keys){
+  const cs=allChords();
+  for(const k of keys)if(cs.some(p=>p.root===k&&(p.suf===''||p.suf==='maj7'||p.suf==='add9')))return k;
+  for(const k of keys)if(cs[0]&&cs[0].root===k)return k;
+  return keys[0];
+}
+function renderKey(){
+  const panel=document.getElementById('scalePanel'),
+        kl=document.getElementById('keyLine'),
+        gd=document.getElementById('guidance'),
+        sg=document.getElementById('suggestOut'),
+        sh=document.getElementById('scaleSuggest');
+  const cs=allChords();
+  const keyInfo=currentKeyInfo;
+  if(cs.length<2||!keyInfo){
+    panel.hidden=true;
+    _hadOutliers=false;
+    scaleActive=null;scaleBoxIdx=null;render();return;
+  }
+  panel.hidden=false;
+  const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,dominantContext}=keyInfo;
+  const rel=(tonic+9)%12;
+  if(dominantContext){
+    kl.innerHTML='Tonal center: <strong>'+pcName(tonic)+' dominant blues</strong> '
+      +'<span style="color:var(--ink-dim)">(I7 / IV7 / V7 — follow the chord changes; no single Mixolydian scale contains every chord tone)</span>';
+  } else if(isPerfectFit){
+    let others='';
+    if(alsoFits.length){
+      others=' <span style="color:var(--ink-faint);font-size:.85rem">(also fits: '+
+        alsoFits.map(k=>pcName(k)+' major').join(', ')+')</span>';
+    }
+    kl.innerHTML='Key: <strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+others;
+  } else {
+    kl.innerHTML='Closest key: <strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+
+      '<span class="fit-badge">'+inChords+' of '+totalChords+' fit · '+outIdxs.size+' borrowed</span>';
+  }
+
+  // Diatonic suggestions — only meaningful for major-key context
+  if(dominantContext){
+    sg.hidden=true;
+  } else {
+    const tris=diatonicTriads(tonic);
+    const unused=tris.filter(t=>!cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)));
+    sg.hidden=false;
+    sg.innerHTML=unused.length
+      ?'Other chords in this key you haven\u2019t used: '+unused.map(t=>'<span class="sug">'+pcName(t.root)+t.suf+' <span style="color:var(--amber);font-size:.75rem">'+t.rn+'</span></span>').join('')
+      :'You\u2019ve used every diatonic chord in this key. Nice.';
+  }
+
+  // Guidance panel — only when we have outliers (not for dominant context)
+  const hasOutliers=!isPerfectFit;
+  if(hasOutliers){
+    renderGuidance(keyInfo);
+    gd.hidden=false;
+  } else {
+    gd.hidden=true;
+  }
+
+  renderScaleSuggest(tonic);
+  // Auto-open the panel the moment an outlier first appears, so the guidance is
+  // surfaced — but only on that transition, so the user can collapse it afterward.
+  if(hasOutliers && !_hadOutliers){scalePanelExpanded=true;}
+  _hadOutliers=hasOutliers;
+  syncScalePanelUI(hasOutliers);
+  render();
+}
+
+// Keeps the collapsible panel's open/closed visual state in sync with
+// scalePanelExpanded (the user's manual preference). A newly-appearing outlier
+// chord auto-opens the panel once so the guidance isn't missed — but the user
+// can always collapse it again; we never lock it open.
+function syncScalePanelUI(hasOutliers){
+  const panel=document.getElementById('scalePanel'),
+        header=document.getElementById('scalePanelHeader'),
+        body=document.getElementById('scalePanelBody');
+  const visuallyOpen=scalePanelExpanded;
+  body.hidden=!visuallyOpen;
+  header.setAttribute('aria-expanded',String(visuallyOpen));
+  // Show a small note (only while open + outlier present) explaining the auto-open,
+  // but the header stays fully clickable so the panel can be collapsed.
+  let note=header.querySelector('.scale-panel-forced-note');
+  if(hasOutliers && visuallyOpen){
+    if(!note){
+      note=document.createElement('span');
+      note.className='scale-panel-forced-note';
+      header.insertBefore(note,header.lastElementChild);
+    }
+    note.textContent='auto-opened — borrowed chord to review';
+  } else if(note){
+    note.remove();
+  }
+}
+document.getElementById('scalePanelHeader').addEventListener('click',()=>{
+  scalePanelExpanded=!scalePanelExpanded;
+  const hasOutliers=currentKeyInfo&&!currentKeyInfo.isPerfectFit;
+  syncScalePanelUI(!!hasOutliers);
+  save();
+});
+
+function renderGuidance(keyInfo){
+  const gd=document.getElementById('guidance');
+  const {tonic,outIdxs}=keyInfo;
+  const tonicNote=pcName(tonic);
+  let html='<h3>Musical guidance</h3>';
+
+  // Per-outlier: name it, suggest a replacement, show location
+  const items=[];
+  [...outIdxs].sort((a,b)=>a-b).forEach(gIdx=>{
+    const loc=chordAtGlobalIdx(gIdx);
+    if(!loc)return;
+    const {chord,sec}=loc;
+    const label=pcName(chord.root)+chord.suf;
+    const repl=findReplacement(chord,tonic);
+    const replLabel=pcName(repl.root)+repl.suf;
+    items.push(
+      '<div class="guidance-item">'
+      + '<b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+'</span> is outside '+tonicNote+' major. '
+      + 'Replace with <button class="repl-btn" data-sec="'+sec.id+'" data-idx="'+loc.cIdx+'" data-root="'+repl.root+'" data-suf="'+repl.suf+'">'+replLabel+' <span style="opacity:.7;font-size:.72rem">'+repl.rn+'</span></button>'
+      + '</div>'
+    );
+  });
+  html+=items.join('');
+
+  // Blanket suggestion — one scale that covers everything
+  if(currentCoveringMode){
+    const cm=currentCoveringMode;
+    const S=SCALES[cm.scale];
+    html+='<div class="cover-note">'
+      +'Or embrace the borrowed chords: <b>'+pcName(cm.root)+' '+S.name+'</b> covers every note in every chord — including the borrowed ones. It\u2019s already promoted (★) in the scale picker below.'
+      +'</div>';
+  } else {
+    html+='<div class="cover-note">'
+      +'No single scale covers every chord — you\u2019re modulating. Try the safe <b>'+pcName((tonic+9)%12)+' minor pentatonic</b> or lean into it with rest points on shared notes.'
+      +'</div>';
+  }
+
+  gd.innerHTML=html;
+
+  // Wire replacement buttons
+  gd.querySelectorAll('.repl-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const secId=+btn.dataset.sec;
+      const cIdx=+btn.dataset.idx;
+      const newRoot=+btn.dataset.root;
+      const newSuf=btn.dataset.suf;
+      replaceChord(secId,cIdx,newRoot,newSuf);
+    });
+  });
+}
+
+function renderScaleSuggest(primary){
+  const host=document.getElementById('scaleSuggest');
+  host.hidden=false;
+  const sugs=suggestScales(primary);
+  host.innerHTML='<h3>For soloing — try one of these scales:</h3>';
+  const row=document.createElement('div');row.className='scale-chips';
+  sugs.forEach(sug=>{
+    const S=SCALES[sug.scale];
+    const chip=document.createElement('button');
+    chip.className='scale-chip'+(isScaleActive(sug)?' on':'');
+    chip.innerHTML='<b>'+pcName(sug.root)+' '+S.name+'</b><span class="why">'+sug.why+'</span>';
+    chip.title='Click to overlay this scale on the fretboard';
+    chip.addEventListener('click',()=>{
+      scaleActive=isScaleActive(sug)?null:{root:sug.root,scale:sug.scale};
+      scaleBoxIdx=null;  // reset to full-neck view whenever the scale changes
+      renderScaleSuggest(primary);render();save();
+    });
+    row.appendChild(chip);
+  });
+  host.appendChild(row);
+  if(scaleActive){
+    const S=SCALES[scaleActive.scale];
+    // Build a color-coded notes list — each note tagged with its scale degree
+    const degLabel={0:'1',1:'♭2',2:'2',3:'♭3',4:'3',5:'4',6:'♭5',7:'5',8:'♯5',9:'6',10:'♭7',11:'7'};
+    const notesColored=S.intervals.map(iv=>{
+      const cls=scaleDegreeClass(iv);
+      const pc=(scaleActive.root+iv)%12;
+      return '<span class="lg-note lg-'+cls.slice(1)+'">'+pcName(pc)+
+        '<sub>'+(degLabel[iv]||iv)+'</sub></span>';
+    }).join(' ');
+    // Compute position boxes for this scale
+    const boxes=computeScaleBoxes();
+    let boxesHtml='';
+    if(boxes.length>0){
+      boxesHtml='<div class="scale-boxes"><span class="lg-boxes-label">Position boxes:</span>'+
+        '<button class="box-chip'+(scaleBoxIdx===null?' on':'')+'" data-box="all" title="Show the whole neck at once">All frets</button>';
+      boxes.forEach((b,i)=>{
+        boxesHtml+='<button class="box-chip'+(scaleBoxIdx===i?' on':'')+(b.isRoot?' is-root':'')+
+          '" data-box="'+i+'" title="Focus on frets '+b.startFret+'–'+b.endFret+' (starts on '+b.startNote+' on the low E)'+(b.isRoot?' — the root position':'')+'">'+
+          b.label+(b.isRoot?' <span class="root-tag">root</span>':'')+' <span class="box-frets">'+b.startFret+'–'+b.endFret+'</span></button>';
+      });
+      boxesHtml+='</div>';
+    }
+    const info=document.createElement('div');info.className='scale-info';
+    info.innerHTML='<b>'+pcName(scaleActive.root)+' '+S.name+'</b> — '+S.desc+
+      '<div class="scale-notes-line">'+notesColored+'</div>'+
+      '<div class="scale-legend">'+
+        '<span class="lg-item"><span class="lg-dot lg-sroot"></span>Root</span>'+
+        '<span class="lg-item"><span class="lg-dot lg-sthird"></span>3rd</span>'+
+        '<span class="lg-item"><span class="lg-dot lg-sfifth"></span>5th</span>'+
+        '<span class="lg-item"><span class="lg-dot lg-sseventh"></span>7th</span>'+
+        '<span class="lg-item"><span class="lg-dot lg-stension"></span>passing tone</span>'+
+        '<span class="lg-hint">Land on the coloured tones · pass through the greys.</span>'+
+      '</div>'+
+      boxesHtml;
+    host.appendChild(info);
+    // Wire box chip clicks
+    info.querySelectorAll('.box-chip').forEach(chip=>{
+      chip.addEventListener('click',()=>{
+        const v=chip.dataset.box;
+        scaleBoxIdx=(v==='all')?null:+v;
+        renderScaleSuggest(primary);
+        render();save();
+      });
+    });
+  }
+}
+function isScaleActive(sug){
+  return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;
+}
+
+/* clear entire song */
+document.getElementById('btnClearSong').addEventListener('click',async ()=>{
+  if(!sections.length){flash('Nothing to clear');return;}
+  const total=allChords().length;
+  const msg='Delete the entire song? This removes '+sections.length+' section'+(sections.length===1?'':'s')+' and '+total+' chord'+(total===1?'':'s')+', and can\'t be undone.';
+  const ok=await confirmModal(msg,{confirmText:'Clear song',cancelText:'Keep song'});
+  if(!ok)return;
+  sections=[];
+  activeSectionId=null;
+  activeChip=null;
+  scaleActive=null;scaleBoxIdx=null;
+  selection.fill(null);
+  exitShapes();
+  analyze();
+  renderSong();
+  flash('Song cleared');
+});
+
+/* init */
+const _wasRestored = load() && sections.length>0;
+// Sync the accidental toggle's icon/state to the restored (or default) useFlats value
+setFlats(useFlats);
+analyze();renderSong();placeInlays();
+setTimeout(placeInlays,50);
+if(_wasRestored)setTimeout(()=>flash('Restored your song from last session'),300);
+
+/* ---------- installable offline web app ---------- */
+let deferredInstallPrompt=null;
+const installCard=document.getElementById('installCard');
+const installCopy=document.getElementById('installCopy');
+const btnInstall=document.getElementById('btnInstall');
+const isStandalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}));
+}
+window.addEventListener('beforeinstallprompt',event=>{
+  event.preventDefault();deferredInstallPrompt=event;
+  if(!isStandalone)installCard.hidden=false;
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;installCard.hidden=true;flash('Couch Batata installed');
+});
+btnInstall.addEventListener('click',async()=>{
+  if(deferredInstallPrompt){
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt=null;installCard.hidden=true;
+  } else if(isIOS){
+    installCopy.innerHTML='<b>Install from Safari</b>Tap Share, then “Add to Home Screen”, and turn on “Open as Web App”.';
+    btnInstall.hidden=true;
+  }
+});
+document.getElementById('btnInstallDismiss').addEventListener('click',()=>installCard.hidden=true);
+if(isIOS&&!isStandalone){
+  setTimeout(()=>{installCopy.innerHTML='<b>Use it offline on iPhone or iPad</b>In Safari, tap Share → Add to Home Screen.';installCard.hidden=false;},1800);
+}
+</script>
+</body>
+</html>

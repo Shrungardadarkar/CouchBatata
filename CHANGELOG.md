@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-18 — Solo draft and creation workflow
+
+- Made the Notes/Tab switch update both shared-fretboard markers and drafted
+  solo events.
+- Replaced Undo event with Create solo: drafted events are added to the active
+  song section only after confirmation, or create a new Solo section.
+- Added × deletion controls for draft events and saved solos; draft events can
+  be dragged into a different order before creating the solo.
+
 ## 2026-07-18 — Scale-guided solo mode
 
 - Moved Key & Scales above the shared fretboard for earlier musical direction.

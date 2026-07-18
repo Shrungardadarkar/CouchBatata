@@ -36,7 +36,8 @@ Users do not need an app-store download.
 - One shared fretboard with Chord and Solo / arpeggio modes. In Solo mode,
   select one or more notes, then save the hit with clean, bend, release,
   pull-off, hammer-on, slides, vibrato, or mute; selected markers can show
-  note names or tab fret numbers.
+  note names or tab fret numbers. Draft events can be deleted or reordered,
+  then **Create solo** adds them to the selected section (or a new Solo section).
 - Key and scale direction appears before the fretboard; an active scale overlay
   remains visible while recording a solo.
 - Standard tuning with sharps/flats spelling.

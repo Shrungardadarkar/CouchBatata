@@ -309,10 +309,15 @@
   .lead-view[aria-pressed="true"]{background:var(--mint);box-shadow:1px 1px 0 var(--ink)}
   .lead-tech:focus-visible,.lead-view:focus-visible,.board-mode button:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
-  .lead-event{font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 7px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y}
   .lead-event:hover,.lead-event.selected{background:var(--sun)}
+  .lead-event.dragging{opacity:.3}
+  .lead-event-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
+  .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
-  .lead-summary{margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
+  .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
+  .lead-summary-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
+  .lead-summary-x:hover{background:var(--tomato);color:var(--cream)}
 
   /* toast → sticker popup */
   #toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(16px) rotate(-2deg) scale(.9);
@@ -744,7 +749,7 @@
   </div>
   <div class="lead-sequence" id="leadSequence" aria-live="polite"></div>
   <div class="btn-row">
-    <button class="btn" id="btnLeadUndo" type="button">Undo event</button>
+    <button class="btn primary" id="btnLeadCreate" type="button">Create solo</button>
     <button class="btn" id="btnLeadClearSelection" type="button">Clear selection</button>
     <button class="btn ghost" id="btnLeadClear" type="button">Clear solo</button>
   </div>
@@ -1242,6 +1247,7 @@ let _nextId=1;
 let leadSelection=new Array(6).fill(null); // one selected fret per string before saving
 let leadSelectionSectionId=null;
 let leadDisplay='notes';
+let leadDraft=[];       // events being prepared before Create solo adds them to a section
 let boardMode='chord';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
@@ -1403,7 +1409,9 @@ for(let s=0;s<6;s++){
 
 /* ---------- solo / arpeggio recorder ---------- */
 function leadEventLabel(event){
-  const notes=(event.notes||[]).map(note=>STR_LABEL[note.s]+' '+(note.f===0?'open':note.f)+' '+pcName((OPEN[note.s]+note.f)%12));
+  const notes=(event.notes||[]).map(note=>leadDisplay==='notes'
+    ?STR_LABEL[note.s]+' '+pcName((OPEN[note.s]+note.f)%12)
+    :STR_LABEL[note.s]+' '+(note.f===0?'open':note.f));
   const technique=event.t?(' · '+LEAD_TECH_LABEL[event.t]):' · clean';
   return notes.join(' + ')+technique;
 }
@@ -1416,21 +1424,23 @@ function renderLead(){
   }
   target.textContent=sec?sec.name:'new Solo section';
   out.innerHTML='';
-  const events=sec?.lead||[];
+  const events=leadDraft;
   if(!events.length){
     const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No saved solo events yet — select one or more notes, then press an action.';out.appendChild(empty);
   }else{
     events.forEach((leadEvent,index)=>{
-      const event=document.createElement('button');event.type='button';event.className='lead-event';
-      event.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.title='Remove this recorded event';
-      event.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
-      event.addEventListener('click',()=>{
-        sec.lead.splice(index,1);renderSong();save();flash('Removed recorded event');
-      });
+      const event=document.createElement('div');event.className='lead-event';
+      event.title='Drag to reorder this solo event';
+      event.setAttribute('aria-label','Solo event '+(index+1)+': '+leadEventLabel(leadEvent));
+      const label=document.createElement('span');label.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.appendChild(label);
+      const remove=document.createElement('button');remove.type='button';remove.className='lead-event-x';remove.textContent='×';
+      remove.title='Remove this solo event';remove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
+      remove.addEventListener('click',()=>{leadDraft.splice(index,1);renderLead();flash('Removed solo event');});
+      event.appendChild(remove);attachLeadDraftDrag(event,index);
       out.appendChild(event);
     });
   }
-  document.getElementById('btnLeadUndo').disabled=!events.length;
+  document.getElementById('btnLeadCreate').disabled=!events.length;
   document.getElementById('btnLeadClear').disabled=!events.length;
   document.getElementById('btnLeadClearSelection').disabled=!leadSelection.some(Number.isInteger);
   document.getElementById('btnLeadShowNotes').setAttribute('aria-pressed',String(leadDisplay==='notes'));
@@ -1445,21 +1455,24 @@ function toggleLeadNote(s,f){
 function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
-  const sec=ensureActiveSection('Solo');
-  if(!Array.isArray(sec.lead))sec.lead=[];
-  sec.lead.push({notes,t});
-  activeSectionId=sec.id;
-  leadSelection.fill(null);leadSelectionSectionId=sec.id;
-  renderSong();save();
-  render();
-  flash('Saved '+leadEventLabel(sec.lead[sec.lead.length-1]));
+  // Do not write to the song until the musician confirms with Create solo.
+  leadDraft.push({notes,t});
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
+  render();renderLead();
+  flash('Added '+leadEventLabel(leadDraft[leadDraft.length-1])+' to the draft');
 }
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
   saveLeadEvent(button.dataset.tech);
 });
-document.getElementById('btnLeadUndo').addEventListener('click',()=>{
-  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead.pop();renderSong();save();
+document.getElementById('btnLeadCreate').addEventListener('click',()=>{
+  if(!leadDraft.length){flash('Add one or more solo events first');return;}
+  const sec=ensureActiveSection('Solo');
+  if(!Array.isArray(sec.lead))sec.lead=[];
+  sec.lead.push(...leadDraft.map(event=>({notes:event.notes.map(n=>({s:n.s,f:n.f})),t:event.t||''})));
+  leadDraft=[];activeSectionId=sec.id;
+  renderSong();save();render();
+  flash('Solo added to '+sec.name);
 });
 document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;render();renderLead();
@@ -1471,7 +1484,7 @@ document.getElementById('btnLeadShowTab').addEventListener('click',()=>{
   leadDisplay='tab';render();renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
-  const sec=activeSection();if(!sec?.lead?.length)return;sec.lead=[];renderSong();save();
+  if(!leadDraft.length)return;leadDraft=[];renderLead();flash('Cleared solo draft');
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){
@@ -1970,7 +1983,11 @@ function buildSectionCard(sec,idx,primary){
   card.appendChild(wrap);
   if((sec.lead||[]).length){
     const summary=document.createElement('div');summary.className='lead-summary';
-    summary.textContent='🎸 '+sec.lead.length+' solo / arpeggio event'+(sec.lead.length===1?'':'s')+' recorded';
+    const label=document.createElement('span');label.textContent='🎸 Solo · '+sec.lead.length+' event'+(sec.lead.length===1?'':'s');summary.appendChild(label);
+    const remove=document.createElement('button');remove.type='button';remove.className='lead-summary-x';remove.textContent='×';
+    remove.title='Delete this solo from '+sec.name;remove.setAttribute('aria-label','Delete solo from '+sec.name);
+    remove.addEventListener('click',e=>{e.stopPropagation();sec.lead=[];renderSong();save();flash('Deleted solo from '+sec.name);});
+    summary.appendChild(remove);
     card.appendChild(summary);
   }
 
@@ -2169,6 +2186,19 @@ function attachChipDrag(chip,sec,cIdx){
   });
 }
 
+function attachLeadDraftDrag(eventEl,eventIdx){
+  eventEl.addEventListener('pointerdown',e=>{
+    if(e.target.closest('.lead-event-x'))return;
+    if(e.pointerType==='mouse'&&e.button!==0)return;
+    const rect=eventEl.getBoundingClientRect();
+    drag={
+      type:'lead-draft',sourceIdx:eventIdx,startX:e.clientX,startY:e.clientY,
+      ghostOffsetX:e.clientX-rect.left,ghostOffsetY:e.clientY-rect.top,
+      origEl:eventEl,started:false,dropIdx:-1,pointerId:e.pointerId
+    };
+  });
+}
+
 function attachSectionDrag(bar,card,secIdx){
   bar.addEventListener('pointerdown',e=>{
     if(e.target.closest('select, .chip-x, .active-badge, .sect-name-wrap'))return;
@@ -2232,7 +2262,7 @@ function startDrag(e){
   drag.ghost=g;
   // Indicator
   const ind=document.createElement('div');
-  ind.className='drop-indicator '+(drag.type==='chord'?'chip-drop-indicator':'section-drop-indicator');
+  ind.className='drop-indicator '+(drag.type==='section'?'section-drop-indicator':'chip-drop-indicator');
   drag.indicator=ind;
 }
 
@@ -2244,7 +2274,24 @@ function positionGhost(e){
 function updateDropTarget(e){
   const el=document.elementFromPoint(e.clientX,e.clientY);
   if(drag.type==='chord')updateChordDrop(el,e);
+  else if(drag.type==='lead-draft')updateLeadDraftDrop(el,e);
   else updateSectionDrop(el,e);
+}
+
+function updateLeadDraftDrop(el,e){
+  if(drag.indicator.parentNode)drag.indicator.remove();
+  drag.dropIdx=-1;
+  const wrap=el?.closest('#leadSequence');
+  if(!wrap)return;
+  const events=[...wrap.querySelectorAll('.lead-event:not(.dragging)')];
+  let insertBefore=null,insertIdx=events.length;
+  for(let i=0;i<events.length;i++){
+    const r=events[i].getBoundingClientRect();
+    if(e.clientX<r.left+r.width/2){insertBefore=events[i];insertIdx=i;break;}
+  }
+  if(insertBefore)wrap.insertBefore(drag.indicator,insertBefore);
+  else wrap.appendChild(drag.indicator);
+  drag.dropIdx=insertIdx;
 }
 
 function updateChordDrop(el,e){
@@ -2297,7 +2344,11 @@ function updateSectionDrop(el,e){
 }
 
 function commitDrop(){
-  if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
+  if(drag.type==='lead-draft'&&drag.dropIdx>=0){
+    const [moved]=leadDraft.splice(drag.sourceIdx,1);
+    leadDraft.splice(drag.dropIdx,0,moved);
+    renderLead();
+  } else if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
     const fromSec=findSection(drag.sourceSection);
     const toSec=findSection(drag.dropSection);
     if(!fromSec||!toSec)return;

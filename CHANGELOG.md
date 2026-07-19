@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 — Restore Solo Clean action
+
+- Fixed saving a selected chord or note group with **Clean** in Solo / arpeggio
+  mode; it now adds the event to the draft as intended.
+- Bumped the offline cache so installed copies receive the repair.
+
 ## 2026-07-19 — Smoke-test and handoff maintenance
 
 - Streamlined the smoke-test suite.

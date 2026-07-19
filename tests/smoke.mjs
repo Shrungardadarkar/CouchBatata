@@ -58,6 +58,7 @@ assert.match(html, /id="boardLeadDisplay" type="button" role="switch"/);
 assert.match(html, /soloMode&&leadDisplay==='tab'\?String\(f\):pcName\(pc\)/);
 assert.match(html, /btnLeadCreate/);
 assert.match(html, /leadDraft/);
+assert.match(html, /leadDraft\.push\(\{id:_nextLeadId\+\+,notes,t,from:null,links:null,rep:1\}\)/);
 assert.match(html, /Save solo/);
 assert.match(html, /soloCreationTarget/);
 assert.match(html, /Edit solo/);

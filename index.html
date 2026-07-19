@@ -1926,7 +1926,7 @@ function saveLeadEvent(t){
     _popLeadDraftIndex=leadDraftEditIndex;
   }else{
     // Do not write to the song until the musician confirms with Create solo.
-    leadDraft.push({id:_nextLeadId++,notes,t,from,links,rep:1});
+    leadDraft.push({id:_nextLeadId++,notes,t,from:null,links:null,rep:1});
     _popLeadDraftIndex=leadDraft.length-1;
   }
   const saved=leadDraft[_popLeadDraftIndex];

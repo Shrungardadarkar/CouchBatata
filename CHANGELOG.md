@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — Consistent shape navigation
+
+- Applied the suggestion navigator’s roomy, no-crop control treatment to the
+  chord-shape browser.
+- Shape descriptions now slide in the direction of the selected voicing while
+  the fretboard continues to pop the newly shown notes.
+
 ## 2026-07-19 — Smooth suggestion navigation
 
 - Made full-chip suggestion pages slide in the direction of travel, so the

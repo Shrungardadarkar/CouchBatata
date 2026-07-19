@@ -19,6 +19,10 @@ when there is more than one page. Each control change uses a small directional
 slide, while a reserved navigation slot keeps chips, arrows, borders, and
 sticker shadows fully visible across screen sizes.
 
+The chord-shape browser follows the same pattern: its previous/next buttons
+always have room for their sticker shadows, its centre label keeps one stable
+slot, and each voicing change slides in the direction of travel.
+
 The product should feel playful and immediate rather than academic. Music-
 theory guidance must still be careful, explicit, and testable.
 

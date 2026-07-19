@@ -49,7 +49,8 @@ Users do not need an app-store download.
 - Key and scale direction appears before the fretboard; an active scale overlay
   remains visible while recording a solo.
 - Standard tuning with sharps/flats spelling.
-- Chord recognition, inversions, alternate interpretations, and voicing browser.
+- Chord recognition, inversions, alternate interpretations, and a smoothly
+  animated, fully visible voicing browser.
 - Song sections, repeats, lyrics, duplication, deletion, reordering, and safe
   copy/move-and-merge into another section.
 - Key analysis, borrowed-chord guidance, scale suggestions, and position boxes.

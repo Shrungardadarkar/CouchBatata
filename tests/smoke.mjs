@@ -54,7 +54,11 @@ assert.match(html, /chord-suggest-scroll\.has-pages\{display:grid;grid-template-
 assert.match(html, /chord-suggest-row\.page-slide-forward/);
 assert.match(html, /@keyframes chordSuggestionForward/);
 assert.match(html, /suggestion-spectrum-arrow/);
-assert.match(html, /shape-nav\{display:grid;grid-template-columns:42px minmax\(0,260px\) 42px/);
+assert.match(html, /shape-nav\{display:grid;grid-template-columns:46px minmax\(0,260px\) 46px/);
+assert.match(html, /shape-label\.shape-slide-forward/);
+assert.match(html, /@keyframes shapeLabelForward/);
+assert.match(html, /function loadShape\(direction=0\)/);
+assert.match(html, /function enterShapesFor\(chordObj,playedFrets,loadInitial=true\)/);
 assert.doesNotMatch(html, /id="chordScrollCue"|Swipe →/);
 assert.match(html, /core <span class="suggestion-spectrum-arrow" aria-hidden="true">←/);
 assert.match(html, /A raised 7th leading to V or V7/);

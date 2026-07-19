@@ -46,6 +46,7 @@ assert.match(html, /id="chordSuggestScroll"/);
 assert.match(html, /id="chordScrollPrev"/);
 assert.match(html, /id="chordScrollNext"/);
 assert.match(html, /updateChordSuggestionScrollControls/);
+assert.match(html, /chord-suggest-scroll\.has-overflow\{display:grid;grid-template-columns:minmax\(0,1fr\) 79px/);
 assert.doesNotMatch(html, /id="chordScrollCue"|Swipe →/);
 assert.match(html, /Suggestions · core ← → colourful/);
 assert.match(html, /A raised 7th leading to V or V7/);

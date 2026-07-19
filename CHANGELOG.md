@@ -4,6 +4,9 @@
 
 - Replaced the suggestion-row fade and text labels with compact ◀ / ▶ controls
   that match the chord-shape navigator.
+- Put those controls in a fixed end rail beside, rather than on top of, the
+  scrolling chord chips. The row keeps its natural edges and the arrows always
+  remain the final visual element.
 - The controls appear only in directions that contain more suggestions.
 - Bumped the offline cache so installed copies receive the refinement.
 

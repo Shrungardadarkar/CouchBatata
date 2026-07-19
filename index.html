@@ -355,6 +355,8 @@
   @keyframes leadPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
   .lead-event-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
   .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
+  .lead-event-copy{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:5px;background:var(--cream);color:var(--ink);font:inherit;font-size:.72rem;font-weight:900;line-height:1;cursor:pointer}
+  .lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}
   .lead-event .rep-sel{font-size:.68rem;padding-top:2px;padding-bottom:2px;flex:0 0 auto}
   .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1;white-space:nowrap}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
@@ -365,6 +367,13 @@
   .lead-edit:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:2px 2px 0 var(--ink)}
   .sect-lead{margin-top:10px;padding-top:9px;border-top:2px dashed rgba(90,47,62,.45)}
   .sect-lead .lead-sequence{margin:7px 0 0;min-height:0}
+  .section-transfer{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-3px 0 11px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--ink-soft);border-radius:9px;color:var(--ink-dim);font-size:.76rem;font-weight:800}
+  .section-transfer-label{font-family:"Courier New",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
+  .section-transfer select{min-width:116px;max-width:190px;background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:7px;padding:5px 7px;font:inherit;font-weight:800}
+  .section-transfer button{font:inherit;font-size:.74rem;font-weight:900;border:2px solid var(--ink);border-radius:7px;padding:5px 8px;color:var(--ink);background:var(--paper);box-shadow:1px 1px 0 var(--ink);cursor:pointer}
+  .section-transfer button:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+  .section-transfer .transfer-move{background:var(--mint)}
+  .section-transfer .transfer-cancel{border-color:transparent;background:transparent;box-shadow:none;color:var(--ink-faint)}
 
   /* toast → sticker popup */
   #toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(16px) rotate(-2deg) scale(.9);
@@ -874,7 +883,7 @@
   </div>
   <p class="hint">
     Click a section card (or its badge) to <b>activate</b> it — new chords land there.
-    <b>Drag chords</b> to reorder or move them across sections. Grab the <b>⋮⋮</b> handle on a section header to reorder whole sections.
+    <b>Drag chords</b> to reorder or move them across sections. Grab the <b>⋮⋮</b> handle on a section header to reorder whole sections. Use <b>⇢</b> to copy or move a section’s contents into another section; Copy keeps both sections, while Move + merge appends its contents and removes the source after confirmation.
     Chips with a <b style="color:var(--tomato)">●</b> dot are outside the current key — see <b>Musical guidance</b> for replacements.
     Click <b>⧉</b> to duplicate a section. Tap an <b>open note on the nut</b> to mute (×) its string. Your song <b>auto-saves</b>.
   </p>
@@ -904,7 +913,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. In both the draft and Song, a dashed card marked “starts … →” is the source and the red-bordered card marked “from N” is its destination. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. In both the draft and Song, a dashed card marked “starts … →” is the source and the red-bordered card marked “from N” is its destination. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, use the ×N menu to repeat a unit, and ⧉ to duplicate an editable event or whole linked phrase.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -912,7 +921,7 @@
   </details>
   <details>
     <summary>Song sections</summary>
-    <p>Click a section to make it active. Drag chord chips to reorder or move them; drag the <b>⋮⋮</b> handle to reorder whole sections. Use × to delete.</p>
+    <p>Click a section to make it active. Drag chord chips to reorder or move them; drag the <b>⋮⋮</b> handle to reorder whole sections. Use ⇢ to copy or move every chord, Solo phrase, and lyric into another section. Use × to delete.</p>
   </details>
   <details>
     <summary>Key, scales &amp; notes</summary>
@@ -1563,6 +1572,7 @@ let activeSectionId=null;
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
 let _nextLeadId=1;
+let sectionTransferSourceId=null;
 // A deliberately chosen chord can stay visible while recording a solo. It is
 // separate from the chord editor's open-string default, so a committed chord
 // never leaves six accidental open-string markers behind in Solo mode.
@@ -1796,6 +1806,14 @@ function cloneLeadEventsForNewSection(events){
     t:event.t||'',from:ids.get(event.from)||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
   }));
 }
+function duplicateLeadPhrase(events,index){
+  const blockIdxs=leadDragBlock(events,index);
+  const originals=blockIdxs.map(i=>events[i]).filter(Boolean);
+  const copies=cloneLeadEventsForNewSection(originals);
+  const insertAt=(blockIdxs[blockIdxs.length-1]??index)+1;
+  events.splice(insertAt,0,...copies);
+  return {insertAt,count:copies.length};
+}
 function cleanBrokenLeadLinks(events){
   (events||[]).forEach((event,index)=>{
     if(!hasLeadLink(event))return;
@@ -1865,6 +1883,10 @@ function renderLead(){
         link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
       }
       event.appendChild(leadRepeatSelect(leadEvent,()=>{renderLead();}));
+      const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
+      duplicate.title='Duplicate this solo event'+(linkedTarget||isTarget?' phrase':'');duplicate.setAttribute('aria-label',duplicate.title);
+      duplicate.addEventListener('click',e=>{e.stopPropagation();const copy=duplicateLeadPhrase(leadDraft,index);leadDraftEditIndex=null;_popLeadDraftIndex=copy.insertAt;render();renderLead();flash('Duplicated '+(copy.count>1?'linked phrase':'solo event'));});
+      event.appendChild(duplicate);
       const remove=document.createElement('button');remove.type='button';remove.className='lead-event-x';remove.textContent='×';
       remove.title='Remove this solo event';remove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
       remove.addEventListener('click',()=>{
@@ -1874,7 +1896,7 @@ function renderLead(){
         else if(Number.isInteger(leadDraftEditIndex)&&leadDraftEditIndex>index)leadDraftEditIndex--;
         render();renderLead();flash('Removed solo event');
       });
-      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x'))selectLeadDraftEvent(index);});
+      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x, .lead-event-copy'))selectLeadDraftEvent(index);});
       event.appendChild(remove);attachLeadDraftDrag(event,index);
       out.appendChild(event);
     });
@@ -2593,9 +2615,11 @@ function buildSectionCard(sec,idx,primary){
   bar.appendChild(cnt);
 
   const sp=document.createElement('span');sp.className='sect-bar-sp';bar.appendChild(sp);
+  bar.appendChild(secTransferBtn(sec));
   bar.appendChild(secDupBtn(sec,idx));
   bar.appendChild(secDelBtn(sec,idx));
   card.appendChild(bar);
+  if(sectionTransferSourceId===sec.id)card.appendChild(sectionTransferPanel(sec));
 
   // Chords
   const wrap=document.createElement('div');wrap.className='sect-chords';
@@ -2645,11 +2669,15 @@ function buildSectionCard(sec,idx,primary){
         link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
       }
       event.appendChild(leadRepeatSelect(leadEvent,()=>{renderSong();save();}));
+      const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
+      duplicate.title='Duplicate this solo event'+(linkedTarget||isTarget?' phrase':'');duplicate.setAttribute('aria-label',duplicate.title);
+      duplicate.addEventListener('click',e=>{e.stopPropagation();const copy=duplicateLeadPhrase(sec.lead,eventIdx);renderSong();save();flash('Duplicated '+(copy.count>1?'linked phrase':'solo event'));});
+      event.appendChild(duplicate);
       const eventRemove=document.createElement('button');eventRemove.type='button';eventRemove.className='lead-event-x';eventRemove.textContent='×';
       eventRemove.title='Remove this solo event';eventRemove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
       eventRemove.addEventListener('click',e=>{e.stopPropagation();sec.lead.splice(eventIdx,1);cleanBrokenLeadLinks(sec.lead);renderSong();save();flash('Removed solo event');});
       event.addEventListener('click',e=>{
-        if(e.target.closest('.lead-event-x, select'))return;
+        if(e.target.closest('.lead-event-x, .lead-event-copy, select'))return;
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftEvent(eventIdx);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -2872,7 +2900,7 @@ function attachChipDrag(chip,sec,cIdx){
 
 function attachLeadDraftDrag(eventEl,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x, select'))return;
+    if(e.target.closest('.lead-event-x, .lead-event-copy, select'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     const blockIdxs=leadDragBlock(leadDraft,eventIdx);
@@ -2886,7 +2914,7 @@ function attachLeadDraftDrag(eventEl,eventIdx){
 
 function attachSavedLeadDrag(eventEl,sec,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x, select'))return;
+    if(e.target.closest('.lead-event-x, .lead-event-copy, select'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     const blockIdxs=leadDragBlock(sec.lead,eventIdx);
@@ -2900,7 +2928,7 @@ function attachSavedLeadDrag(eventEl,sec,eventIdx){
 
 function attachSectionDrag(bar,card,secIdx){
   bar.addEventListener('pointerdown',e=>{
-    if(e.target.closest('select, .chip-x, .active-badge, .sect-name-wrap'))return;
+    if(e.target.closest('select, .chip-x, .active-badge, .sect-name-wrap, .sect-transfer'))return;
     if(e.pointerType==='mouse' && e.button!==0)return;
     const rect=card.getBoundingClientRect();
     drag={
@@ -3212,7 +3240,7 @@ function nextSectionName(baseName){
 }
 function secDupBtn(sec,idx){
   const b=document.createElement('button');b.className='sect-dup';b.textContent='⧉';
-  b.title='Duplicate this section (chords + lyrics)';
+  b.title='Duplicate this section (chords, Solo phrases, and lyrics)';
   b.setAttribute('aria-label','Duplicate section');
   b.addEventListener('click',e=>{
     e.stopPropagation();
@@ -3234,6 +3262,78 @@ function secDupBtn(sec,idx){
     renderSong();
     flash('Duplicated → '+newName);
   });
+  return b;
+}
+
+/* ---------- section copy / move ---------- */
+function cloneChordForSection(chord){
+  return {root:chord.root,suf:chord.suf,pcs:[...(chord.pcs||[])],frets:[...(chord.frets||[])],rep:chord.rep||1};
+}
+function appendSectionLyrics(target,source){
+  const incoming=(source.lyrics||'').trim();
+  if(!incoming)return;
+  const existing=(target.lyrics||'').trim();
+  target.lyrics=existing?existing+'\n\n'+incoming:incoming;
+}
+function sectionHasContent(section){
+  return !!((section.chords||[]).length||(section.lead||[]).length||(section.lyrics||'').trim());
+}
+function transferSectionContents(source,target,mode){
+  if(!source||!target||source.id===target.id)return false;
+  if(leadDraftSourceSectionId===source.id||leadDraftSourceSectionId===target.id){
+    flash('Save or clear the Solo editor before copying or moving these sections');
+    return false;
+  }
+  if(mode==='copy'){
+    target.chords.push(...source.chords.map(cloneChordForSection));
+    target.lead.push(...cloneLeadEventsForNewSection(source.lead));
+    appendSectionLyrics(target,source);
+  }else{
+    target.chords.push(...source.chords);
+    target.lead.push(...source.lead);
+    appendSectionLyrics(target,source);
+    const sourceIndex=sections.findIndex(section=>section.id===source.id);
+    if(sourceIndex>=0)sections.splice(sourceIndex,1);
+    if(activeChip?.sectionId===source.id){activeChip=null;resetChordSelection();exitShapes();analyze();}
+  }
+  cleanBrokenLeadLinks(target.lead);
+  activeSectionId=target.id;
+  sectionTransferSourceId=null;
+  renderSong();save();
+  flash((mode==='copy'?'Copied ':'Moved ')+source.name+' → '+target.name);
+  return true;
+}
+function sectionTransferPanel(source){
+  const panel=document.createElement('div');panel.className='section-transfer';
+  panel.addEventListener('click',event=>event.stopPropagation());
+  const label=document.createElement('span');label.className='section-transfer-label';label.textContent='Contents →';panel.appendChild(label);
+  const targetSelect=document.createElement('select');targetSelect.setAttribute('aria-label','Choose section to receive '+source.name+' contents');
+  sections.filter(section=>section.id!==source.id).forEach(section=>{
+    const option=document.createElement('option');option.value=section.id;option.textContent=section.name;targetSelect.appendChild(option);
+  });
+  panel.appendChild(targetSelect);
+  const note=document.createElement('span');note.textContent='appends chords, Solo phrases & lyrics';panel.appendChild(note);
+  const run=async mode=>{
+    const target=findSection(+targetSelect.value);if(!target)return;
+    if(mode==='move'){
+      const ok=await confirmModal('Move all content from "'+source.name+'" into "'+target.name+'"? The source section will be removed.',{confirmText:'Move and merge',cancelText:'Keep source'});
+      if(!ok)return;
+    }
+    transferSectionContents(source,target,mode);
+  };
+  const copy=document.createElement('button');copy.type='button';copy.textContent='Copy';copy.title='Copy this section’s contents into the selected section';
+  copy.addEventListener('click',()=>run('copy'));panel.appendChild(copy);
+  const move=document.createElement('button');move.type='button';move.className='transfer-move';move.textContent='Move + merge';move.title='Move this section’s contents into the selected section, then remove this section';
+  move.addEventListener('click',()=>run('move'));panel.appendChild(move);
+  const cancel=document.createElement('button');cancel.type='button';cancel.className='transfer-cancel';cancel.textContent='Cancel';
+  cancel.addEventListener('click',()=>{sectionTransferSourceId=null;renderSong();});panel.appendChild(cancel);
+  return panel;
+}
+function secTransferBtn(sec){
+  const b=document.createElement('button');b.type='button';b.className='sect-dup sect-transfer';b.textContent='⇢';
+  b.title=sections.length<2?'Add another section before copying or moving contents':'Copy or move this section’s contents into another section';
+  b.setAttribute('aria-label','Copy or move section contents');b.disabled=sections.length<2||!sectionHasContent(sec);
+  b.addEventListener('click',event=>{event.stopPropagation();sectionTransferSourceId=sectionTransferSourceId===sec.id?null:sec.id;renderSong();});
   return b;
 }
 

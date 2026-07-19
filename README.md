@@ -50,7 +50,8 @@ Users do not need an app-store download.
   remains visible while recording a solo.
 - Standard tuning with sharps/flats spelling.
 - Chord recognition, inversions, alternate interpretations, and voicing browser.
-- Song sections, repeats, lyrics, duplication, deletion, and reordering.
+- Song sections, repeats, lyrics, duplication, deletion, reordering, and safe
+  copy/move-and-merge into another section.
 - Key analysis, borrowed-chord guidance, scale suggestions, and position boxes.
 - Compact playable chord suggestions beneath the fretboard; selecting a soloing
   scale re-centres their priority around that scale's tonal character. Core

@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-19 — Copy, merge, and duplicate musical content
+
+- Added an explicit section **Copy / Move contents** workflow. It appends
+  chords, complete Solo phrases, and lyrics to a chosen section; moving then
+  removes the source only after confirmation.
+- Added **⧉** to Solo events. It duplicates a whole Slide, Hammer-on, or
+  Pull-off phrase together, preserving its source/destination relationship.
+- Bumped the offline cache so installed copies receive the new tools.
+
 ## 2026-07-19 — Readable linked Solo phrases
 
 - Connected Slides, Hammer-ons, and Pull-offs now show their dashed source and

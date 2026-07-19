@@ -900,7 +900,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. The small ← badge shows a connected source event. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. The small ← badge shows a connected source event. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1594,6 +1594,14 @@ const findSection = id => sections.find(s=>s.id===id) || null;
 const activeSection = () => findSection(activeSectionId);
 const allChords = () => sections.flatMap(s=>s.chords);
 function resetChordSelection(){selection=new Array(6).fill(0);chordBoardTouched=false;soloChordReference=null;}
+// A chord carried into Solo mode is a one-shot starting point. Once it is
+// cleared or used, do not recreate translucent reference markers when the
+// musician returns to Solo mode unless they choose or edit a chord again.
+function consumeSoloChordReference(){
+  soloChordReference=null;
+  chordBoardTouched=false;
+  activeChip=null;
+}
 
 /* ---------- persistence (localStorage) ---------- */
 const _SAVE_KEY='fretwork.song.v1';
@@ -1935,8 +1943,8 @@ function saveLeadEvent(t){
   // The chosen chord is a one-shot starting point for this Solo event. Once
   // its notes have been applied, clear both the active selection and the
   // temporary reference so the fretboard is ready for the next phrase.
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;soloChordReference=null;
-  render();renderLead();
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
+  renderSong();render();renderLead();
   flash(message);
 }
 
@@ -1946,8 +1954,8 @@ function beginLeadConnection(action){
   const sourceEvent=Number.isInteger(leadDraftEditIndex)?leadDraft[leadDraftEditIndex]:null;
   leadTechniquePending={action,notes,sourceEventId:sourceEvent?.id||null};
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
-  leadDraftEditIndex=null;soloChordReference=null;
-  render();renderLead();
+  leadDraftEditIndex=null;consumeSoloChordReference();
+  renderSong();render();renderLead();
   flash(LEAD_CONNECTION_LABEL[action]+' armed — now choose the destination');
 }
 
@@ -1994,8 +2002,8 @@ function commitLeadConnection(){
     leadDraft.push(source,target);_popLeadDraftIndex=leadDraft.length-1;
   }
   leadTechniquePending=null;leadDraftEditIndex=null;
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;soloChordReference=null;
-  render();renderLead();
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
+  renderSong();render();renderLead();
   flash((existingTargetIndex>=0?'Updated ':'Added ')+LEAD_CONNECTION_LABEL[pending.action].toLowerCase());
 }
 document.getElementById('leadTechniques').addEventListener('click',event=>{
@@ -2024,15 +2032,16 @@ document.getElementById('btnLeadCreate').addEventListener('click',()=>{
 });
 document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
   if(leadTechniquePending){
-    leadTechniquePending=null;leadSelection.fill(null);render();renderLead();flash('Cancelled technique');return;
+    leadTechniquePending=null;leadSelection.fill(null);consumeSoloChordReference();renderSong();render();renderLead();flash('Cancelled technique');return;
   }
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;render();renderLead();
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;consumeSoloChordReference();renderSong();render();renderLead();
 });
 document.getElementById('boardLeadDisplay').addEventListener('click',()=>{
   leadDisplay=leadDisplay==='notes'?'tab':'notes';render();renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
-  if(!leadDraft.length)return;leadDraft=[];leadDraftEditIndex=null;leadTechniquePending=null;leadSelection.fill(null);render();renderLead();flash('Cleared solo draft');
+  if(!leadDraft.length&&!soloChordReference)return;
+  leadDraft=[];leadDraftEditIndex=null;leadTechniquePending=null;leadSelection.fill(null);consumeSoloChordReference();renderSong();render();renderLead();flash('Cleared solo draft');
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){

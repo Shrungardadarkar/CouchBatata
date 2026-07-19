@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Clear transient Solo chord references
+
+- **Clear selection** now removes the carried chord reference as well as the
+  active Solo selection.
+- Using or clearing a carried chord is now one-shot, so translucent markers do
+  not return on a later visit to Solo / arpeggio mode unless a chord is chosen
+  or edited again.
+
 ## 2026-07-19 — Restore Solo Clean action
 
 - Fixed saving a selected chord or note group with **Clean** in Solo / arpeggio

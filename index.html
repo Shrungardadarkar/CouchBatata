@@ -216,6 +216,8 @@
     box-shadow:0 0 0 2px var(--cream),2px 2px 0 var(--ink)}
   .dot-note.chord-reference{width:28px;height:28px;background:var(--tomato);color:var(--cream);
     border:2.5px solid var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);z-index:3;opacity:.72}
+  .dot-note.technique-source{width:28px;height:28px;background:rgba(246,241,230,.88);color:var(--ink);
+    border:2.5px dashed var(--tomato);box-shadow:none;z-index:3;opacity:.95}
   .dot-note.scale{width:25px;height:25px;background:var(--cream);border:2.5px solid;
     font-size:.6rem;opacity:1;z-index:2;transition:opacity .2s ease;
     box-shadow:1.5px 1.5px 0 rgba(26,24,21,.5)}
@@ -337,6 +339,7 @@
   .lead-techniques{display:flex;gap:6px;flex-wrap:wrap}
   .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  .lead-tech.armed{background:var(--tomato);color:var(--cream);border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
   .lead-tech:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .lead-tech:disabled{opacity:.38;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.4)}
   .lead-tech:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
@@ -788,17 +791,16 @@
   </div>
   <div class="board-tech-drawer" id="boardTechDrawer" aria-label="Solo techniques" aria-hidden="true">
     <div class="board-tech-inner">
-      <span class="board-tech-label">Apply to selected notes</span>
+      <span class="board-tech-label" id="leadTechLabel">Apply to selected notes</span>
       <div class="lead-techniques" id="leadTechniques" aria-label="Save selected notes with an action">
-        <button class="lead-tech" type="button" data-tech="">Clean</button>
-        <button class="lead-tech" type="button" data-tech="b">Bend</button>
-        <button class="lead-tech" type="button" data-tech="r">Release</button>
-        <button class="lead-tech" type="button" data-tech="p">Pull-off</button>
-        <button class="lead-tech" type="button" data-tech="h">Hammer-on</button>
-        <button class="lead-tech" type="button" data-tech="/">Slide ↑</button>
-        <button class="lead-tech" type="button" data-tech="&#92;">Slide ↓</button>
-        <button class="lead-tech" type="button" data-tech="~">Vibrato</button>
-        <button class="lead-tech" type="button" data-tech="x">Mute</button>
+        <button class="lead-tech" type="button" data-tech="" data-label="Clean">Clean</button>
+        <button class="lead-tech" type="button" data-tech="b" data-label="Bend">Bend</button>
+        <button class="lead-tech" type="button" data-tech="r" data-label="Release">Release</button>
+        <button class="lead-tech" type="button" data-tech="p" data-label="Pull-off">Pull-off</button>
+        <button class="lead-tech" type="button" data-tech="h" data-label="Hammer-on">Hammer-on</button>
+        <button class="lead-tech" type="button" data-tech="slide" data-label="Slide">Slide</button>
+        <button class="lead-tech" type="button" data-tech="~" data-label="Vibrato">Vibrato</button>
+        <button class="lead-tech" type="button" data-tech="x" data-label="Mute">Mute</button>
       </div>
     </div>
   </div>
@@ -898,7 +900,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Move it to a new shape, then use Slide to record both chord shapes as one connected move. Hammer-ons, pull-offs and slides connect the previous event to the new note on the same string; their small ← badge shows that source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. The small ← badge shows a connected source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1573,11 +1575,14 @@ let leadDisplay='notes';
 let leadDraft=[];       // events being prepared before Create solo adds them to a section
 let leadDraftSourceSectionId=null; // section being edited, or null for a new solo
 let leadDraftEditIndex=null; // draft event loaded onto the fretboard for editing
+let leadTechniquePending=null; // {action, notes} — source chosen, destination next
 let _popLeadDraftIndex=null;
 let boardMode='chord';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
 const LEAD_LINK_TECHNIQUES=new Set(['p','h','/','\\']);
+const LEAD_CONNECTION_ACTIONS=new Set(['p','h','slide']);
+const LEAD_CONNECTION_LABEL={p:'Pull-off',h:'Hammer-on',slide:'Slide'};
 
 let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
@@ -1816,7 +1821,7 @@ function renderLead(){
   const sec=activeSection();
   if(leadSelectionSectionId!==null&&leadSelectionSectionId!==sec?.id){
     leadSelection.fill(null);leadSelectionSectionId=sec?.id??null;
-    leadDraftEditIndex=null;
+    leadDraftEditIndex=null;leadTechniquePending=null;
   }
   let targetSection=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):soloCreationTarget();
   if(leadDraftSourceSectionId!==null&&!targetSection)leadDraftSourceSectionId=null;
@@ -1861,14 +1866,25 @@ function renderLead(){
     ?'Add this solo to '+targetSection.name:'Create a new Solo section with this solo';
   document.getElementById('btnLeadClear').disabled=!events.length;
   const hasLeadSelection=leadSelection.some(Number.isInteger);
-  document.getElementById('btnLeadClearSelection').disabled=!hasLeadSelection;
-  const previousEvent=Number.isInteger(leadDraftEditIndex)?leadDraft[leadDraftEditIndex-1]:leadDraft[leadDraft.length-1];
-  const hasReferenceSource=!Number.isInteger(leadDraftEditIndex)&&soloChordReference?.some(Number.isInteger);
+  const clearSelectionButton=document.getElementById('btnLeadClearSelection');
+  clearSelectionButton.disabled=leadTechniquePending?false:!hasLeadSelection;
+  clearSelectionButton.textContent=leadTechniquePending?'Cancel '+LEAD_CONNECTION_LABEL[leadTechniquePending.action]:'Clear selection';
+  document.getElementById('leadTechLabel').textContent=leadTechniquePending
+    ?LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' from selected notes — choose a destination, then save'
+    :'Apply to selected notes';
   document.querySelectorAll('.lead-tech').forEach(button=>{
-    const needsSource=LEAD_LINK_TECHNIQUES.has(button.dataset.tech);
-    button.disabled=!hasLeadSelection||(needsSource&&!previousEvent&&!hasReferenceSource);
-    button.title=needsSource&&!previousEvent&&!hasReferenceSource
-      ?'Add a previous solo event before using this technique':'';
+    const action=button.dataset.tech;
+    const isPendingAction=leadTechniquePending?.action===action;
+    button.classList.toggle('armed',!!isPendingAction);
+    if(leadTechniquePending){
+      button.textContent=isPendingAction?'Save '+LEAD_CONNECTION_LABEL[action]:button.dataset.label;
+      button.disabled=!isPendingAction||!hasLeadSelection;
+      button.title=isPendingAction?'Save the chosen destination':'';
+    }else{
+      button.textContent=button.dataset.label;
+      button.disabled=!hasLeadSelection;
+      button.title=LEAD_CONNECTION_ACTIONS.has(action)?'Choose source notes, then choose a destination':'';
+    }
   });
   const displayToggle=document.getElementById('boardLeadDisplay');
   displayToggle.classList.toggle('tab',leadDisplay==='tab');
@@ -1878,6 +1894,7 @@ function renderLead(){
 }
 function selectLeadDraftEvent(index){
   const event=leadDraft[index];if(!event)return;
+  leadTechniquePending=null;
   leadSelection.fill(null);
   (event.notes||[]).forEach(note=>{leadSelection[note.s]=note.f;});
   leadSelectionSectionId=activeSection()?.id??null;
@@ -1895,31 +1912,8 @@ function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
-  const editIndex=Number.isInteger(leadDraftEditIndex)?leadDraftEditIndex:null;
-  const sourceIndex=editIndex===null?leadDraft.length-1:editIndex-1;
-  let source=leadDraft[sourceIndex]||null;
-  let sourceIsNew=false;
-  let from=null,links=null;
-  if(LEAD_LINK_TECHNIQUES.has(t)){
-    // A selected chord on entering Solo mode is a genuine starting event. If
-    // the player slides/hammers/pulls from it before pressing Clean, preserve
-    // that source automatically so the resulting tab has both ends.
-    if(!source&&editIndex===null){
-      const referenceNotes=(soloChordReference||[]).flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
-      if(referenceNotes.length){
-        source={id:_nextLeadId++,notes:referenceNotes,t:'',from:null,links:null,rep:1};
-        sourceIsNew=true;
-      }
-    }
-    if(!source){flash('Add a previous solo event before using '+LEAD_TECH_LABEL[t]);return;}
-    const sourceStrings=new Set((source.notes||[]).map(note=>note.s));
-    links=notes.map(note=>note.s).filter(string=>sourceStrings.has(string));
-    if(!links.length){flash(LEAD_TECH_LABEL[t]+' needs a note on the same string in the previous event');return;}
-    if(sourceIsNew)leadDraft.push(source);
-    from=source.id;
-  }
   if(editing){
-    leadDraft[leadDraftEditIndex]={id:editing.id,notes,t,from,links,rep:editing.rep||1};
+    leadDraft[leadDraftEditIndex]={id:editing.id,notes,t,from:null,links:null,rep:editing.rep||1};
     _popLeadDraftIndex=leadDraftEditIndex;
   }else{
     // Do not write to the song until the musician confirms with Create solo.
@@ -1936,9 +1930,55 @@ function saveLeadEvent(t){
   render();renderLead();
   flash(message);
 }
+
+function beginLeadConnection(action){
+  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  if(!notes.length){flash('Choose the source notes first');return;}
+  leadTechniquePending={action,notes};
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
+  leadDraftEditIndex=null;soloChordReference=null;
+  render();renderLead();
+  flash(LEAD_CONNECTION_LABEL[action]+' armed — now choose the destination');
+}
+
+function commitLeadConnection(){
+  const pending=leadTechniquePending;if(!pending)return;
+  const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  if(!destination.length){flash('Choose a destination before saving');return;}
+  const sourceByString=new Map(pending.notes.map(note=>[note.s,note]));
+  const linked=destination.filter(note=>sourceByString.has(note.s));
+  if(!linked.length){flash('Choose a destination on at least one source string');return;}
+  let technique=pending.action;
+  if(pending.action==='slide'){
+    const directions=new Set(linked.map(note=>Math.sign(note.f-sourceByString.get(note.s).f)).filter(Boolean));
+    if(!directions.size){flash('A slide destination must be at a different fret');return;}
+    if(directions.size>1){flash('For a chord slide, move linked strings in one direction');return;}
+    technique=[...directions][0]>0?'/':'\\';
+  }else{
+    const expected=pending.action==='h'?1:-1;
+    if(linked.some(note=>Math.sign(note.f-sourceByString.get(note.s).f)!==expected)){
+      flash(pending.action==='h'?'Hammer-on destinations must be higher on each linked string':'Pull-off destinations must be lower on each linked string');
+      return;
+    }
+  }
+  const source={id:_nextLeadId++,notes:pending.notes,t:'',from:null,links:null,rep:1};
+  const links=linked.map(note=>note.s);
+  const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
+  leadDraft.push(source,target);_popLeadDraftIndex=leadDraft.length-1;
+  leadTechniquePending=null;leadDraftEditIndex=null;
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;soloChordReference=null;
+  render();renderLead();
+  flash('Added '+LEAD_CONNECTION_LABEL[pending.action].toLowerCase()+' from event '+(leadDraft.length-1)+' to '+leadDraft.length);
+}
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
-  saveLeadEvent(button.dataset.tech);
+  const action=button.dataset.tech;
+  if(LEAD_CONNECTION_ACTIONS.has(action)){
+    if(leadTechniquePending?.action===action)commitLeadConnection();
+    else if(!leadTechniquePending)beginLeadConnection(action);
+    return;
+  }
+  if(!leadTechniquePending)saveLeadEvent(action);
 });
 document.getElementById('btnLeadCreate').addEventListener('click',()=>{
   if(!leadDraft.length){flash('Add one or more solo events first');return;}
@@ -1955,13 +1995,16 @@ document.getElementById('btnLeadCreate').addEventListener('click',()=>{
   flash((wasEditing?'Updated':'Solo added to')+' '+sec.name);
 });
 document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
+  if(leadTechniquePending){
+    leadTechniquePending=null;leadSelection.fill(null);render();renderLead();flash('Cancelled technique');return;
+  }
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;render();renderLead();
 });
 document.getElementById('boardLeadDisplay').addEventListener('click',()=>{
   leadDisplay=leadDisplay==='notes'?'tab':'notes';render();renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
-  if(!leadDraft.length)return;leadDraft=[];leadDraftEditIndex=null;leadSelection.fill(null);render();renderLead();flash('Cleared solo draft');
+  if(!leadDraft.length)return;leadDraft=[];leadDraftEditIndex=null;leadTechniquePending=null;leadSelection.fill(null);render();renderLead();flash('Cleared solo draft');
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){
@@ -2052,6 +2095,11 @@ function render(){
       const d=document.createElement('div');d.className='dot-note chord-reference';
       d.textContent=pcName((OPEN[s]+f)%12);
       cells[s][f].appendChild(d);
+    });
+    (leadTechniquePending?.notes||[]).forEach(note=>{
+      const d=document.createElement('div');d.className='dot-note technique-source';
+      d.textContent=leadDisplay==='notes'?pcName((OPEN[note.s]+note.f)%12):String(note.f);
+      cells[note.s][note.f].appendChild(d);
     });
     leadSelection.forEach((f,s)=>{
       if(!Number.isInteger(f))return;
@@ -3158,24 +3206,25 @@ function buildExportText(){
       (g.lead||[]).forEach(event=>{
         for(let repeat=0;repeat<(event.rep||1);repeat++)expanded.push({event,repeat});
       });
-      const techniqueFor=(event,string,repeat)=>{
-        if(!event.t)return '';
-        // New linked techniques only belong on strings shared with their
-        // immediate source. Legacy events without link metadata retain their
-        // original export behaviour.
-        if(hasLeadLink(event))return repeat===0&&event.links.includes(string)?event.t:'';
-        return event.t;
+      const techniqueFor=(event,next,string,repeat)=>{
+        // A new linked technique is written after its source fret, matching
+        // ordinary tab: 8/10, 8h10, or 10p8. Old saved events preserve their
+        // former notation behavior for backwards-compatible exports.
+        if(event.t&&!hasLeadLink(event))return event.t;
+        if(repeat!==(event.rep||1)-1||!next||next.repeat!==0||!hasLeadLink(next.event))return '';
+        return next.event.links.includes(string)?next.event.t:'';
       };
-      const widths=expanded.map(({event,repeat})=>{
+      const widths=expanded.map(({event,repeat},index)=>{
+        const next=expanded[index+1];
         const longest=(event.notes||[]).reduce((max,n)=>Math.max(max,String(n.f).length),1);
-        const longestTechnique=(event.notes||[]).reduce((max,n)=>Math.max(max,techniqueFor(event,n.s,repeat).length),0);
-        return Math.max(3,longest+longestTechnique+2);
+        const longestTechnique=(event.notes||[]).reduce((max,n)=>Math.max(max,techniqueFor(event,next,n.s,repeat).length),0);
+        return Math.max(2,longest+longestTechnique);
       });
       for(let s=0;s<6;s++){
         let line=STR_LABEL[s]+'|';
         expanded.forEach(({event,repeat},index)=>{
           const note=(event.notes||[]).find(n=>n.s===s);
-          const token=note?String(note.f)+techniqueFor(event,s,repeat):'';
+          const token=note?String(note.f)+techniqueFor(event,expanded[index+1],s,repeat):'';
           line+=token.padEnd(widths[index],'-');
         });
         L.push(line);

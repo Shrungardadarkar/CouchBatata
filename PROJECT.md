@@ -39,7 +39,7 @@ selection[6]          selected fret per string; null or "x" are also valid
 current               identified chord on the fretboard
 currentAlts[]         alternate chord interpretations
 sections[]            ordered song sections, chords, lead events, and lyrics
-lead event            {id, notes:[{s,f}], t, from?, links?, rep}: one or more simultaneous notes, an optional tab technique, and an optional repeat count
+lead event            {id, notes:[{s,f}], t, from?, links?, rep}: one or more simultaneous notes, an optional tab technique, and an optional repeat count; connected techniques are recorded as explicit source then destination events
 activeSectionId       section receiving newly added chords
 activeChip            selected song chord
 scaleActive           selected scale overlay

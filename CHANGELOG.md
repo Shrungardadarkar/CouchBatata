@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — Two-step Solo connections
+
+- Slide, Hammer-on, and Pull-off now use an explicit source → destination flow:
+  choose the source, arm the technique, choose the destination, then save it.
+- Slides infer their tab direction from fret movement, and multi-note slides
+  require linked strings to move in one direction for accurate notation.
+
 ## 2026-07-19 — Chord-to-chord Solo slides
 
 - Removed the redundant Show other shapes button; the visible shape navigator

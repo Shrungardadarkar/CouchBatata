@@ -6,6 +6,8 @@
 - The same Key & Scales analysis now reacts to a chord being auditioned on the board;
   that one-chord reading is labelled tentative until it becomes song context.
 - Selecting a scale re-centres suggestion priority around that scale's tonal character.
+- Suggestion rows now scroll horizontally instead of clipping chords, and starter
+  suggestions include every major and minor root.
 
 ## 2026-07-18 — Open-string chord board
 

@@ -193,13 +193,14 @@
   .chord-suggest-inner{padding:10px 0 2px;min-width:0}
   .chord-suggest-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
   .chord-suggest-scroll{min-width:0}
-  .chord-suggest-scroll.has-overflow{display:grid;grid-template-columns:minmax(0,1fr) 79px;gap:7px;align-items:center}
-  .chord-suggest-row{display:flex;align-items:center;gap:7px;min-width:0;overflow-x:auto;overflow-y:hidden;padding:1px 3px 8px;scrollbar-width:thin;scrollbar-color:var(--ink-faint) transparent;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+  .chord-suggest-scroll.has-pages{display:grid;grid-template-columns:minmax(0,1fr) 79px;gap:7px;align-items:center}
+  .chord-suggest-row{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden;padding:1px 3px 8px;touch-action:pan-x pan-y}
   .chord-suggest-nav{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:79px;padding-bottom:8px}
   .chord-scroll-btn{display:grid;place-items:center;width:36px;height:36px;padding:0;border:2.5px solid var(--ink);border-radius:9px;background:var(--cream);box-shadow:2px 2px 0 var(--ink);color:var(--ink);font:900 .8rem/1 inherit;cursor:pointer;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .chord-scroll-btn:hover{background:var(--sun);transform:translateY(-1px) rotate(-2deg);box-shadow:3px 3px 0 var(--ink)}
   .chord-scroll-btn:active{transform:translateY(1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .chord-scroll-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .chord-scroll-btn:disabled{opacity:.32;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.35)}
   .chord-scroll-btn[hidden]{display:none}
   .chord-suggest-row:focus-visible{outline:3px solid var(--tomato);outline-offset:3px;border-radius:8px}
   .chord-suggestion{flex:0 0 auto;min-height:32px;padding:5px 9px;border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.76rem;font-weight:900;line-height:1;cursor:pointer;white-space:nowrap;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
@@ -334,11 +335,11 @@
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
 
-  .shape-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}
+  .shape-nav{display:grid;grid-template-columns:42px minmax(0,260px) 42px;gap:10px;align-items:center;width:min(100%,364px);margin-top:13px}
   .shape-nav[hidden]{display:none}
   .shape-nav .btn{display:grid;place-items:center;width:42px;height:38px;padding:0;border-radius:9px;font-size:.82rem}
-  .shape-label{display:inline-flex;align-items:center;min-height:38px;padding:6px 11px;background:var(--cream);
-    border:2px solid var(--ink);border-radius:9px;color:var(--ink-dim);font-size:.78rem;font-weight:850;box-shadow:var(--shadow-sm)}
+  .shape-label{display:flex;align-items:center;justify-content:center;min-width:0;min-height:38px;padding:6px 11px;background:var(--cream);
+    border:2px solid var(--ink);border-radius:9px;color:var(--ink-dim);font-size:.78rem;font-weight:850;box-shadow:var(--shadow-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
   /* solo / arpeggio recorder */
   .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
@@ -835,10 +836,10 @@
     <div class="chord-suggest-inner">
       <span class="chord-suggest-label" id="chordSuggestLabel">Suggestions</span>
       <div class="chord-suggest-scroll" id="chordSuggestScroll">
-        <div class="chord-suggest-row" id="chordSuggestRow" tabindex="0" role="region" aria-label="Chord suggestions. Use left and right arrow keys or swipe to explore more."></div>
+        <div class="chord-suggest-row" id="chordSuggestRow" tabindex="0" role="region" aria-label="Chord suggestions. Use the previous and next buttons, arrow keys, or swipe to explore full groups of chords."></div>
         <div class="chord-suggest-nav" id="chordSuggestNav" aria-label="Explore more chord suggestions" hidden>
-          <button class="chord-scroll-btn prev" id="chordScrollPrev" type="button" aria-label="Show earlier chord suggestions" title="Earlier suggestions" hidden>◀</button>
-          <button class="chord-scroll-btn next" id="chordScrollNext" type="button" aria-label="Show later chord suggestions" title="More suggestions" hidden>▶</button>
+          <button class="chord-scroll-btn" id="chordScrollPrev" type="button" aria-label="Show earlier chord suggestions" title="Earlier suggestions">◀</button>
+          <button class="chord-scroll-btn" id="chordScrollNext" type="button" aria-label="Show later chord suggestions" title="More suggestions">▶</button>
         </div>
       </div>
     </div>
@@ -1428,60 +1429,99 @@ function chordSuggestionCandidates(){
   }
   return {state:'ranked',items};
 }
-function renderChordSuggestions(){
-  const drawer=document.getElementById('chordSuggestDrawer');
-  const label=document.getElementById('chordSuggestLabel');
-  const row=document.getElementById('chordSuggestRow');
-  const show=boardMode==='chord';
-  drawer.classList.toggle('open',show);
-  drawer.setAttribute('aria-hidden',String(!show));
-  if(!show)return;
-  const data=chordSuggestionCandidates();
-  label.textContent=data.state==='bootstrap'?'Suggestions':'Suggestions · core ← → colourful';
-  row.innerHTML='';
-  data.items.forEach((item,index)=>{
-    const button=document.createElement('button');
-    button.type='button';
-    const tier=Math.min(4,Math.floor(index/Math.max(1,data.items.length/5)));
-    button.className='chord-suggestion '+(data.state==='bootstrap'?'neutral':'rank-'+tier);
-    button.textContent=pcName(item.root)+item.suf;
-    button.title='Load '+button.textContent+' onto the fretboard';
-    button.setAttribute('aria-label','Load '+button.textContent+' chord onto the fretboard');
-    button.addEventListener('click',()=>loadSuggestedChord(item));
-    row.appendChild(button);
-  });
-  requestAnimationFrame(updateChordSuggestionScrollControls);
+let chordSuggestionItems=[];
+let chordSuggestionPages=[];
+let chordSuggestionPage=0;
+let chordSuggestionSwipeStart=null;
+
+function makeChordSuggestionButton(item,index){
+  const button=document.createElement('button');
+  button.type='button';
+  const tier=Math.min(4,Math.floor(index/Math.max(1,chordSuggestionItems.length/5)));
+  button.className='chord-suggestion '+(item.neutral?'neutral':'rank-'+tier);
+  button.textContent=pcName(item.root)+item.suf;
+  button.title='Load '+button.textContent+' onto the fretboard';
+  button.setAttribute('aria-label','Load '+button.textContent+' chord onto the fretboard');
+  button.addEventListener('click',()=>loadSuggestedChord(item));
+  return button;
 }
-function updateChordSuggestionScrollControls(){
+function renderChordSuggestionPage(){
   const row=document.getElementById('chordSuggestRow');
   const wrap=document.getElementById('chordSuggestScroll');
   const nav=document.getElementById('chordSuggestNav');
   const prev=document.getElementById('chordScrollPrev');
   const next=document.getElementById('chordScrollNext');
   if(!row||!wrap||!nav||!prev||!next)return;
-  const max=Math.max(0,row.scrollWidth-row.clientWidth);
-  const overflow=max>2;
-  const atStart=row.scrollLeft<=2;
-  const atEnd=row.scrollLeft>=max-2;
-  wrap.classList.toggle('has-overflow',overflow);
-  nav.hidden=!overflow;
-  prev.hidden=!overflow||atStart;
-  next.hidden=!overflow||atEnd;
+  const paged=chordSuggestionPages.length>1;
+  wrap.classList.toggle('has-pages',paged);
+  nav.hidden=!paged;
+  row.innerHTML='';
+  (chordSuggestionPages[chordSuggestionPage]||[]).forEach(({item,index})=>row.appendChild(makeChordSuggestionButton(item,index)));
+  prev.disabled=!paged||chordSuggestionPage===0;
+  next.disabled=!paged||chordSuggestionPage===chordSuggestionPages.length-1;
+}
+function paginateChordSuggestions(){
+  const row=document.getElementById('chordSuggestRow');
+  const wrap=document.getElementById('chordSuggestScroll');
+  if(!row||!wrap)return;
+  // Measure real chip widths first, then group them so no suggestion is ever
+  // partially visible beneath a navigator control.
+  row.innerHTML='';
+  const measured=chordSuggestionItems.map((item,index)=>{
+    const button=makeChordSuggestionButton(item,index);
+    row.appendChild(button);
+    return {item,index,width:Math.ceil(button.getBoundingClientRect().width)};
+  });
+  const available=Math.max(80,wrap.clientWidth-92);
+  const pages=[];let page=[];let used=0;
+  measured.forEach(entry=>{
+    const needed=page.length?entry.width+7:entry.width;
+    if(page.length&&used+needed>available){pages.push(page);page=[];used=0;}
+    page.push(entry);used+=page.length===1?entry.width:entry.width+7;
+  });
+  if(page.length)pages.push(page);
+  chordSuggestionPages=pages.length?pages:[[]];
+  chordSuggestionPage=Math.min(chordSuggestionPage,chordSuggestionPages.length-1);
+  renderChordSuggestionPage();
+}
+function renderChordSuggestions(){
+  const drawer=document.getElementById('chordSuggestDrawer');
+  const label=document.getElementById('chordSuggestLabel');
+  const show=boardMode==='chord';
+  drawer.classList.toggle('open',show);
+  drawer.setAttribute('aria-hidden',String(!show));
+  if(!show)return;
+  const data=chordSuggestionCandidates();
+  label.textContent=data.state==='bootstrap'?'Suggestions':'Suggestions · core ← → colourful';
+  chordSuggestionItems=data.items.map(item=>({...item,neutral:data.state==='bootstrap'}));
+  chordSuggestionPage=0;
+  requestAnimationFrame(paginateChordSuggestions);
 }
 const chordSuggestionRow=document.getElementById('chordSuggestRow');
-function scrollChordSuggestions(direction){
-  const amount=Math.max(120,Math.round(chordSuggestionRow.clientWidth*.7));
-  chordSuggestionRow.scrollBy({left:direction*amount,behavior:'smooth'});
+function moveChordSuggestionPage(direction){
+  const next=Math.max(0,Math.min(chordSuggestionPages.length-1,chordSuggestionPage+direction));
+  if(next===chordSuggestionPage)return;
+  chordSuggestionPage=next;renderChordSuggestionPage();
 }
-chordSuggestionRow.addEventListener('scroll',updateChordSuggestionScrollControls,{passive:true});
 chordSuggestionRow.addEventListener('keydown',event=>{
-  if(event.key==='ArrowRight'){event.preventDefault();scrollChordSuggestions(1);}
-  else if(event.key==='ArrowLeft'){event.preventDefault();scrollChordSuggestions(-1);}
-  else if(event.key==='Home'){event.preventDefault();chordSuggestionRow.scrollTo({left:0,behavior:'smooth'});}
-  else if(event.key==='End'){event.preventDefault();chordSuggestionRow.scrollTo({left:chordSuggestionRow.scrollWidth,behavior:'smooth'});}
+  if(event.key==='ArrowRight'){event.preventDefault();moveChordSuggestionPage(1);}
+  else if(event.key==='ArrowLeft'){event.preventDefault();moveChordSuggestionPage(-1);}
+  else if(event.key==='Home'){event.preventDefault();chordSuggestionPage=0;renderChordSuggestionPage();}
+  else if(event.key==='End'){event.preventDefault();chordSuggestionPage=chordSuggestionPages.length-1;renderChordSuggestionPage();}
 });
-document.getElementById('chordScrollPrev').addEventListener('click',()=>scrollChordSuggestions(-1));
-document.getElementById('chordScrollNext').addEventListener('click',()=>scrollChordSuggestions(1));
+chordSuggestionRow.addEventListener('pointerdown',event=>{chordSuggestionSwipeStart=event.clientX;});
+chordSuggestionRow.addEventListener('pointerup',event=>{
+  if(chordSuggestionSwipeStart===null)return;
+  const distance=event.clientX-chordSuggestionSwipeStart;chordSuggestionSwipeStart=null;
+  if(Math.abs(distance)>=32)moveChordSuggestionPage(distance<0?1:-1);
+});
+chordSuggestionRow.addEventListener('pointercancel',()=>{chordSuggestionSwipeStart=null;});
+document.getElementById('chordScrollPrev').addEventListener('click',()=>moveChordSuggestionPage(-1));
+document.getElementById('chordScrollNext').addEventListener('click',()=>moveChordSuggestionPage(1));
+window.addEventListener('resize',()=>{
+  clearTimeout(paginateChordSuggestions.resizeTimer);
+  paginateChordSuggestions.resizeTimer=setTimeout(()=>{if(boardMode==='chord')paginateChordSuggestions();},120);
+});
 function loadSuggestedChord(item){
   const shape=Array.isArray(item.frets)?{frets:item.frets}:playableSuggestion(item.root,item.suf);
   if(!shape){flash('No playable shape found for '+pcName(item.root)+item.suf);return;}

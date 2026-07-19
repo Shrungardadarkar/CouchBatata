@@ -14,6 +14,10 @@ software. The primary loop is:
 6. Review key and scale guidance.
 7. Export a readable chart or an editable project backup.
 
+Chord suggestions use complete-chip pages with persistent previous/next controls
+when there is more than one page. This avoids partially cropped suggestions and
+keeps the navigation placement stable across screen sizes.
+
 The product should feel playful and immediate rather than academic. Music-
 theory guidance must still be careful, explicit, and testable.
 

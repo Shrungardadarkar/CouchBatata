@@ -53,7 +53,8 @@ Users do not need an app-store download.
 - Song sections, repeats, lyrics, duplication, deletion, reordering, and safe
   copy/move-and-merge into another section.
 - Key analysis, borrowed-chord guidance, scale suggestions, and position boxes.
-- Compact playable chord suggestions beneath the fretboard; selecting a soloing
+- Compact playable chord suggestions beneath the fretboard, presented as
+  complete-chip pages with stable previous/next controls; selecting a soloing
   scale re-centres their priority around that scale's tonal character. Core
   diatonic chords appear before richer in-scale variants; a full selected mode
   such as harmonic minor also changes the harmonic suggestion pool.

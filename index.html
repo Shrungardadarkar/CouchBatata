@@ -2662,6 +2662,9 @@ document.addEventListener('pointermove',e=>{
     if(Math.hypot(dx,dy)<6)return;
     startDrag(e);
   }
+  // Once this is a deliberate drag, keep the pointer with the card rather
+  // than allowing a wrapped event list to lose the gesture to page scrolling.
+  e.preventDefault();
   positionGhost(e);
   updateDropTarget(e);
 });
@@ -2687,6 +2690,9 @@ document.addEventListener('click',e=>{
 
 function startDrag(e){
   drag.started=true;
+  // Capturing only after the small movement threshold preserves normal page
+  // scrolling when a finger simply touches a solo event on a phone.
+  try{drag.origEl.setPointerCapture(drag.pointerId);}catch(_){/* pointer may already be released */}
   drag.origEl.classList.add('dragging');
   // Ghost
   const g=drag.origEl.cloneNode(true);
@@ -2721,11 +2727,7 @@ function updateLeadDraftDrop(el,e){
   const wrap=el?.closest('#leadSequence');
   if(!wrap)return;
   const events=[...wrap.querySelectorAll('.lead-event:not(.dragging)')];
-  let insertBefore=null,insertIdx=events.length;
-  for(let i=0;i<events.length;i++){
-    const r=events[i].getBoundingClientRect();
-    if(e.clientX<r.left+r.width/2){insertBefore=events[i];insertIdx=i;break;}
-  }
+  const {insertBefore,insertIdx}=leadInsertPosition(events,e);
   if(insertBefore)wrap.insertBefore(drag.indicator,insertBefore);
   else wrap.appendChild(drag.indicator);
   drag.dropIdx=insertIdx;
@@ -2739,14 +2741,39 @@ function updateSavedLeadDrop(el,e){
   const wrap=card.querySelector('.sect-lead .lead-sequence');
   if(!wrap)return;
   const events=[...wrap.querySelectorAll('.lead-event:not(.dragging)')];
-  let insertBefore=null,insertIdx=events.length;
-  for(let i=0;i<events.length;i++){
-    const r=events[i].getBoundingClientRect();
-    if(e.clientX<r.left+r.width/2){insertBefore=events[i];insertIdx=i;break;}
-  }
+  const {insertBefore,insertIdx}=leadInsertPosition(events,e);
   if(insertBefore)wrap.insertBefore(drag.indicator,insertBefore);
   else wrap.appendChild(drag.indicator);
   drag.dropIdx=insertIdx;
+}
+
+// Lead events are a wrapping flex list. A horizontal-only comparison works on
+// the first row but sends a drop in later rows to a matching X position above.
+// Pick the row first, then its horizontal insertion point.
+function leadInsertPosition(events,e){
+  if(!events.length)return {insertBefore:null,insertIdx:0};
+  const rows=[];
+  events.forEach((event,index)=>{
+    const rect=event.getBoundingClientRect();
+    let row=rows[rows.length-1];
+    if(!row||Math.abs(rect.top-row.top)>6){
+      row={top:rect.top,bottom:rect.bottom,items:[]};rows.push(row);
+    }else row.bottom=Math.max(row.bottom,rect.bottom);
+    row.items.push({event,index,rect});
+  });
+  let row=rows[rows.length-1];
+  for(const candidate of rows){
+    if(e.clientY<candidate.top+(candidate.bottom-candidate.top)/2){row=candidate;break;}
+  }
+  for(const item of row.items){
+    if(e.clientX<item.rect.left+item.rect.width/2){
+      return {insertBefore:item.event,insertIdx:item.index};
+    }
+  }
+  const last=row.items[row.items.length-1];
+  // If this is not the last visible row, insert immediately before the first
+  // event on the next row; otherwise append to the end of the sequence.
+  return {insertBefore:events[last.index+1]||null,insertIdx:last.index+1};
 }
 
 function updateChordDrop(el,e){
@@ -2849,6 +2876,7 @@ function commitDrop(){
 
 function cleanupDrag(){
   if(drag){
+    try{if(drag.origEl?.hasPointerCapture(drag.pointerId))drag.origEl.releasePointerCapture(drag.pointerId);}catch(_){/* already released */}
     if(drag.origEl)drag.origEl.classList.remove('dragging');
     if(drag.ghost)drag.ghost.remove();
     if(drag.indicator&&drag.indicator.parentNode)drag.indicator.remove();

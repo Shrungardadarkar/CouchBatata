@@ -7,6 +7,8 @@
   as a chord hit or reshape into an arpeggio.
 - Adding that chord to a Song section clears the temporary reference and the
   fretboard resets cleanly, without showing default open-string markers.
+- Applying a Solo technique also consumes that temporary reference, leaving a
+  clear fretboard ready for the next event.
 
 ## 2026-07-19 — Connected solo techniques and repeats
 

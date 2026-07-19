@@ -1915,7 +1915,10 @@ function saveLeadEvent(t){
   const saved=leadDraft[_popLeadDraftIndex];
   const message=editing?'Updated solo event':'Added '+leadEventLabel(saved)+' to the draft';
   leadDraftEditIndex=null;
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
+  // The chosen chord is a one-shot starting point for this Solo event. Once
+  // its notes have been applied, clear both the active selection and the
+  // temporary reference so the fretboard is ready for the next phrase.
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;soloChordReference=null;
   render();renderLead();
   flash(message);
 }

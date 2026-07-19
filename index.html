@@ -900,7 +900,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. The small ← badge shows a connected source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. The small ← badge shows a connected source event. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1894,10 +1894,21 @@ function renderLead(){
 }
 function selectLeadDraftEvent(index){
   const event=leadDraft[index];if(!event)return;
-  leadTechniquePending=null;
   leadSelection.fill(null);
   (event.notes||[]).forEach(note=>{leadSelection[note.s]=note.f;});
   leadSelectionSectionId=activeSection()?.id??null;
+  if(hasLeadLink(event)){
+    const source=leadDraft.find(candidate=>candidate.id===event.from);
+    const action=event.t==='/'||event.t==='\\'?'slide':event.t;
+    if(source&&LEAD_CONNECTION_ACTIONS.has(action)){
+      leadTechniquePending={action,notes:source.notes.map(note=>({s:note.s,f:note.f})),editTargetId:event.id};
+      leadDraftEditIndex=null;
+      render();renderLead();
+      flash('Editing '+LEAD_CONNECTION_LABEL[action].toLowerCase()+' — change the destination, then save');
+      return;
+    }
+  }
+  leadTechniquePending=null;
   leadDraftEditIndex=index;
   render();renderLead();
   flash('Editing solo event '+(index+1)+' — change notes, then choose an action to update it');
@@ -1961,14 +1972,24 @@ function commitLeadConnection(){
       return;
     }
   }
-  const source={id:_nextLeadId++,notes:pending.notes,t:'',from:null,links:null,rep:1};
   const links=linked.map(note=>note.s);
-  const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
-  leadDraft.push(source,target);_popLeadDraftIndex=leadDraft.length-1;
+  const existingTargetIndex=Number.isInteger(pending.editTargetId)
+    ?leadDraft.findIndex(event=>event.id===pending.editTargetId):-1;
+  if(existingTargetIndex>=0){
+    const existing=leadDraft[existingTargetIndex];
+    const source=leadDraft.find(event=>event.id===existing.from);
+    if(!source){flash('The source event is missing');return;}
+    leadDraft[existingTargetIndex]={id:existing.id,notes:destination,t:technique,from:source.id,links,rep:existing.rep||1};
+    _popLeadDraftIndex=existingTargetIndex;
+  }else{
+    const source={id:_nextLeadId++,notes:pending.notes,t:'',from:null,links:null,rep:1};
+    const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
+    leadDraft.push(source,target);_popLeadDraftIndex=leadDraft.length-1;
+  }
   leadTechniquePending=null;leadDraftEditIndex=null;
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;soloChordReference=null;
   render();renderLead();
-  flash('Added '+LEAD_CONNECTION_LABEL[pending.action].toLowerCase()+' from event '+(leadDraft.length-1)+' to '+leadDraft.length);
+  flash((existingTargetIndex>=0?'Updated ':'Added ')+LEAD_CONNECTION_LABEL[pending.action].toLowerCase());
 }
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
@@ -2584,6 +2605,12 @@ function buildSectionCard(sec,idx,primary){
       const eventRemove=document.createElement('button');eventRemove.type='button';eventRemove.className='lead-event-x';eventRemove.textContent='×';
       eventRemove.title='Remove this solo event';eventRemove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
       eventRemove.addEventListener('click',e=>{e.stopPropagation();sec.lead.splice(eventIdx,1);cleanBrokenLeadLinks(sec.lead);renderSong();save();flash('Removed solo event');});
+      event.addEventListener('click',e=>{
+        if(e.target.closest('.lead-event-x, select'))return;
+        leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
+        setBoardMode('solo');selectLeadDraftEvent(eventIdx);renderSong();
+        document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
+      });
       event.appendChild(eventRemove);attachSavedLeadDrag(event,sec,eventIdx);events.appendChild(event);
     });
     leadWrap.appendChild(events);card.appendChild(leadWrap);
@@ -2764,6 +2791,22 @@ function sectNameSelect(sec){
 let drag=null; // {type, sourceSection, sourceIdx?, startX, startY, ghost, ghostOffsetX, ghostOffsetY, origEl, indicator, dropSection, dropIdx, started}
 let _suppressNextClick=false;
 
+// A connected slide/hammer/pull is a single musical unit. Keep the entire
+// adjacent chain together whenever a player drags any card in that phrase.
+function leadDragBlock(events,index){
+  let start=index,end=index;
+  while(start>0&&hasLeadLink(events[start])&&events[start].from===events[start-1].id)start--;
+  while(end+1<events.length&&hasLeadLink(events[end+1])&&events[end+1].from===events[end].id)end++;
+  return Array.from({length:end-start+1},(_,offset)=>start+offset);
+}
+function leadSafeInsertIndex(events,index){
+  let safe=index;
+  // Never insert a separate event between the source and destination of a
+  // linked phrase. Snap that drop point to the phrase's opening boundary.
+  while(safe>0&&safe<events.length&&hasLeadLink(events[safe])&&events[safe].from===events[safe-1].id)safe--;
+  return safe;
+}
+
 function attachChipDrag(chip,sec,cIdx){
   chip.addEventListener('pointerdown',e=>{
     if(e.target.closest('select, .chip-x'))return;
@@ -2789,10 +2832,11 @@ function attachLeadDraftDrag(eventEl,eventIdx){
     if(e.target.closest('.lead-event-x, select'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
+    const blockIdxs=leadDragBlock(leadDraft,eventIdx);
     drag={
       type:'lead-draft',sourceIdx:eventIdx,startX:e.clientX,startY:e.clientY,
       ghostOffsetX:e.clientX-rect.left,ghostOffsetY:e.clientY-rect.top,
-      origEl:eventEl,started:false,dropIdx:-1,pointerId:e.pointerId
+      origEl:eventEl,blockIdxs,started:false,dropIdx:-1,pointerId:e.pointerId
     };
   });
 }
@@ -2802,10 +2846,11 @@ function attachSavedLeadDrag(eventEl,sec,eventIdx){
     if(e.target.closest('.lead-event-x, select'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
+    const blockIdxs=leadDragBlock(sec.lead,eventIdx);
     drag={
       type:'lead-saved',sourceSection:sec.id,sourceIdx:eventIdx,startX:e.clientX,startY:e.clientY,
       ghostOffsetX:e.clientX-rect.left,ghostOffsetY:e.clientY-rect.top,
-      origEl:eventEl,started:false,dropIdx:-1,pointerId:e.pointerId
+      origEl:eventEl,blockIdxs,started:false,dropIdx:-1,pointerId:e.pointerId
     };
   });
 }
@@ -2869,6 +2914,11 @@ function startDrag(e){
   // scrolling when a finger simply touches a solo event on a phone.
   try{drag.origEl.setPointerCapture(drag.pointerId);}catch(_){/* pointer may already be released */}
   drag.origEl.classList.add('dragging');
+  if(drag.blockIdxs?.length>1){
+    const cards=[...drag.origEl.parentElement.querySelectorAll('.lead-event')];
+    drag.blockEls=drag.blockIdxs.map(index=>cards[index]).filter(Boolean);
+    drag.blockEls.forEach(card=>card.classList.add('dragging'));
+  }
   // Ghost
   const g=drag.origEl.cloneNode(true);
   g.classList.add('drag-ghost');
@@ -2942,13 +2992,15 @@ function leadInsertPosition(events,e){
   }
   for(const item of row.items){
     if(e.clientX<item.rect.left+item.rect.width/2){
-      return {insertBefore:item.event,insertIdx:item.index};
+      const insertIdx=leadSafeInsertIndex(events,item.index);
+      return {insertBefore:events[insertIdx]||null,insertIdx};
     }
   }
   const last=row.items[row.items.length-1];
   // If this is not the last visible row, insert immediately before the first
   // event on the next row; otherwise append to the end of the sequence.
-  return {insertBefore:events[last.index+1]||null,insertIdx:last.index+1};
+  const insertIdx=leadSafeInsertIndex(events,last.index+1);
+  return {insertBefore:events[insertIdx]||null,insertIdx};
 }
 
 function updateChordDrop(el,e){
@@ -3002,15 +3054,19 @@ function updateSectionDrop(el,e){
 
 function commitDrop(){
   if(drag.type==='lead-draft'&&drag.dropIdx>=0){
-    const [moved]=leadDraft.splice(drag.sourceIdx,1);
-    leadDraft.splice(drag.dropIdx,0,moved);
+    const block=new Set(drag.blockIdxs||[drag.sourceIdx]);
+    const moved=leadDraft.filter((_,index)=>block.has(index));
+    const remaining=leadDraft.filter((_,index)=>!block.has(index));
+    remaining.splice(drag.dropIdx,0,...moved);leadDraft=remaining;
     cleanBrokenLeadLinks(leadDraft);
     leadDraftEditIndex=null;
     renderLead();
   } else if(drag.type==='lead-saved'&&drag.dropIdx>=0){
     const sec=findSection(drag.sourceSection);if(!sec)return;
-    const [moved]=sec.lead.splice(drag.sourceIdx,1);
-    sec.lead.splice(drag.dropIdx,0,moved);
+    const block=new Set(drag.blockIdxs||[drag.sourceIdx]);
+    const moved=sec.lead.filter((_,index)=>block.has(index));
+    const remaining=sec.lead.filter((_,index)=>!block.has(index));
+    remaining.splice(drag.dropIdx,0,...moved);sec.lead=remaining;
     cleanBrokenLeadLinks(sec.lead);
     renderSong();save();
   } else if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
@@ -3055,6 +3111,7 @@ function cleanupDrag(){
   if(drag){
     try{if(drag.origEl?.hasPointerCapture(drag.pointerId))drag.origEl.releasePointerCapture(drag.pointerId);}catch(_){/* already released */}
     if(drag.origEl)drag.origEl.classList.remove('dragging');
+    drag.blockEls?.forEach(card=>card.classList.remove('dragging'));
     if(drag.ghost)drag.ghost.remove();
     if(drag.indicator&&drag.indicator.parentNode)drag.indicator.remove();
   }

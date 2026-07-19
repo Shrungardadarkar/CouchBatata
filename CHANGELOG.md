@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Linked phrase editing and reordering
+
+- Dragging any event in a connected Slide, Hammer-on, or Pull-off now moves
+  its complete phrase as one unit, so the technique cannot disappear.
+- Events cannot be inserted between a linked source and destination.
+- Clicking a saved Solo event opens it directly for editing; linked events
+  retain their source/destination relationship while their destination changes.
+
 ## 2026-07-19 — Two-step Solo connections
 
 - Slide, Hammer-on, and Pull-off now use an explicit source → destination flow:

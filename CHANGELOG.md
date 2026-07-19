@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — Readable linked Solo phrases
+
+- Connected Slides, Hammer-ons, and Pull-offs now show their dashed source and
+  red-bordered destination in both the Solo draft and saved Song events.
+- Clear labels identify where a phrase starts and which event it comes from.
+- Bumped the offline cache so installed copies receive the visual improvement.
+
 ## 2026-07-19 — Clear transient Solo chord references
 
 - **Clear selection** now removes the carried chord reference as well as the

@@ -348,11 +348,15 @@
   .lead-event:hover,.lead-event.selected{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
   .lead-event.dragging{opacity:.3}
   .lead-event.lead-pop{animation:leadPop .34s var(--ease-bounce)}
+  .lead-event.lead-link-source{background:var(--cream);border:2.5px dashed var(--tomato);box-shadow:1.5px 1.5px 0 var(--tomato)}
+  .lead-event.lead-link-source:hover,.lead-event.lead-link-source.selected{background:#fff4e9;box-shadow:3px 3px 0 var(--tomato)}
+  .lead-event.lead-link-target{border-color:var(--tomato);box-shadow:1.5px 1.5px 0 var(--tomato)}
+  .lead-connection-cue{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:2px 5px;background:var(--tomato);color:var(--cream);font-family:"Courier New",monospace;font-size:.62rem;font-weight:900;line-height:1;white-space:nowrap}
   @keyframes leadPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
   .lead-event-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
   .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
   .lead-event .rep-sel{font-size:.68rem;padding-top:2px;padding-bottom:2px;flex:0 0 auto}
-  .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1}
+  .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1;white-space:nowrap}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
   .lead-summary-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
@@ -900,7 +904,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. The small ← badge shows a connected source event. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. In both the draft and Song, a dashed card marked “starts … →” is the source and the red-bordered card marked “from N” is its destination. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1768,6 +1772,16 @@ function leadSourceNumber(event,events=leadDraft){
   const sourceIndex=(events||[]).findIndex(candidate=>candidate.id===event.from);
   return sourceIndex>=0?sourceIndex+1:'?';
 }
+function leadConnectionTarget(event,index,events=leadDraft){
+  const target=(events||[])[index+1];
+  return hasLeadLink(target)&&target.from===event?.id?target:null;
+}
+function leadConnectionLabel(event){
+  if(event?.t==='/'||event?.t==='\\')return 'Slide';
+  if(event?.t==='h')return 'Hammer-on';
+  if(event?.t==='p')return 'Pull-off';
+  return 'Connection';
+}
 function copyLeadEvents(events){
   return (events||[]).map(event=>({
     id:event.id||_nextLeadId++,notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
@@ -1835,13 +1849,19 @@ function renderLead(){
     const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No saved solo events yet — select one or more notes, then press an action.';out.appendChild(empty);
   }else{
     events.forEach((leadEvent,index)=>{
-      const event=document.createElement('div');event.className='lead-event'+(_popLeadDraftIndex===index?' lead-pop':'')+(leadDraftEditIndex===index?' selected':'');
-      event.title='Click to edit this event on the fretboard · drag to reorder';
+      const linkedTarget=leadConnectionTarget(leadEvent,index,events);
+      const isTarget=hasLeadLink(leadEvent);
+      const event=document.createElement('div');event.className='lead-event'+(linkedTarget?' lead-link-source':'')+(isTarget?' lead-link-target':'')+(_popLeadDraftIndex===index?' lead-pop':'')+(leadDraftEditIndex===index?' selected':'');
+      event.title=linkedTarget?leadConnectionLabel(linkedTarget)+' starts here and continues to event '+(index+2)+' · drag moves both':isTarget?leadConnectionLabel(leadEvent)+' destination from event '+leadSourceNumber(leadEvent,events)+' · drag moves both':'Click to edit this event on the fretboard · drag to reorder';
       event.setAttribute('aria-label','Solo event '+(index+1)+': '+leadEventLabel(leadEvent));
       const label=document.createElement('span');label.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.appendChild(label);
+      if(linkedTarget){
+        const cue=document.createElement('span');cue.className='lead-connection-cue';cue.textContent='starts '+leadConnectionLabel(linkedTarget).toLowerCase()+' → '+(index+2);
+        cue.title=leadConnectionLabel(linkedTarget)+' starts at this event and ends at event '+(index+2);event.appendChild(cue);
+      }
       if(hasLeadLink(leadEvent)){
         const sourceNumber=leadSourceNumber(leadEvent);
-        const link=document.createElement('span');link.className='lead-link';link.textContent='←'+sourceNumber;
+        const link=document.createElement('span');link.className='lead-link';link.textContent='from '+sourceNumber;
         link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
       }
       event.appendChild(leadRepeatSelect(leadEvent,()=>{renderLead();}));
@@ -2610,11 +2630,18 @@ function buildSectionCard(sec,idx,primary){
     leadWrap.appendChild(summary);
     const events=document.createElement('div');events.className='lead-sequence';events.setAttribute('aria-label','Solo events — drag to reorder');
     sec.lead.forEach((leadEvent,eventIdx)=>{
-      const event=document.createElement('div');event.className='lead-event';event.title='Drag to reorder this solo event';
+      const linkedTarget=leadConnectionTarget(leadEvent,eventIdx,sec.lead);
+      const isTarget=hasLeadLink(leadEvent);
+      const event=document.createElement('div');event.className='lead-event'+(linkedTarget?' lead-link-source':'')+(isTarget?' lead-link-target':'');
+      event.title=linkedTarget?leadConnectionLabel(linkedTarget)+' starts here and continues to event '+(eventIdx+2)+' · drag moves both':isTarget?leadConnectionLabel(leadEvent)+' destination from event '+leadSourceNumber(leadEvent,sec.lead)+' · drag moves both':'Drag to reorder this solo event';
       const eventLabel=document.createElement('span');eventLabel.textContent=(eventIdx+1)+'. '+leadEventLabel(leadEvent,sec.lead);event.appendChild(eventLabel);
+      if(linkedTarget){
+        const cue=document.createElement('span');cue.className='lead-connection-cue';cue.textContent='starts '+leadConnectionLabel(linkedTarget).toLowerCase()+' → '+(eventIdx+2);
+        cue.title=leadConnectionLabel(linkedTarget)+' starts at this event and ends at event '+(eventIdx+2);event.appendChild(cue);
+      }
       if(hasLeadLink(leadEvent)){
         const sourceNumber=leadSourceNumber(leadEvent,sec.lead);
-        const link=document.createElement('span');link.className='lead-link';link.textContent='←'+sourceNumber;
+        const link=document.createElement('span');link.className='lead-link';link.textContent='from '+sourceNumber;
         link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
       }
       event.appendChild(leadRepeatSelect(leadEvent,()=>{renderSong();save();}));

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 — Editable solo events
+
+- Clicking a saved draft event now loads its notes onto the Solo fretboard.
+- Editing its notes and choosing a technique updates that same event in place;
+  the full solo is committed with Save solo.
+
 ## 2026-07-19 — Chord reference and shape navigation
 
 - Kept the selected chord visible as a quiet reference while recording Solo /

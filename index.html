@@ -900,7 +900,7 @@
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
-    <p><b>Create solo</b> adds a new draft to an active chord section or creates a Solo section. <b>Edit solo</b> loads it back into the recorder; the button becomes <b>Save solo</b>.</p>
+    <p><b>Create solo</b> adds a new draft to an active chord section or creates a Solo section. <b>Edit solo</b> loads it back into the recorder; the button becomes <b>Save solo</b>. Click any numbered event to load its notes onto the fretboard, adjust them, then choose a technique to update that event in place.</p>
   </details>
   <details>
     <summary>Song sections</summary>
@@ -1565,6 +1565,7 @@ let leadSelectionSectionId=null;
 let leadDisplay='notes';
 let leadDraft=[];       // events being prepared before Create solo adds them to a section
 let leadDraftSourceSectionId=null; // section being edited, or null for a new solo
+let leadDraftEditIndex=null; // draft event loaded onto the fretboard for editing
 let _popLeadDraftIndex=null;
 let boardMode='chord';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
@@ -1757,23 +1758,31 @@ function renderLead(){
   const sec=activeSection();
   if(leadSelectionSectionId!==null&&leadSelectionSectionId!==sec?.id){
     leadSelection.fill(null);leadSelectionSectionId=sec?.id??null;
+    leadDraftEditIndex=null;
   }
   let targetSection=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):soloCreationTarget();
   if(leadDraftSourceSectionId!==null&&!targetSection)leadDraftSourceSectionId=null;
-  target.textContent=targetSection?targetSection.name:'new Solo section';
+  target.textContent=(targetSection?targetSection.name:'new Solo section')+
+    (Number.isInteger(leadDraftEditIndex)?' · editing event '+(leadDraftEditIndex+1):'');
   out.innerHTML='';
   const events=leadDraft;
   if(!events.length){
     const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No saved solo events yet — select one or more notes, then press an action.';out.appendChild(empty);
   }else{
     events.forEach((leadEvent,index)=>{
-      const event=document.createElement('div');event.className='lead-event'+(_popLeadDraftIndex===index?' lead-pop':'');
-      event.title='Drag to reorder this solo event';
+      const event=document.createElement('div');event.className='lead-event'+(_popLeadDraftIndex===index?' lead-pop':'')+(leadDraftEditIndex===index?' selected':'');
+      event.title='Click to edit this event on the fretboard · drag to reorder';
       event.setAttribute('aria-label','Solo event '+(index+1)+': '+leadEventLabel(leadEvent));
       const label=document.createElement('span');label.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.appendChild(label);
       const remove=document.createElement('button');remove.type='button';remove.className='lead-event-x';remove.textContent='×';
       remove.title='Remove this solo event';remove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
-      remove.addEventListener('click',()=>{leadDraft.splice(index,1);renderLead();flash('Removed solo event');});
+      remove.addEventListener('click',()=>{
+        leadDraft.splice(index,1);
+        if(leadDraftEditIndex===index){leadDraftEditIndex=null;leadSelection.fill(null);}
+        else if(Number.isInteger(leadDraftEditIndex)&&leadDraftEditIndex>index)leadDraftEditIndex--;
+        render();renderLead();flash('Removed solo event');
+      });
+      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x'))selectLeadDraftEvent(index);});
       event.appendChild(remove);attachLeadDraftDrag(event,index);
       out.appendChild(event);
     });
@@ -1795,6 +1804,15 @@ function renderLead(){
   displayToggle.setAttribute('aria-label','Solo marker display: '+(leadDisplay==='tab'?'Tab':'Notes'));
   displayToggle.title='Switch solo markers between Notes and Tab';
 }
+function selectLeadDraftEvent(index){
+  const event=leadDraft[index];if(!event)return;
+  leadSelection.fill(null);
+  (event.notes||[]).forEach(note=>{leadSelection[note.s]=note.f;});
+  leadSelectionSectionId=activeSection()?.id??null;
+  leadDraftEditIndex=index;
+  render();renderLead();
+  flash('Editing solo event '+(index+1)+' — change notes, then choose an action to update it');
+}
 function toggleLeadNote(s,f){
   const sectionId=activeSection()?.id??null;
   if(leadSelectionSectionId!==sectionId){leadSelection.fill(null);leadSelectionSectionId=sectionId;}
@@ -1804,12 +1822,21 @@ function toggleLeadNote(s,f){
 function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
-  // Do not write to the song until the musician confirms with Create solo.
-  leadDraft.push({notes,t});
-  _popLeadDraftIndex=leadDraft.length-1;
+  const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
+  if(editing){
+    leadDraft[leadDraftEditIndex]={notes,t};
+    _popLeadDraftIndex=leadDraftEditIndex;
+  }else{
+    // Do not write to the song until the musician confirms with Create solo.
+    leadDraft.push({notes,t});
+    _popLeadDraftIndex=leadDraft.length-1;
+  }
+  const saved=leadDraft[_popLeadDraftIndex];
+  const message=editing?'Updated solo event':'Added '+leadEventLabel(saved)+' to the draft';
+  leadDraftEditIndex=null;
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
   render();renderLead();
-  flash('Added '+leadEventLabel(leadDraft[leadDraft.length-1])+' to the draft');
+  flash(message);
 }
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
@@ -1825,18 +1852,18 @@ document.getElementById('btnLeadCreate').addEventListener('click',()=>{
     sec.lead.push(...copyLeadEvents(leadDraft));
   }
   const wasEditing=!!existing;
-  leadDraft=[];leadDraftSourceSectionId=null;activeSectionId=sec.id;
+  leadDraft=[];leadDraftSourceSectionId=null;leadDraftEditIndex=null;activeSectionId=sec.id;
   renderSong();save();render();
   flash((wasEditing?'Updated':'Solo added to')+' '+sec.name);
 });
 document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;render();renderLead();
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;render();renderLead();
 });
 document.getElementById('boardLeadDisplay').addEventListener('click',()=>{
   leadDisplay=leadDisplay==='notes'?'tab':'notes';render();renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
-  if(!leadDraft.length)return;leadDraft=[];renderLead();flash('Cleared solo draft');
+  if(!leadDraft.length)return;leadDraft=[];leadDraftEditIndex=null;leadSelection.fill(null);render();renderLead();flash('Cleared solo draft');
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){
@@ -2364,7 +2391,7 @@ function buildSectionCard(sec,idx,primary){
     const label=document.createElement('span');label.textContent='🎸 Solo · '+sec.lead.length+' event'+(sec.lead.length===1?'':'s');summary.appendChild(label);
     const edit=document.createElement('button');edit.type='button';edit.className='lead-edit';edit.textContent='Edit solo';
     edit.title='Edit this solo';edit.addEventListener('click',e=>{
-      e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
+      e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;leadDraftEditIndex=null;activeSectionId=sec.id;
       setBoardMode('solo');renderSong();renderLead();
       document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
       flash('Editing solo in '+sec.name);
@@ -2775,6 +2802,7 @@ function commitDrop(){
   if(drag.type==='lead-draft'&&drag.dropIdx>=0){
     const [moved]=leadDraft.splice(drag.sourceIdx,1);
     leadDraft.splice(drag.dropIdx,0,moved);
+    leadDraftEditIndex=null;
     renderLead();
   } else if(drag.type==='lead-saved'&&drag.dropIdx>=0){
     const sec=findSection(drag.sourceSection);if(!sec)return;

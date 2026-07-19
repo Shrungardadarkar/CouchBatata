@@ -76,6 +76,8 @@ assert.match(html, /duplicateLeadPhrase/);
 assert.match(html, /sectionTransferPanel/);
 assert.match(html, /Move \+ merge/);
 assert.match(html, /cloneLeadEventsForNewSection\(source\.lead\)/);
+assert.match(html, /function makePicker\(/);
+assert.doesNotMatch(html, /<select\b|createElement\('select'\)/);
 assert.match(html, /Repeat this solo unit/);
 assert.match(html, /select the source, press the technique, choose its destination, then press Save/);
 assert.match(html, /@keyframes leadPop/);

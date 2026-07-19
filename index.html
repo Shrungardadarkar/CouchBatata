@@ -357,7 +357,7 @@
   .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
   .lead-event-copy{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:5px;background:var(--cream);color:var(--ink);font:inherit;font-size:.72rem;font-weight:900;line-height:1;cursor:pointer}
   .lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}
-  .lead-event .rep-sel{font-size:.68rem;padding-top:2px;padding-bottom:2px;flex:0 0 auto}
+  .lead-event .repeat-picker{font-size:.68rem;flex:0 0 auto}
   .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1;white-space:nowrap}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
@@ -369,7 +369,7 @@
   .sect-lead .lead-sequence{margin:7px 0 0;min-height:0}
   .section-transfer{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-3px 0 11px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--ink-soft);border-radius:9px;color:var(--ink-dim);font-size:.76rem;font-weight:800}
   .section-transfer-label{font-family:"Courier New",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
-  .section-transfer select{min-width:116px;max-width:190px;background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:7px;padding:5px 7px;font:inherit;font-weight:800}
+  .section-transfer .picker{min-width:116px;max-width:190px}
   .section-transfer button{font:inherit;font-size:.74rem;font-weight:900;border:2px solid var(--ink);border-radius:7px;padding:5px 8px;color:var(--ink);background:var(--paper);box-shadow:1px 1px 0 var(--ink);cursor:pointer}
   .section-transfer button:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
   .section-transfer .transfer-move{background:var(--mint)}
@@ -434,14 +434,26 @@
   .btn.danger{background:var(--tomato);color:var(--cream);font-weight:900}
   .btn.danger:hover{background:var(--tomato-dk)}
 
-  #sectionSelect{-webkit-appearance:none;appearance:none;background-color:var(--cream);color:var(--ink);
-    border:2.5px solid var(--ink);border-radius:9px;padding:8px 32px 8px 12px;font-size:.85rem;
-    font-family:inherit;font-weight:800;cursor:pointer;box-shadow:2px 2px 0 var(--ink);
-    background-repeat:no-repeat;background-position:right 10px center;background-size:12px 8px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-  #sectionSelect:hover{background-color:var(--sun)}
-  #sectionSelect:focus-visible{outline:none;box-shadow:2px 2px 0 var(--ink),0 0 0 3px var(--sun)}
-  #sectionSelect option{font-family:"Helvetica Neue",Arial,sans-serif;font-weight:700;color:var(--ink);background:var(--paper)}
+  /* Every picker is custom because native popups are drawn by the OS. */
+  .picker{position:relative;display:inline-block;z-index:2;font-family:inherit}
+  .picker.open{z-index:45}
+  .picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-width:0;background:var(--cream);color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:5px 8px;font:inherit;font-size:.76rem;font-weight:900;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .picker-trigger::after{content:'▾';font-size:.75rem;line-height:1;transition:transform .16s var(--ease-spring)}
+  .picker.open .picker-trigger{background:var(--sun);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}
+  .picker.open .picker-trigger::after{transform:rotate(180deg)}
+  .picker-trigger:focus-visible{outline:none;box-shadow:1.5px 1.5px 0 var(--ink),0 0 0 3px var(--mint)}
+  .picker-menu{position:absolute;top:calc(100% + 7px);left:0;z-index:50;min-width:max(100%,150px);max-width:min(280px,calc(100vw - 36px));max-height:min(340px,55vh);overflow-y:auto;padding:6px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
+  .picker-menu[hidden]{display:none}
+  .picker-option{display:flex;width:100%;border:0;border-radius:6px;background:transparent;color:var(--ink);padding:7px 9px;text-align:left;cursor:pointer;font:800 .8rem/1.2 "Helvetica Neue",Arial,sans-serif}
+  .picker-option:hover,.picker-option:focus{outline:none;background:var(--sun)}
+  .picker-option[aria-selected="true"]{background:var(--ink);color:var(--cream)}
+  .picker-option[aria-selected="true"]::before{content:'✓';display:inline-block;width:19px;font-weight:900}
+  .picker-option:not([aria-selected="true"])::before{content:'';display:inline-block;width:19px}
+  .add-section-picker{min-width:132px}
+  .add-section-picker .picker-trigger{border:2.5px solid var(--ink);border-radius:9px;padding:8px 11px;font-size:.85rem;box-shadow:2px 2px 0 var(--ink)}
+  .repeat-picker{min-width:0}
+  .repeat-picker .picker-trigger{min-width:44px;border-radius:6px;padding:3px 6px;font-size:.72rem;box-shadow:none}
+  .repeat-picker .picker-menu{min-width:72px;max-height:240px}
 
   /* song = stack of section cards */
   #song{display:flex;flex-direction:column;gap:14px}
@@ -455,7 +467,7 @@
   .song-sect.menu-open{position:relative;z-index:30}
 
   .sect-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-  /* Fully custom section-name menu. Native <select> popups are drawn by the OS,
+  /* Fully custom section-name menu. Native picker popups are drawn by the OS,
      so their open state cannot reliably inherit this visual system. */
   .sect-name-wrap{position:relative;z-index:2}
   .sect-name-wrap.open{z-index:40}
@@ -526,16 +538,9 @@
   .chip-name{display:inline-flex;align-items:baseline;gap:6px;background:none;border:0;cursor:pointer;
     color:var(--ink);font-size:.92rem;font-weight:800;padding:5px 4px 5px 8px;border-radius:999px;font-family:inherit}
   .chip.active .chip-name{color:var(--cream)}
-  .rep-sel{-webkit-appearance:none;appearance:none;background-color:var(--cream);color:var(--ink-dim);
-    border:2px solid var(--ink);border-radius:6px;font-size:.72rem;font-family:inherit;
-    padding:3px 17px 3px 6px;cursor:pointer;font-weight:800;
-    background-repeat:no-repeat;background-position:right 5px center;background-size:8px 6px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-  .rep-sel:focus-visible{outline:none;box-shadow:0 0 0 2px var(--sun)}
-  .rep-sel option{font-family:"Helvetica Neue",Arial,sans-serif;font-weight:700;color:var(--ink);background:var(--paper)}
-  .rep-sel.on{color:var(--ink);background-color:var(--sun)}
-  /* On the active tomato chip, rep-sel keeps a cream fill so its plum chevron stays visible */
-  .chip.active .rep-sel{background-color:var(--cream);color:var(--ink)}
+  .repeat-picker.on .picker-trigger{color:var(--ink);background-color:var(--sun)}
+  /* On the active tomato chip, the repeat picker keeps a cream fill for contrast. */
+  .chip.active .repeat-picker .picker-trigger{background-color:var(--cream);color:var(--ink)}
   .chip-x{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:1.1rem;font-weight:900;
     width:24px;height:24px;border-radius:50%;line-height:1;
     transition:color .12s,transform .2s var(--ease-spring)}
@@ -858,18 +863,8 @@
   <div id="song"></div>
 
   <div class="add-sect-row">
-    <label class="add-sect-label" for="sectionSelect">New section</label>
-    <select id="sectionSelect" aria-label="Section type to add">
-      <option value="Intro">Intro</option>
-      <option value="Verse">Verse</option>
-      <option value="Pre-Chorus">Pre-Chorus</option>
-      <option value="Chorus">Chorus</option>
-      <option value="Bridge">Bridge</option>
-      <option value="Solo">Solo</option>
-      <option value="Instrumental">Instrumental</option>
-      <option value="Outro">Outro</option>
-      <option value="__custom">Custom…</option>
-    </select>
+    <span class="add-sect-label">New section</span>
+    <div id="sectionPicker"></div>
     <button class="btn" id="btnAddSection" title="Add a new section (Intro, Verse, Chorus…)">+ Add section</button>
     <button class="btn ghost" id="btnClearSong" title="Delete every section and every chord — starts a completely fresh song">Clear song</button>
   </div>
@@ -1827,15 +1822,12 @@ function cleanBrokenLeadLinks(events){
   });
 }
 function leadRepeatSelect(event,onChange){
-  const select=document.createElement('select');select.className='rep-sel'+((event.rep||1)>1?' on':'');
-  select.title='Repeat this solo unit';select.setAttribute('aria-label','Repeat this solo event');
-  for(let count=1;count<=8;count++){
-    const option=document.createElement('option');option.value=count;option.textContent='×'+count;
-    if(count===(event.rep||1))option.selected=true;select.appendChild(option);
-  }
-  select.addEventListener('click',e=>e.stopPropagation());
-  select.addEventListener('change',e=>{e.stopPropagation();event.rep=+select.value;onChange();});
-  return select;
+  const picker=makePicker({
+    value:event.rep||1,options:Array.from({length:8},(_,index)=>({value:index+1,label:'×'+(index+1)})),
+    label:'Repeat this solo event',className:'repeat-picker'+((event.rep||1)>1?' on':''),
+    onChange:value=>{event.rep=+value;onChange();}
+  });
+  picker.element.title='Repeat this solo unit';return picker.element;
 }
 function soloCreationTarget(){
   const sec=activeSection();
@@ -2677,7 +2669,7 @@ function buildSectionCard(sec,idx,primary){
       eventRemove.title='Remove this solo event';eventRemove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
       eventRemove.addEventListener('click',e=>{e.stopPropagation();sec.lead.splice(eventIdx,1);cleanBrokenLeadLinks(sec.lead);renderSong();save();flash('Removed solo event');});
       event.addEventListener('click',e=>{
-        if(e.target.closest('.lead-event-x, .lead-event-copy, select'))return;
+        if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftEvent(eventIdx);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -2739,17 +2731,12 @@ function buildChip(sec,cIdx,c,primary){
 }
 
 function repSelect(c){
-  const rep=c.rep||1;
-  const sel=document.createElement('select');sel.className='rep-sel'+(rep>1?' on':'');
-  sel.title='How many times this chord repeats';
-  sel.setAttribute('aria-label','Repeat count');
-  for(let n=1;n<=8;n++){
-    const o=document.createElement('option');o.value=n;o.textContent='×'+n;
-    if(n===rep)o.selected=true;sel.appendChild(o);
-  }
-  sel.addEventListener('click',e=>e.stopPropagation());
-  sel.addEventListener('change',e=>{e.stopPropagation();c.rep=+sel.value;renderSong();});
-  return sel;
+  const picker=makePicker({
+    value:c.rep||1,options:Array.from({length:8},(_,index)=>({value:index+1,label:'×'+(index+1)})),
+    label:'Repeat count',className:'repeat-picker'+((c.rep||1)>1?' on':''),
+    onChange:value=>{c.rep=+value;renderSong();}
+  });
+  picker.element.title='How many times this chord repeats';return picker.element;
 }
 
 function closeSectNameMenu(wrap,restoreFocus){
@@ -2770,6 +2757,61 @@ function closeAllSectNameMenus(except){
 document.addEventListener('click',e=>{
   document.querySelectorAll('.sect-name-wrap.open').forEach(w=>{
     if(!w.contains(e.target))closeSectNameMenu(w,false);
+  });
+});
+
+let _pickerId=1;
+function makePicker({value,options,label,className='',onChange}){
+  let selected=String(value);
+  const wrap=document.createElement('div');wrap.className='picker '+className.trim();
+  const trigger=document.createElement('button');trigger.type='button';trigger.className='picker-trigger';
+  trigger.setAttribute('aria-haspopup','listbox');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label',label);
+  const menu=document.createElement('div');menu.className='picker-menu';menu.hidden=true;menu.setAttribute('role','listbox');menu.setAttribute('aria-label',label);
+  const menuId='picker-menu-'+_pickerId++;menu.id=menuId;trigger.setAttribute('aria-controls',menuId);
+  const selectedOption=()=>options.find(option=>String(option.value)===selected)||options[0];
+  const refresh=()=>{
+    const option=selectedOption();trigger.textContent=option?.label||'';
+    menu.querySelectorAll('.picker-option').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.value===selected)));
+  };
+  const close=(restoreFocus=false)=>{
+    menu.hidden=true;wrap.classList.remove('open');trigger.setAttribute('aria-expanded','false');
+    if(restoreFocus)trigger.focus();
+  };
+  const buttons=()=>[...menu.querySelectorAll('.picker-option')];
+  const open=focusMode=>{
+    document.querySelectorAll('.picker.open').forEach(picker=>{if(picker!==wrap){picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');}});
+    menu.hidden=false;wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
+    requestAnimationFrame(()=>{
+      const items=buttons();const current=Math.max(0,items.findIndex(button=>button.dataset.value===selected));
+      const next=focusMode==='last'?items.length-1:focusMode==='first'?0:current;items[next]?.focus();
+    });
+  };
+  const choose=next=>{
+    if(!options.some(option=>String(option.value)===String(next)))return;
+    selected=String(next);refresh();close(false);onChange?.(next);trigger.focus();
+  };
+  options.forEach(option=>{
+    const button=document.createElement('button');button.type='button';button.className='picker-option';button.dataset.value=String(option.value);button.textContent=option.label;
+    button.setAttribute('role','option');button.addEventListener('click',event=>{event.stopPropagation();choose(option.value);});menu.appendChild(button);
+  });
+  trigger.addEventListener('click',event=>{event.stopPropagation();wrap.classList.contains('open')?close(true):open('selected');});
+  trigger.addEventListener('keydown',event=>{
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();open(event.key==='ArrowDown'?'first':'last');}
+  });
+  menu.addEventListener('keydown',event=>{
+    const items=buttons();const index=items.indexOf(document.activeElement);
+    if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();items[(index+(event.key==='ArrowDown'?1:-1)+items.length)%items.length]?.focus();}
+    else if(event.key==='Home'||event.key==='End'){event.preventDefault();items[event.key==='Home'?0:items.length-1]?.focus();}
+    else if(event.key==='Escape'){event.preventDefault();close(true);}
+    else if(event.key==='Tab')close(false);
+  });
+  wrap.addEventListener('click',event=>event.stopPropagation());
+  wrap.append(trigger,menu);refresh();
+  return {element:wrap,getValue:()=>selected,setValue:next=>{selected=String(next);refresh();}};
+}
+document.addEventListener('click',()=>{
+  document.querySelectorAll('.picker.open').forEach(picker=>{
+    picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');
   });
 });
 
@@ -2880,7 +2922,7 @@ function leadSafeInsertIndex(events,index){
 
 function attachChipDrag(chip,sec,cIdx){
   chip.addEventListener('pointerdown',e=>{
-    if(e.target.closest('select, .chip-x'))return;
+    if(e.target.closest('.repeat-picker, .chip-x'))return;
     if(e.pointerType==='mouse' && e.button!==0)return;
     const rect=chip.getBoundingClientRect();
     drag={
@@ -2900,7 +2942,7 @@ function attachChipDrag(chip,sec,cIdx){
 
 function attachLeadDraftDrag(eventEl,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x, .lead-event-copy, select'))return;
+    if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     const blockIdxs=leadDragBlock(leadDraft,eventIdx);
@@ -2914,7 +2956,7 @@ function attachLeadDraftDrag(eventEl,eventIdx){
 
 function attachSavedLeadDrag(eventEl,sec,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x, .lead-event-copy, select'))return;
+    if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     const blockIdxs=leadDragBlock(sec.lead,eventIdx);
@@ -2928,7 +2970,7 @@ function attachSavedLeadDrag(eventEl,sec,eventIdx){
 
 function attachSectionDrag(bar,card,secIdx){
   bar.addEventListener('pointerdown',e=>{
-    if(e.target.closest('select, .chip-x, .active-badge, .sect-name-wrap, .sect-transfer'))return;
+    if(e.target.closest('.picker, .chip-x, .active-badge, .sect-name-wrap, .sect-transfer'))return;
     if(e.pointerType==='mouse' && e.button!==0)return;
     const rect=card.getBoundingClientRect();
     drag={
@@ -3307,14 +3349,15 @@ function sectionTransferPanel(source){
   const panel=document.createElement('div');panel.className='section-transfer';
   panel.addEventListener('click',event=>event.stopPropagation());
   const label=document.createElement('span');label.className='section-transfer-label';label.textContent='Contents →';panel.appendChild(label);
-  const targetSelect=document.createElement('select');targetSelect.setAttribute('aria-label','Choose section to receive '+source.name+' contents');
-  sections.filter(section=>section.id!==source.id).forEach(section=>{
-    const option=document.createElement('option');option.value=section.id;option.textContent=section.name;targetSelect.appendChild(option);
+  const targetPicker=makePicker({
+    value:sections.find(section=>section.id!==source.id)?.id,
+    options:sections.filter(section=>section.id!==source.id).map(section=>({value:section.id,label:section.name})),
+    label:'Choose section to receive '+source.name+' contents',className:'transfer-picker'
   });
-  panel.appendChild(targetSelect);
+  panel.appendChild(targetPicker.element);
   const note=document.createElement('span');note.textContent='appends chords, Solo phrases & lyrics';panel.appendChild(note);
   const run=async mode=>{
-    const target=findSection(+targetSelect.value);if(!target)return;
+    const target=findSection(+targetPicker.getValue());if(!target)return;
     if(mode==='move'){
       const ok=await confirmModal('Move all content from "'+source.name+'" into "'+target.name+'"? The source section will be removed.',{confirmText:'Move and merge',cancelText:'Keep source'});
       if(!ok)return;
@@ -3352,9 +3395,15 @@ function toggleChip(sec,cIdx){
 function moodFor(suf){const f=FORMULAS.find(x=>x.suf===suf);return f?f.mood:''}
 
 /* ---------- add section button ---------- */
+let newSectionType='Intro';
+const sectionPicker=makePicker({
+  value:newSectionType,
+  options:[...SECTION_PRESETS,'__custom'].map(value=>({value,label:value==='__custom'?'Custom…':value})),
+  label:'Section type to add',className:'add-section-picker',onChange:value=>{newSectionType=value;}
+});
+document.getElementById('sectionPicker').appendChild(sectionPicker.element);
 document.getElementById('btnAddSection').addEventListener('click',()=>{
-  const sel=document.getElementById('sectionSelect');
-  let name=sel.value;
+  let name=newSectionType;
   if(name==='__custom'){
     name=(prompt('Section name:','Verse 2')||'').trim();
     if(!name)return;

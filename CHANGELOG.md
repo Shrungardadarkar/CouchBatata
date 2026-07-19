@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — One visual system for every picker
+
+- Replaced every native dropdown with an accessible in-app picker: New section,
+  section-transfer target, chord repeats, and Solo repeats.
+- Open menus now match the app’s styled section-name menu on phone, tablet, and
+  desktop rather than switching to an operating-system popup.
+- Bumped the offline cache so installed copies receive the visual update.
+
 ## 2026-07-19 — Copy, merge, and duplicate musical content
 
 - Added an explicit section **Copy / Move contents** workflow. It appends

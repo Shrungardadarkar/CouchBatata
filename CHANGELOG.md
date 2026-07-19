@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — In-place Solo technique edits
+
+- Turning an existing clean event into a Slide, Hammer-on, or Pull-off now
+  keeps it at its current place and adds only the destination beside it.
+- Selecting either half of a connected phrase edits its destination in place;
+  the interface now identifies the dashed source and selected destination.
+
 ## 2026-07-19 — Linked phrase editing and reordering
 
 - Dragging any event in a connected Slide, Hammer-on, or Pull-off now moves

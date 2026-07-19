@@ -1870,7 +1870,7 @@ function renderLead(){
   clearSelectionButton.disabled=leadTechniquePending?false:!hasLeadSelection;
   clearSelectionButton.textContent=leadTechniquePending?'Cancel '+LEAD_CONNECTION_LABEL[leadTechniquePending.action]:'Clear selection';
   document.getElementById('leadTechLabel').textContent=leadTechniquePending
-    ?LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' from selected notes — choose a destination, then save'
+    ?(leadTechniquePending.editTargetId?'Editing ':'')+LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' — dashed source, selected destination; save when ready'
     :'Apply to selected notes';
   document.querySelectorAll('.lead-tech').forEach(button=>{
     const action=button.dataset.tech;
@@ -1893,7 +1893,11 @@ function renderLead(){
   displayToggle.title='Switch solo markers between Notes and Tab';
 }
 function selectLeadDraftEvent(index){
-  const event=leadDraft[index];if(!event)return;
+  let event=leadDraft[index];if(!event)return;
+  // Clicking the source half of an existing connection edits its destination;
+  // both cards are one phrase, rather than two unrelated editable events.
+  const dependent=leadDraft[index+1];
+  if(!hasLeadLink(event)&&dependent&&hasLeadLink(dependent)&&dependent.from===event.id)event=dependent;
   leadSelection.fill(null);
   (event.notes||[]).forEach(note=>{leadSelection[note.s]=note.f;});
   leadSelectionSectionId=activeSection()?.id??null;
@@ -1945,7 +1949,8 @@ function saveLeadEvent(t){
 function beginLeadConnection(action){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Choose the source notes first');return;}
-  leadTechniquePending={action,notes};
+  const sourceEvent=Number.isInteger(leadDraftEditIndex)?leadDraft[leadDraftEditIndex]:null;
+  leadTechniquePending={action,notes,sourceEventId:sourceEvent?.id||null};
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
   leadDraftEditIndex=null;soloChordReference=null;
   render();renderLead();
@@ -1981,6 +1986,14 @@ function commitLeadConnection(){
     if(!source){flash('The source event is missing');return;}
     leadDraft[existingTargetIndex]={id:existing.id,notes:destination,t:technique,from:source.id,links,rep:existing.rep||1};
     _popLeadDraftIndex=existingTargetIndex;
+  }else if(Number.isInteger(pending.sourceEventId)){
+    const sourceIndex=leadDraft.findIndex(event=>event.id===pending.sourceEventId);
+    const existingSource=leadDraft[sourceIndex];
+    if(!existingSource){flash('The source event is missing');return;}
+    const source={id:existingSource.id,notes:pending.notes,t:'',from:null,links:null,rep:existingSource.rep||1};
+    const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
+    leadDraft[sourceIndex]=source;
+    leadDraft.splice(sourceIndex+1,0,target);_popLeadDraftIndex=sourceIndex+1;
   }else{
     const source={id:_nextLeadId++,notes:pending.notes,t:'',from:null,links:null,rep:1};
     const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};

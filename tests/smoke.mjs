@@ -32,6 +32,8 @@ assert.match(html, /id="btnCopy"[^>]*>Preview<\/button>/);
 assert.match(html, /btnBoardMode/);
 assert.match(html, /class="fret-controls"/);
 assert.match(html, /id="boardLeadDisplay"/);
+assert.match(html, /aria-label="Chord shape navigator"/);
+assert.match(html, /chord\.frets=selection\.map\(f=>f==='x'\?-1:f\)/);
 assert.match(html, /id="boardTechDrawer"/);
 assert.match(html, /id="chordSuggestDrawer"/);
 assert.match(html, /Suggestions · core ← → colourful/);

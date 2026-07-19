@@ -323,10 +323,11 @@
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
 
-  .shape-nav{display:flex;align-items:center;gap:6px;position:absolute;left:104px;top:-18px;margin:0;z-index:2}
+  .shape-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px}
   .shape-nav[hidden]{display:none}
-  .shape-nav .btn{display:grid;place-items:center;width:32px;height:32px;padding:0;border-radius:50%;font-size:.78rem}
-  .shape-label{display:none}
+  .shape-nav .btn{display:grid;place-items:center;width:42px;height:38px;padding:0;border-radius:9px;font-size:.82rem}
+  .shape-label{display:inline-flex;align-items:center;min-height:38px;padding:6px 11px;background:var(--cream);
+    border:2px solid var(--ink);border-radius:9px;color:var(--ink-dim);font-size:.78rem;font-weight:850;box-shadow:var(--shadow-sm)}
 
   /* solo / arpeggio recorder */
   .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
@@ -817,10 +818,10 @@
     <button class="btn" id="btnShapes" disabled title="Browse alternate voicings for this chord — same notes, different fret shapes">Show other shapes</button>
     <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
   </div>
-  <div class="shape-nav" id="shapeNav" hidden>
-    <button class="btn" id="btnPrevShape" title="Previous voicing">◀</button>
-    <span class="shape-label" id="shapeLabel"></span>
-    <button class="btn" id="btnNextShape" title="Next voicing">▶</button>
+  <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
+    <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>
+    <span class="shape-label" id="shapeLabel" aria-live="polite"></span>
+    <button class="btn" id="btnNextShape" title="Next chord shape" aria-label="Next chord shape">▶</button>
   </div>
 </div>
 
@@ -2278,15 +2279,28 @@ function loadShape(){
   }
   selection=newSel;
   const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
+  const savedIn=activeChip&&findSection(activeChip.sectionId)?' · saved to '+findSection(activeChip.sectionId).name:'';
   document.getElementById('shapeLabel').textContent=
-    'Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName;
+    'Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName+savedIn;
   const keep=current;
   analyze();
+  render();
   if(current&&keep){
     const same=[current,...currentAlts].find(c=>c.root===keep.root&&c.suf===keep.suf);
     if(same&&same!==current){
       currentAlts=[current,...currentAlts.filter(x=>x!==same)];
-      current=same;showChord();render();updateAddBtn();
+      current=same;showChord();updateAddBtn();
+    }
+    // When the source is an existing Song chord, changing shape is an edit to
+    // that chord—not merely a temporary board preview. The chord name and its
+    // position in the song stay put; only its saved six-string voicing changes.
+    if(same&&activeChip){
+      const sec=findSection(activeChip.sectionId);
+      const chord=sec?.chords[activeChip.chordIdx];
+      if(chord){
+        chord.frets=selection.map(f=>f==='x'?-1:f);
+        renderSong();save();
+      }
     }
   }
 }

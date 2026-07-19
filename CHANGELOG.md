@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 — Saved chord-shape editing
+
+- Restored the prominent Shape 1 of N navigator below the chord actions.
+- Changing a shape for a selected Song chord now writes that voicing back to
+  the existing chord in place, without moving it in the progression.
+
 ## 2026-07-19 — Intentional chord reference in Solo mode
 
 - A deliberately selected chord now remains visibly selected when switching to

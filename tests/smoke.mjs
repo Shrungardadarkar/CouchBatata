@@ -94,7 +94,8 @@ assert.match(html, /blues:\s+\{name:'Minor blues',\s+intervals:\[0,3,5,6,7,10\],
 assert.match(html, /majBlues:\{name:'Major blues',\s+intervals:\[0,2,3,4,7,9\],\s+degrees:\['1','2','♭3','3','5','6'\]/);
 assert.match(html, /lydian:\s+\{name:'Lydian',\s+intervals:\[0,2,4,6,7,9,11\],\s+degrees:\['1','2','3','♯4','5','6','7'\]/);
 assert.match(html, /function scaleNoteName\(root,scaleKey,index\)/);
-assert.match(html, /label==='blue'&&Math\.abs\(spelling\.delta\)>1/);
+assert.match(html, /return scale\?pcName\(root\+scale\.intervals\[index\]\):pcName\(root\)/);
+assert.match(html, /analyze\(\);render\(\);renderSong\(\);save\(\);/);
 assert.doesNotMatch(html, /Swipe the strip to see more/);
 
 const expectedScaleLibrary = [

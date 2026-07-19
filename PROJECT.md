@@ -70,9 +70,9 @@ useFlats              note spelling preference
 - Dominant I/IV/V blues progressions are presented as a dominant-blues tonal
   context, not as one universal Mixolydian scale.
 - Scale coverage claims are based on actual chord pitch classes.
-- The app calls the `1–♭3–4–blue–5–♭7` collection **Minor blues**. Scale-note
-  labels use their musical degrees (for example, A minor blues shows E♭ as the
-  blue note), rather than blindly following the global sharp/flat preference.
+- The app calls the `1–♭3–4–blue–5–♭7` collection **Minor blues**. The global
+  sharp/flat toggle consistently respells every displayed pitch; the blue note
+  is labelled simply **blue** to avoid implying one enharmonic spelling.
 - Position overlays display scale-degree roles across frets 0–12.
 
 ## Export formats

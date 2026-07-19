@@ -898,7 +898,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and your selected chord stays visible as a quiet reference on the fretboard. Select one or more solo notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Hammer-ons, pull-offs and slides connect the previous event to the new note on the same string; their small ← badge shows that source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Select one or more notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Hammer-ons, pull-offs and slides connect the previous event to the new note on the same string; their small ← badge shows that source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -2193,6 +2193,13 @@ function setBoardMode(mode){
     // harmonic reference until it is committed or explicitly cleared.
     soloChordReference=current&&(chordBoardTouched||activeChip)
       ?selection.map(f=>Number.isInteger(f)?f:null):null;
+    // This is more than a visual guide: when a chord is deliberately chosen,
+    // its notes become the active Solo selection so a musician can immediately
+    // save a chord hit or use it as the first part of an arpeggio.
+    if(soloChordReference&&!Number.isInteger(leadDraftEditIndex)){
+      leadSelection=soloChordReference.slice();
+      leadSelectionSectionId=activeSection()?.id??null;
+    }
   }
   boardMode=mode;
   document.body.classList.toggle('solo-mode',mode==='solo');
@@ -2316,6 +2323,7 @@ document.getElementById('btnAdd').addEventListener('click',()=>{
   _popChip={sectionId:sec.id, chordIdx:sec.chords.length-1};  // animate this chip in
   activeChip=null;
   resetChordSelection(); exitShapes(); analyze();
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;
   render();
   renderSong();
   flash('Added '+label+' to '+sec.name);

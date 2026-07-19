@@ -3,7 +3,8 @@
 ## 2026-07-19 — Intentional chord reference in Solo mode
 
 - A deliberately selected chord now remains visibly selected when switching to
-  Solo / arpeggio mode, as a harmonic reference for building the phrase.
+  Solo / arpeggio mode and becomes the active Solo selection, ready to record
+  as a chord hit or reshape into an arpeggio.
 - Adding that chord to a Song section clears the temporary reference and the
   fretboard resets cleanly, without showing default open-string markers.
 

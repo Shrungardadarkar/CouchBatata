@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — Chord reference and shape navigation
+
+- Kept the selected chord visible as a quiet reference while recording Solo /
+  arpeggio notes, without changing the chord itself.
+- Moved always-available shape arrows beside the Chord tab and retained a full
+  E-shape barre-family voicing when alternate shapes are generated.
+
 ## 2026-07-19 — Music-theory correctness pass
 
 - Ranked chord suggestions by core diatonic harmony first, then richer in-scale

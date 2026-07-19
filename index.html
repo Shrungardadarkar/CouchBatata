@@ -211,9 +211,11 @@
     font-size:.72rem;font-weight:800;pointer-events:none;z-index:3;letter-spacing:.01em}
   /* played note — tomato sticker with black outline */
   .dot-note.sel{background:var(--tomato);color:var(--cream);
-    border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)}
+    border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink);z-index:4}
   .dot-note.sel.root{background:var(--tomato);border:3px solid var(--ink);
     box-shadow:0 0 0 2px var(--cream),2px 2px 0 var(--ink)}
+  .dot-note.chord-hold{width:27px;height:27px;background:rgba(246,241,230,.82);color:var(--ink);
+    border:2.5px dashed var(--ink);box-shadow:none;z-index:3;opacity:.8}
   .dot-note.scale{width:25px;height:25px;background:var(--cream);border:2.5px solid;
     font-size:.6rem;opacity:1;z-index:2;transition:opacity .2s ease;
     box-shadow:1.5px 1.5px 0 rgba(26,24,21,.5)}
@@ -321,10 +323,10 @@
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
 
-  .shape-nav{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .shape-nav{display:flex;align-items:center;gap:6px;position:absolute;left:104px;top:-18px;margin:0;z-index:2}
   .shape-nav[hidden]{display:none}
-  .shape-nav .btn{padding:8px 15px}
-  .shape-label{color:var(--ink-dim);font-size:.85rem;font-weight:700}
+  .shape-nav .btn{display:grid;place-items:center;width:32px;height:32px;padding:0;border-radius:50%;font-size:.78rem}
+  .shape-label{display:none}
 
   /* solo / arpeggio recorder */
   .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
@@ -890,11 +892,11 @@
   </ol>
   <details open>
     <summary>Fretboard &amp; chords</summary>
-    <p>Every string starts open. Tap a fret to move that string’s note, or tap its open note on the nut to mute it. Check alternate shapes, then use <b>Add to…</b> to place the chord in the active song section.</p>
+    <p>Every string starts open. Tap a fret to move that string’s note, or tap its open note on the nut to mute it. When a chord is recognised, use the small ◀ ▶ arrows beside the Chord tab to browse shapes—including barre-family grips—then use <b>Add to…</b> to place it in the active song section.</p>
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes, select one or more notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Use Notes / Tab to change the display. Drag events to reorder them.</p>
+    <p>Switch modes and your selected chord stays visible as a quiet reference on the fretboard. Select one or more solo notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Use Notes / Tab to change the display. Drag events to reorder them.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1041,6 +1043,20 @@ function findVoicings(rootPc,ivs){
   for(const v of out){
     if(picked.length>=5)break;
     if(!picked.includes(v))picked.push(v);
+  }
+  // Preserve at least one likely barre-family grip when available. The earlier
+  // one-shape-per-position rule could keep an open-friendly partial voicing
+  // and silently discard a useful full G/F/E-style barre in the same area.
+  const isBarreFamily=v=>{
+    const counts=new Map();let played=0;
+    v.frets.forEach(f=>{if(f>0){played++;counts.set(f,(counts.get(f)||0)+1);}});
+    return played>=5&&[...counts.values()].some(n=>n>=3);
+  };
+  const fullEBarre=out.find(v=>v.frets[0]>0&&v.frets[0]===v.frets[1]&&v.frets[1]===v.frets[5]&&v.frets[3]===v.frets[4]);
+  const barre=fullEBarre||out.find(v=>v.frets.every(f=>f>0)&&isBarreFamily(v))||out.find(isBarreFamily);
+  if(barre&&!picked.includes(barre)){
+    if(picked.length>=5)picked[picked.length-1]=barre;
+    else picked.push(barre);
   }
   picked.sort((a,b)=>a.minF-b.minF);
   return picked;
@@ -1904,6 +1920,15 @@ function render(){
     }
   }
   if(soloMode){
+    // Keep the last chord visible as a quiet harmonic reference while the
+    // musician records lead notes. Solo taps use leadSelection, so this never
+    // changes or locks the chord underneath.
+    selection.forEach((f,s)=>{
+      if(!Number.isInteger(f))return;
+      const d=document.createElement('div');d.className='dot-note chord-hold';
+      d.textContent=pcName((OPEN[s]+f)%12);
+      cells[s][f].appendChild(d);
+    });
     leadSelection.forEach((f,s)=>{
       if(!Number.isInteger(f))return;
       const d=document.createElement('div');d.className='dot-note sel';
@@ -1938,7 +1963,7 @@ function analyze(){
   }
   const out=document.getElementById('chordOut');
   const btnShapes=document.getElementById('btnShapes');
-  current=null;currentAlts=[];
+  current=null;currentAlts=[];syncShapeNavigator();
   if(midis.length===0){
     out.innerHTML='<p class="placeholder">Nothing selected yet — click a string at any fret (the light strip on the left is the open string).</p>';
     btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
@@ -1990,6 +2015,12 @@ function showChord(){
     currentAlts=[current,...currentAlts.filter(x=>x!==a)];
     current=a;showChord();render();updateAddBtn();
   }));
+  syncShapeNavigator();
+}
+function syncShapeNavigator(){
+  const nav=document.getElementById('shapeNav');
+  nav.hidden=!current;
+  if(current&&!inShapeMode)document.getElementById('shapeLabel').textContent='Browse shapes';
 }
 function fullQuality(suf){
   const m={'':'major','m':'minor','7':'dominant 7','maj7':'major 7','m7':'minor 7',
@@ -2100,7 +2131,7 @@ function enterShapesFor(chordObj,playedFrets){
   }
   current=chordObj;currentAlts=[];
   inShapeMode=true;shapeIdx=0;
-  document.getElementById('shapeNav').hidden=false;
+  syncShapeNavigator();
   loadShape();
 }
 document.getElementById('btnShapes').addEventListener('click',()=>{
@@ -2136,18 +2167,26 @@ function loadShape(){
   }
 }
 document.getElementById('btnPrevShape').addEventListener('click',()=>{
-  if(!inShapeMode||!Array.isArray(shapes)||shapes.length===0){exitShapes();return;}
+  if(!current)return;
+  if(!inShapeMode||!Array.isArray(shapes)||shapes.length===0){
+    enterShapesFor(current,selection.slice());
+    shapeIdx=Math.max(0,shapes.length-1);loadShape();return;
+  }
   shapeIdx=(shapeIdx-1+shapes.length)%shapes.length;loadShape();
 });
 document.getElementById('btnNextShape').addEventListener('click',()=>{
-  if(!inShapeMode||!Array.isArray(shapes)||shapes.length===0){exitShapes();return;}
+  if(!current)return;
+  if(!inShapeMode||!Array.isArray(shapes)||shapes.length===0){
+    enterShapesFor(current,selection.slice());
+    if(shapes.length>1){shapeIdx=1;loadShape();}return;
+  }
   shapeIdx=(shapeIdx+1)%shapes.length;loadShape();
 });
 function exitShapes(){
   if(!inShapeMode)return;
   inShapeMode=false;
   shapes=[];shapeIdx=0;  // clear state so a stale click can't reach into old data
-  document.getElementById('shapeNav').hidden=true;
+  syncShapeNavigator();
 }
 
 /* ---------- add chord to progression ---------- */

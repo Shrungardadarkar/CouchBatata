@@ -39,7 +39,7 @@ selection[6]          selected fret per string; null or "x" are also valid
 current               identified chord on the fretboard
 currentAlts[]         alternate chord interpretations
 sections[]            ordered song sections, chords, lead events, and lyrics
-lead event            {notes:[{s,f}], t}: one or more simultaneous notes and an optional tab technique
+lead event            {id, notes:[{s,f}], t, from?, links?, rep}: one or more simultaneous notes, an optional tab technique, and an optional repeat count
 activeSectionId       section receiving newly added chords
 activeChip            selected song chord
 scaleActive           selected scale overlay
@@ -51,7 +51,7 @@ useFlats              note spelling preference
 
 - Browser key: `fretwork.song.v1`
 - Format version: `1`
-- Local data: sections, lyrics, chord shapes, grouped lead events, repeats, active section,
+- Local data: sections, lyrics, chord shapes, grouped lead events (including technique links and repeats), active section,
   spelling, scale state, panel state, and next section ID.
 - Editable backups use the same normalized JSON model.
 - Imported chords are rebuilt from known formulas instead of trusting arbitrary

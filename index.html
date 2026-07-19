@@ -347,6 +347,8 @@
   @keyframes leadPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
   .lead-event-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
   .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
+  .lead-event .rep-sel{font-size:.68rem;padding-top:2px;padding-bottom:2px;flex:0 0 auto}
+  .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
   .lead-summary-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
@@ -896,7 +898,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and your selected chord stays visible as a quiet reference on the fretboard. Select one or more solo notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Use Notes / Tab to change the display. Drag events to reorder them.</p>
+    <p>Switch modes and your selected chord stays visible as a quiet reference on the fretboard. Select one or more solo notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Hammer-ons, pull-offs and slides connect the previous event to the new note on the same string; their small ← badge shows that source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1556,10 +1558,11 @@ let currentAlts=[];
 let shapes=[],shapeIdx=0,inShapeMode=false;
 
 // Sections model — the whole song lives here
-let sections=[];         // [{id, name, chords, lead:[{notes:[{s,f}],t}], lyrics}]
+let sections=[];         // [{id, name, chords, lead:[{id,notes:[{s,f}],t,from?,links?,rep}], lyrics}]
 let activeSectionId=null;
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
+let _nextLeadId=1;
 let leadSelection=new Array(6).fill(null); // one selected fret per string before saving
 let leadSelectionSectionId=null;
 let leadDisplay='notes';
@@ -1570,6 +1573,7 @@ let _popLeadDraftIndex=null;
 let boardMode='chord';
 const LEAD_TECHNIQUES=new Set(['','b','r','p','h','/','\\','~','x']);
 const LEAD_TECH_LABEL={b:'bend',r:'release',p:'pull-off',h:'hammer-on','/':'slide up','\\':'slide down','~':'vibrato',x:'mute'};
+const LEAD_LINK_TECHNIQUES=new Set(['p','h','/','\\']);
 
 let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
@@ -1598,8 +1602,9 @@ function projectSnapshot(){
     sections:sections.map(s=>({
       id:s.id, name:s.name, lyrics:s.lyrics||'',
       lead:(s.lead||[]).map(event=>({
+        id:event.id,
         notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
-        t:event.t||''
+        t:event.t||'',from:event.from,links:event.links,rep:event.rep||1
       })),
       chords:s.chords.map(c=>({
         root:c.root, suf:c.suf, pcs:[...c.pcs], frets:[...c.frets], rep:c.rep||1
@@ -1610,7 +1615,7 @@ function projectSnapshot(){
     scaleActive:scaleActive?{root:scaleActive.root,scale:scaleActive.scale}:null,
     scaleBoxIdx,
     scalePanelExpanded,
-    nextId:_nextId
+    nextId:_nextId,nextLeadId:_nextLeadId
   };
 }
 function save(immediate){
@@ -1668,7 +1673,13 @@ function restoreProject(d){
       });
       if(!notes.length)return [];
       const t=typeof event.t==='string'&&LEAD_TECHNIQUES.has(event.t)?event.t:'';
-      return [{notes,t}];
+      const id=Number.isInteger(event.id)&&event.id>0?event.id:_nextLeadId++;
+      _nextLeadId=Math.max(_nextLeadId,id+1);
+      const rep=Number.isInteger(event.rep)&&event.rep>0&&event.rep<=8?event.rep:1;
+      const from=Number.isInteger(event.from)&&event.from>0?event.from:null;
+      const links=Array.isArray(event.links)
+        ?event.links.filter(s=>Number.isInteger(s)&&s>=0&&s<=5):null;
+      return [{id,notes,t,from,links,rep}];
     });
     return {
       id,
@@ -1687,6 +1698,7 @@ function restoreProject(d){
   scaleBoxIdx=Number.isInteger(d.scaleBoxIdx)&&d.scaleBoxIdx>=0?d.scaleBoxIdx:null;
   scalePanelExpanded=!!d.scalePanelExpanded;
   _nextId=Math.max(maxId+1,Number.isInteger(d.nextId)?d.nextId:1);
+  _nextLeadId=Math.max(_nextLeadId,Number.isInteger(d.nextLeadId)&&d.nextLeadId>0?d.nextLeadId:1);
   return true;
 }
 function load(){
@@ -1730,15 +1742,57 @@ for(let s=0;s<6;s++){
 }
 
 /* ---------- solo / arpeggio recorder ---------- */
-function leadEventLabel(event){
+function leadEventLabel(event,events=leadDraft){
   const notes=(event.notes||[]).map(note=>leadDisplay==='notes'
     ?STR_LABEL[note.s]+' '+pcName((OPEN[note.s]+note.f)%12)
     :STR_LABEL[note.s]+' '+(note.f===0?'open':note.f));
   const technique=event.t?(' · '+LEAD_TECH_LABEL[event.t]):' · clean';
-  return notes.join(' + ')+technique;
+  const repeats=(event.rep||1)>1?' ×'+event.rep:'';
+  return notes.join(' + ')+technique+repeats;
+}
+function hasLeadLink(event){
+  return LEAD_LINK_TECHNIQUES.has(event?.t)&&Number.isInteger(event.from)&&Array.isArray(event.links)&&event.links.length>0;
+}
+function leadSourceNumber(event,events=leadDraft){
+  const sourceIndex=(events||[]).findIndex(candidate=>candidate.id===event.from);
+  return sourceIndex>=0?sourceIndex+1:'?';
 }
 function copyLeadEvents(events){
-  return (events||[]).map(event=>({notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),t:event.t||''}));
+  return (events||[]).map(event=>({
+    id:event.id||_nextLeadId++,notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
+    t:event.t||'',from:event.from||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
+  }));
+}
+function cloneLeadEventsForNewSection(events){
+  const ids=new Map();
+  (events||[]).forEach(event=>ids.set(event.id,_nextLeadId++));
+  return (events||[]).map(event=>({
+    id:ids.get(event.id)||_nextLeadId++,notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
+    t:event.t||'',from:ids.get(event.from)||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
+  }));
+}
+function cleanBrokenLeadLinks(events){
+  (events||[]).forEach((event,index)=>{
+    if(!hasLeadLink(event))return;
+    const previous=events[index-1];
+    const sourceNotes=new Set((previous?.notes||[]).map(note=>note.s));
+    const destinationNotes=new Set((event.notes||[]).map(note=>note.s));
+    const validLinks=event.links.filter(string=>sourceNotes.has(string)&&destinationNotes.has(string));
+    if(!previous||event.from!==previous.id||!validLinks.length){
+      event.t='';delete event.from;delete event.links;
+    }else event.links=validLinks;
+  });
+}
+function leadRepeatSelect(event,onChange){
+  const select=document.createElement('select');select.className='rep-sel'+((event.rep||1)>1?' on':'');
+  select.title='Repeat this solo unit';select.setAttribute('aria-label','Repeat this solo event');
+  for(let count=1;count<=8;count++){
+    const option=document.createElement('option');option.value=count;option.textContent='×'+count;
+    if(count===(event.rep||1))option.selected=true;select.appendChild(option);
+  }
+  select.addEventListener('click',e=>e.stopPropagation());
+  select.addEventListener('change',e=>{e.stopPropagation();event.rep=+select.value;onChange();});
+  return select;
 }
 function soloCreationTarget(){
   const sec=activeSection();
@@ -1774,10 +1828,17 @@ function renderLead(){
       event.title='Click to edit this event on the fretboard · drag to reorder';
       event.setAttribute('aria-label','Solo event '+(index+1)+': '+leadEventLabel(leadEvent));
       const label=document.createElement('span');label.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.appendChild(label);
+      if(hasLeadLink(leadEvent)){
+        const sourceNumber=leadSourceNumber(leadEvent);
+        const link=document.createElement('span');link.className='lead-link';link.textContent='←'+sourceNumber;
+        link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
+      }
+      event.appendChild(leadRepeatSelect(leadEvent,()=>{renderLead();}));
       const remove=document.createElement('button');remove.type='button';remove.className='lead-event-x';remove.textContent='×';
       remove.title='Remove this solo event';remove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
       remove.addEventListener('click',()=>{
         leadDraft.splice(index,1);
+        cleanBrokenLeadLinks(leadDraft);
         if(leadDraftEditIndex===index){leadDraftEditIndex=null;leadSelection.fill(null);}
         else if(Number.isInteger(leadDraftEditIndex)&&leadDraftEditIndex>index)leadDraftEditIndex--;
         render();renderLead();flash('Removed solo event');
@@ -1797,7 +1858,12 @@ function renderLead(){
   document.getElementById('btnLeadClear').disabled=!events.length;
   const hasLeadSelection=leadSelection.some(Number.isInteger);
   document.getElementById('btnLeadClearSelection').disabled=!hasLeadSelection;
-  document.querySelectorAll('.lead-tech').forEach(button=>button.disabled=!hasLeadSelection);
+  const previousEvent=Number.isInteger(leadDraftEditIndex)?leadDraft[leadDraftEditIndex-1]:leadDraft[leadDraft.length-1];
+  document.querySelectorAll('.lead-tech').forEach(button=>{
+    const needsSource=LEAD_LINK_TECHNIQUES.has(button.dataset.tech);
+    button.disabled=!hasLeadSelection||(needsSource&&!previousEvent);
+    button.title=needsSource&&!previousEvent?'Add a previous solo event before using this technique':'';
+  });
   const displayToggle=document.getElementById('boardLeadDisplay');
   displayToggle.classList.toggle('tab',leadDisplay==='tab');
   displayToggle.setAttribute('aria-checked',String(leadDisplay==='tab'));
@@ -1823,12 +1889,23 @@ function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
+  const editIndex=Number.isInteger(leadDraftEditIndex)?leadDraftEditIndex:null;
+  const sourceIndex=editIndex===null?leadDraft.length-1:editIndex-1;
+  const source=leadDraft[sourceIndex]||null;
+  let from=null,links=null;
+  if(LEAD_LINK_TECHNIQUES.has(t)){
+    if(!source){flash('Add a previous solo event before using '+LEAD_TECH_LABEL[t]);return;}
+    const sourceStrings=new Set((source.notes||[]).map(note=>note.s));
+    links=notes.map(note=>note.s).filter(string=>sourceStrings.has(string));
+    if(!links.length){flash(LEAD_TECH_LABEL[t]+' needs a note on the same string in the previous event');return;}
+    from=source.id;
+  }
   if(editing){
-    leadDraft[leadDraftEditIndex]={notes,t};
+    leadDraft[leadDraftEditIndex]={id:editing.id,notes,t,from,links,rep:editing.rep||1};
     _popLeadDraftIndex=leadDraftEditIndex;
   }else{
     // Do not write to the song until the musician confirms with Create solo.
-    leadDraft.push({notes,t});
+    leadDraft.push({id:_nextLeadId++,notes,t,from,links,rep:1});
     _popLeadDraftIndex=leadDraft.length-1;
   }
   const saved=leadDraft[_popLeadDraftIndex];
@@ -2405,10 +2482,16 @@ function buildSectionCard(sec,idx,primary){
     const events=document.createElement('div');events.className='lead-sequence';events.setAttribute('aria-label','Solo events — drag to reorder');
     sec.lead.forEach((leadEvent,eventIdx)=>{
       const event=document.createElement('div');event.className='lead-event';event.title='Drag to reorder this solo event';
-      const eventLabel=document.createElement('span');eventLabel.textContent=(eventIdx+1)+'. '+leadEventLabel(leadEvent);event.appendChild(eventLabel);
+      const eventLabel=document.createElement('span');eventLabel.textContent=(eventIdx+1)+'. '+leadEventLabel(leadEvent,sec.lead);event.appendChild(eventLabel);
+      if(hasLeadLink(leadEvent)){
+        const sourceNumber=leadSourceNumber(leadEvent,sec.lead);
+        const link=document.createElement('span');link.className='lead-link';link.textContent='←'+sourceNumber;
+        link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
+      }
+      event.appendChild(leadRepeatSelect(leadEvent,()=>{renderSong();save();}));
       const eventRemove=document.createElement('button');eventRemove.type='button';eventRemove.className='lead-event-x';eventRemove.textContent='×';
       eventRemove.title='Remove this solo event';eventRemove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
-      eventRemove.addEventListener('click',e=>{e.stopPropagation();sec.lead.splice(eventIdx,1);renderSong();save();flash('Removed solo event');});
+      eventRemove.addEventListener('click',e=>{e.stopPropagation();sec.lead.splice(eventIdx,1);cleanBrokenLeadLinks(sec.lead);renderSong();save();flash('Removed solo event');});
       event.appendChild(eventRemove);attachSavedLeadDrag(event,sec,eventIdx);events.appendChild(event);
     });
     leadWrap.appendChild(events);card.appendChild(leadWrap);
@@ -2611,7 +2694,7 @@ function attachChipDrag(chip,sec,cIdx){
 
 function attachLeadDraftDrag(eventEl,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x'))return;
+    if(e.target.closest('.lead-event-x, select'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     drag={
@@ -2624,7 +2707,7 @@ function attachLeadDraftDrag(eventEl,eventIdx){
 
 function attachSavedLeadDrag(eventEl,sec,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x'))return;
+    if(e.target.closest('.lead-event-x, select'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     drag={
@@ -2829,12 +2912,14 @@ function commitDrop(){
   if(drag.type==='lead-draft'&&drag.dropIdx>=0){
     const [moved]=leadDraft.splice(drag.sourceIdx,1);
     leadDraft.splice(drag.dropIdx,0,moved);
+    cleanBrokenLeadLinks(leadDraft);
     leadDraftEditIndex=null;
     renderLead();
   } else if(drag.type==='lead-saved'&&drag.dropIdx>=0){
     const sec=findSection(drag.sourceSection);if(!sec)return;
     const [moved]=sec.lead.splice(drag.sourceIdx,1);
     sec.lead.splice(drag.dropIdx,0,moved);
+    cleanBrokenLeadLinks(sec.lead);
     renderSong();save();
   } else if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
     const fromSec=findSection(drag.sourceSection);
@@ -2950,10 +3035,7 @@ function secDupBtn(sec,idx){
         rep:c.rep||1
       })),
       lyrics:sec.lyrics||'',
-      lead:(sec.lead||[]).map(event=>({
-        notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
-        t:event.t||''
-      }))
+      lead:cloneLeadEventsForNewSection(sec.lead)
     };
     sections.splice(idx+1,0,newSec);
     activeSectionId=newSec.id;
@@ -3028,15 +3110,28 @@ function buildExportText(){
     }
     if((g.lead||[]).length){
       L.push('Solo / arpeggio:');
-      const widths=g.lead.map(event=>{
+      const expanded=[];
+      (g.lead||[]).forEach(event=>{
+        for(let repeat=0;repeat<(event.rep||1);repeat++)expanded.push({event,repeat});
+      });
+      const techniqueFor=(event,string,repeat)=>{
+        if(!event.t)return '';
+        // New linked techniques only belong on strings shared with their
+        // immediate source. Legacy events without link metadata retain their
+        // original export behaviour.
+        if(hasLeadLink(event))return repeat===0&&event.links.includes(string)?event.t:'';
+        return event.t;
+      };
+      const widths=expanded.map(({event,repeat})=>{
         const longest=(event.notes||[]).reduce((max,n)=>Math.max(max,String(n.f).length),1);
-        return Math.max(3,longest+(event.t||'').length+2);
+        const longestTechnique=(event.notes||[]).reduce((max,n)=>Math.max(max,techniqueFor(event,n.s,repeat).length),0);
+        return Math.max(3,longest+longestTechnique+2);
       });
       for(let s=0;s<6;s++){
         let line=STR_LABEL[s]+'|';
-        g.lead.forEach((event,index)=>{
+        expanded.forEach(({event,repeat},index)=>{
           const note=(event.notes||[]).find(n=>n.s===s);
-          const token=note?String(note.f)+(event.t||''):'';
+          const token=note?String(note.f)+techniqueFor(event,s,repeat):'';
           line+=token.padEnd(widths[index],'-');
         });
         L.push(line);

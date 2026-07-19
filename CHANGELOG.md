@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-19 — Connected solo techniques and repeats
+
+- Hammer-ons, pull-offs, and slides now connect the immediately previous Solo
+  event to the new note on the same string, with a visible source-event badge.
+- These techniques stay unavailable until a valid preceding event exists; a
+  reordered or deleted source safely clears a broken connection.
+- Added visible ×1–×8 repeat controls for each Solo event and expanded repeats
+  into the exported tab.
+
 ## 2026-07-19 — Editable solo events
 
 - Clicking a saved draft event now loads its notes onto the Solo fretboard.

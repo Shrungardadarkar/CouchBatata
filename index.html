@@ -214,8 +214,8 @@
     border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink);z-index:4}
   .dot-note.sel.root{background:var(--tomato);border:3px solid var(--ink);
     box-shadow:0 0 0 2px var(--cream),2px 2px 0 var(--ink)}
-  .dot-note.chord-hold{width:27px;height:27px;background:rgba(246,241,230,.82);color:var(--ink);
-    border:2.5px dashed var(--ink);box-shadow:none;z-index:3;opacity:.8}
+  .dot-note.chord-reference{width:28px;height:28px;background:var(--tomato);color:var(--cream);
+    border:2.5px solid var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);z-index:3;opacity:.72}
   .dot-note.scale{width:25px;height:25px;background:var(--cream);border:2.5px solid;
     font-size:.6rem;opacity:1;z-index:2;transition:opacity .2s ease;
     box-shadow:1.5px 1.5px 0 rgba(26,24,21,.5)}
@@ -1563,6 +1563,10 @@ let activeSectionId=null;
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
 let _nextLeadId=1;
+// A deliberately chosen chord can stay visible while recording a solo. It is
+// separate from the chord editor's open-string default, so a committed chord
+// never leaves six accidental open-string markers behind in Solo mode.
+let soloChordReference=null;
 let leadSelection=new Array(6).fill(null); // one selected fret per string before saving
 let leadSelectionSectionId=null;
 let leadDisplay='notes';
@@ -1590,7 +1594,7 @@ const SECTION_PRESETS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Solo','In
 const findSection = id => sections.find(s=>s.id===id) || null;
 const activeSection = () => findSection(activeSectionId);
 const allChords = () => sections.flatMap(s=>s.chords);
-function resetChordSelection(){selection=new Array(6).fill(0);chordBoardTouched=false;}
+function resetChordSelection(){selection=new Array(6).fill(0);chordBoardTouched=false;soloChordReference=null;}
 
 /* ---------- persistence (localStorage) ---------- */
 const _SAVE_KEY='fretwork.song.v1';
@@ -2024,12 +2028,11 @@ function render(){
     }
   }
   if(soloMode){
-    // Keep the last chord visible as a quiet harmonic reference while the
-    // musician records lead notes. Solo taps use leadSelection, so this never
-    // changes or locks the chord underneath.
-    selection.forEach((f,s)=>{
+    // Keep only a deliberately selected chord visible while recording lead
+    // notes. Solo taps use leadSelection, so this never changes the chord.
+    (soloChordReference||[]).forEach((f,s)=>{
       if(!Number.isInteger(f))return;
-      const d=document.createElement('div');d.className='dot-note chord-hold';
+      const d=document.createElement('div');d.className='dot-note chord-reference';
       d.textContent=pcName((OPEN[s]+f)%12);
       cells[s][f].appendChild(d);
     });
@@ -2184,6 +2187,13 @@ document.getElementById('btnClear').addEventListener('click',()=>{
 
 function setBoardMode(mode){
   if(mode!== 'chord'&&mode!== 'solo')return;
+  if(mode==='solo'){
+    // The default open tuning is a starting canvas, not a selected chord. A
+    // user-played, suggested, shaped, or song-chip chord becomes the active
+    // harmonic reference until it is committed or explicitly cleared.
+    soloChordReference=current&&(chordBoardTouched||activeChip)
+      ?selection.map(f=>Number.isInteger(f)?f:null):null;
+  }
   boardMode=mode;
   document.body.classList.toggle('solo-mode',mode==='solo');
   document.getElementById('boardTechDrawer').setAttribute('aria-hidden',String(mode!=='solo'));
@@ -2306,6 +2316,7 @@ document.getElementById('btnAdd').addEventListener('click',()=>{
   _popChip={sectionId:sec.id, chordIdx:sec.chords.length-1};  // animate this chip in
   activeChip=null;
   resetChordSelection(); exitShapes(); analyze();
+  render();
   renderSong();
   flash('Added '+label+' to '+sec.name);
 });

@@ -940,7 +940,7 @@
   </details>
   <details>
     <summary>Chord suggestions</summary>
-    <p>In Chord mode, the strip below the fretboard offers core diatonic chords first, then richer in-scale colours. Swipe the strip to see more. Choosing a full scale such as Harmonic minor changes the chord pool; pentatonic and blues scales re-centre the order without pretending to define every harmony.</p>
+    <p>In Chord mode, the strip below the fretboard offers core diatonic chords first, then richer in-scale colours. Use its ◀ / ▶ controls, arrow keys, or a swipe to move through full groups of suggestions. Choosing a full scale such as Harmonic minor changes the chord pool; pentatonic and blues scales re-centre the order without pretending to define every harmony.</p>
   </details>
   <details>
     <summary>Offline, sharing &amp; privacy</summary>
@@ -1109,20 +1109,42 @@ function diatonicTriadsFor(tonic,intervals,labels=DEG_RN){
 }
 /* ============ scale library for soloing ============ */
 const SCALES={
-  major:   {name:'Major',            intervals:[0,2,4,5,7,9,11], desc:'Bright, resolved. Contains every diatonic chord tone in the key.'},
-  minor:   {name:'Natural minor',    intervals:[0,2,3,5,7,8,10], desc:'The dark side of the same 7 notes — melancholy, contemplative.'},
-  melMin:  {name:'Melodic minor',    intervals:[0,2,3,5,7,9,11], desc:'Minor with raised 6 and 7 — jazz staple. Sophisticated, restless.'},
-  harmMin: {name:'Harmonic minor',   intervals:[0,2,3,5,7,8,11], desc:'Dramatic ♯7 leap over a minor sound — flamenco, cinematic tension.'},
-  majPent: {name:'Major pentatonic', intervals:[0,2,4,7,9],       desc:'5-note subset with no half-steps — sweet, no wrong notes over I / IV / V.'},
-  minPent: {name:'Minor pentatonic', intervals:[0,3,5,7,10],      desc:"The guitarist's bread and butter. Bluesy, forgiving, works almost everywhere."},
-  blues:   {name:'Blues',            intervals:[0,3,5,6,7,10],    desc:'Minor pent + the ♭5 "blue note". Grit and swagger.'},
-  majBlues:{name:'Major blues',      intervals:[0,2,3,4,7,9],     desc:'Major pentatonic with a ♭3 passing tone — country, gospel, honky-tonk.'},
-  dorian:  {name:'Dorian',           intervals:[0,2,3,5,7,9,10],  desc:'Minor with a bright ♮6 — jazzy, funky, hopeful minor. Santana territory.'},
-  mixo:    {name:'Mixolydian',       intervals:[0,2,4,5,7,9,10],  desc:'Major with a ♭7 — dominant-7 flavour. Rock and blues staple.'},
-  lydian:  {name:'Lydian',           intervals:[0,2,4,6,7,9,11],  desc:'Major with a ♯4 — dreamy, spacey, floating. Film-score bright.'},
-  phrygian:{name:'Phrygian',         intervals:[0,1,3,5,7,8,10],  desc:'Minor with a ♭2 — Spanish, dark tension, exotic minor.'},
-  locrian: {name:'Locrian',          intervals:[0,1,3,5,6,8,10],  desc:'The theoretical seventh mode — starts on the ♭5. Rare in songs, useful over m7♭5.'},
+  major:   {name:'Major',            intervals:[0,2,4,5,7,9,11], degrees:['1','2','3','4','5','6','7'],             desc:'Bright, resolved. Contains every diatonic chord tone in the key.'},
+  minor:   {name:'Natural minor',    intervals:[0,2,3,5,7,8,10], degrees:['1','2','♭3','4','5','♭6','♭7'],         desc:'The dark side of the same 7 notes — melancholy, contemplative.'},
+  melMin:  {name:'Melodic minor',    intervals:[0,2,3,5,7,9,11], degrees:['1','2','♭3','4','5','6','7'],            desc:'Minor with raised 6 and 7 — jazz staple. Sophisticated, restless.'},
+  harmMin: {name:'Harmonic minor',   intervals:[0,2,3,5,7,8,11], degrees:['1','2','♭3','4','5','♭6','7'],           desc:'Dramatic ♯7 leap over a minor sound — flamenco, cinematic tension.'},
+  majPent: {name:'Major pentatonic', intervals:[0,2,4,7,9],       degrees:['1','2','3','5','6'],                     desc:'Five-note major subset — melodic and open; still target chord tones as harmony changes.'},
+  minPent: {name:'Minor pentatonic', intervals:[0,3,5,7,10],      degrees:['1','♭3','4','5','♭7'],                   desc:"A flexible guitar-shaped sound. Target chord tones as the harmony changes."},
+  blues:   {name:'Minor blues',      intervals:[0,3,5,6,7,10],    degrees:['1','♭3','4','blue','5','♭7'],             desc:'Minor pentatonic plus the blue note between 4 and 5. Grit and swagger.'},
+  majBlues:{name:'Major blues',      intervals:[0,2,3,4,7,9],     degrees:['1','2','♭3','3','5','6'],                 desc:'Major pentatonic with a ♭3 passing tone — country, gospel, honky-tonk.'},
+  dorian:  {name:'Dorian',           intervals:[0,2,3,5,7,9,10],  degrees:['1','2','♭3','4','5','6','♭7'],            desc:'Minor with a bright ♮6 — jazzy, funky, hopeful minor. Santana territory.'},
+  mixo:    {name:'Mixolydian',       intervals:[0,2,4,5,7,9,10],  degrees:['1','2','3','4','5','6','♭7'],             desc:'Major with a ♭7 — dominant-7 flavour. Rock and blues staple.'},
+  lydian:  {name:'Lydian',           intervals:[0,2,4,6,7,9,11],  degrees:['1','2','3','♯4','5','6','7'],             desc:'Major with a ♯4 — dreamy, spacey, floating. Film-score bright.'},
+  phrygian:{name:'Phrygian',         intervals:[0,1,3,5,7,8,10],  degrees:['1','♭2','♭3','4','5','♭6','♭7'],          desc:'Minor with a ♭2 — Spanish, dark tension, exotic minor.'},
+  locrian: {name:'Locrian',          intervals:[0,1,3,5,6,8,10],  degrees:['1','♭2','♭3','4','♭5','♭6','♭7'],         desc:'The theoretical seventh mode — starts on the ♭5. Rare in songs, useful over m7♭5.'},
 };
+const SCALE_LETTERS=['C','D','E','F','G','A','B'];
+const NATURAL_PCS={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function scaleDegreeLabel(scaleKey,index){return SCALES[scaleKey]?.degrees[index]||'';}
+function scaleNoteName(root,scaleKey,index){
+  const scale=SCALES[scaleKey];
+  if(!scale)return pcName(root);
+  const label=scaleDegreeLabel(scaleKey,index);
+  let degree=Number(label.match(/[1-7]/)?.[0]||1);
+  const rootName=pcName(root),rootLetter=rootName[0];
+  const targetPc=(root+scale.intervals[index])%12;
+  const spellFor=number=>{
+    const letter=SCALE_LETTERS[(SCALE_LETTERS.indexOf(rootLetter)+number-1)%7];
+    let delta=((targetPc-NATURAL_PCS[letter]+18)%12)-6;
+    return {letter,delta};
+  };
+  let spelling=spellFor(degree);
+  // In flat-key blues, calling the blue note a diminished fifth can require a
+  // needless double-flat. Use its equally valid augmented-fourth spelling.
+  if(label==='blue'&&Math.abs(spelling.delta)>1)spelling=spellFor(4);
+  const accidental=spelling.delta<0?'♭'.repeat(-spelling.delta):'♯'.repeat(spelling.delta);
+  return spelling.letter+accidental;
+}
 const HARMONIC_SCALE_KEYS=new Set(['major','minor','melMin','harmMin','dorian','mixo','lydian','phrygian','locrian']);
 const MINOR_ROMAN=['i','ii°','III','iv','V','VI','vii°'];
 function keyIntervals(info){
@@ -2225,20 +2247,21 @@ function render(){
   if(scaleActive){
     const S=SCALES[scaleActive.scale];
     // Map each scale pitch class back to its interval from the root
-    const pcToInterval=new Map();
-    S.intervals.forEach(iv=>{
-      pcToInterval.set((scaleActive.root+iv)%12,iv);
+    const pcToScaleIndex=new Map();
+    S.intervals.forEach((iv,index)=>{
+      pcToScaleIndex.set((scaleActive.root+iv)%12,index);
     });
     for(let s=0;s<6;s++){
       if(!soloMode&&selection[s]==='x')continue;
       for(let f=0;f<=12;f++){
         const pc=(OPEN[s]+f)%12;
-        if(pcToInterval.has(pc)&&(soloMode||selection[s]!==f)){
-          const iv=pcToInterval.get(pc);
+        if(pcToScaleIndex.has(pc)&&(soloMode||selection[s]!==f)){
+          const scaleIndex=pcToScaleIndex.get(pc);
+          const iv=S.intervals[scaleIndex];
           const outOfBox=!!activeBox&&!activeBox.perString[s].has(f);
           const d=document.createElement('div');
           d.className='dot-note scale '+scaleDegreeClass(iv)+(outOfBox?' out-of-box':'');
-          d.textContent=soloMode&&leadDisplay==='tab'?String(f):pcName(pc);
+          d.textContent=soloMode&&leadDisplay==='tab'?String(f):scaleNoteName(scaleActive.root,scaleActive.scale,scaleIndex);
           cells[s][f].appendChild(d);
         }
       }
@@ -3821,12 +3844,10 @@ function renderScaleSuggest(primary){
   if(scaleActive){
     const S=SCALES[scaleActive.scale];
     // Build a color-coded notes list — each note tagged with its scale degree
-    const degLabel={0:'1',1:'♭2',2:'2',3:'♭3',4:'3',5:'4',6:'♭5',7:'5',8:'♯5',9:'6',10:'♭7',11:'7'};
-    const notesColored=S.intervals.map(iv=>{
+    const notesColored=S.intervals.map((iv,index)=>{
       const cls=scaleDegreeClass(iv);
-      const pc=(scaleActive.root+iv)%12;
-      return '<span class="lg-note lg-'+cls.slice(1)+'">'+pcName(pc)+
-        '<sub>'+(degLabel[iv]||iv)+'</sub></span>';
+      return '<span class="lg-note lg-'+cls.slice(1)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,index)+
+        '<sub>'+scaleDegreeLabel(scaleActive.scale,index)+'</sub></span>';
     }).join(' ');
     // Compute position boxes for this scale
     const boxes=computeScaleBoxes();

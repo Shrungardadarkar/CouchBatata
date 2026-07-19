@@ -63,7 +63,7 @@ assert.doesNotMatch(html, /id="leadBoard"/);
 assert.match(html, /data-tech="p"/);
 assert.match(html, /data-tech="b"/);
 assert.match(html, /id="boardLeadDisplay" type="button" role="switch"/);
-assert.match(html, /soloMode&&leadDisplay==='tab'\?String\(f\):pcName\(pc\)/);
+assert.match(html, /soloMode&&leadDisplay==='tab'\?String\(f\):scaleNoteName\(scaleActive\.root,scaleActive\.scale,scaleIndex\)/);
 assert.match(html, /btnLeadCreate/);
 assert.match(html, /leadDraft/);
 assert.match(html, /leadDraft\.push\(\{id:_nextLeadId\+\+,notes,t,from:null,links:null,rep:1\}\)/);
@@ -90,6 +90,32 @@ assert.match(html, /Repeat this solo unit/);
 assert.match(html, /select the source, press the technique, choose its destination, then press Save/);
 assert.match(html, /@keyframes leadPop/);
 assert.match(html, /lead-pop/);
+assert.match(html, /blues:\s+\{name:'Minor blues',\s+intervals:\[0,3,5,6,7,10\],\s+degrees:\['1','♭3','4','blue','5','♭7'\]/);
+assert.match(html, /majBlues:\{name:'Major blues',\s+intervals:\[0,2,3,4,7,9\],\s+degrees:\['1','2','♭3','3','5','6'\]/);
+assert.match(html, /lydian:\s+\{name:'Lydian',\s+intervals:\[0,2,4,6,7,9,11\],\s+degrees:\['1','2','3','♯4','5','6','7'\]/);
+assert.match(html, /function scaleNoteName\(root,scaleKey,index\)/);
+assert.match(html, /label==='blue'&&Math\.abs\(spelling\.delta\)>1/);
+assert.doesNotMatch(html, /Swipe the strip to see more/);
+
+const expectedScaleLibrary = [
+  ['major','Major','0,2,4,5,7,9,11',"'1','2','3','4','5','6','7'"],
+  ['minor','Natural minor','0,2,3,5,7,8,10',"'1','2','♭3','4','5','♭6','♭7'"],
+  ['melMin','Melodic minor','0,2,3,5,7,9,11',"'1','2','♭3','4','5','6','7'"],
+  ['harmMin','Harmonic minor','0,2,3,5,7,8,11',"'1','2','♭3','4','5','♭6','7'"],
+  ['majPent','Major pentatonic','0,2,4,7,9',"'1','2','3','5','6'"],
+  ['minPent','Minor pentatonic','0,3,5,7,10',"'1','♭3','4','5','♭7'"],
+  ['blues','Minor blues','0,3,5,6,7,10',"'1','♭3','4','blue','5','♭7'"],
+  ['majBlues','Major blues','0,2,3,4,7,9',"'1','2','♭3','3','5','6'"],
+  ['dorian','Dorian','0,2,3,5,7,9,10',"'1','2','♭3','4','5','6','♭7'"],
+  ['mixo','Mixolydian','0,2,4,5,7,9,10',"'1','2','3','4','5','6','♭7'"],
+  ['lydian','Lydian','0,2,4,6,7,9,11',"'1','2','3','♯4','5','6','7'"],
+  ['phrygian','Phrygian','0,1,3,5,7,8,10',"'1','♭2','♭3','4','5','♭6','♭7'"],
+  ['locrian','Locrian','0,1,3,5,6,8,10',"'1','♭2','♭3','4','♭5','♭6','♭7'"]
+];
+for (const [key, name, intervals, degrees] of expectedScaleLibrary) {
+  const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  assert.match(html, new RegExp(`${key}:\\s*\\{name:'${escapedName}',\\s*intervals:\\[${intervals}\\],\\s*degrees:\\[${degrees}\\]`));
+}
 assert.doesNotMatch(html, /btnLeadUndo/);
 assert.match(html, /notes:\[\{s,f\}\]/);
 assert.match(html, /Solo \/ arpeggio:/);

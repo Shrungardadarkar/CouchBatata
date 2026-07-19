@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-19 — Accurate scale names and spellings
+
+- Renamed the ambiguous **Blues** entry to **Minor blues**; its formula is
+  `1–♭3–4–blue–5–♭7`.
+- Added scale-degree-aware notation to the fretboard and scale panel. A minor
+  blues now correctly shows E♭ as its blue note, even when global fretboard
+  spelling is set to sharps.
+- Corrected Lydian’s displayed `♯4` and clarified broad “safe note” wording.
+- Updated Help to describe the paged chord-suggestion controls.
+
 ## 2026-07-19 — Paged suggestion and shape navigation
 
 - Suggestions now advance through full-chip pages. Permanent ◀ / ▶ controls

@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-19 — Music-theory correctness pass
+
+- Ranked chord suggestions by core diatonic harmony first, then richer in-scale
+  variants; the strip now says “core → colourful,” not unsupported rarity claims.
+- Recognised ordinary harmonic- and melodic-minor dominant language instead of
+  labelling it borrowed from the relative major.
+- Made full selected modes define their suggestion pool, while pentatonic and
+  blues selections only re-centre ranking as melodic overlays.
+- Removed the inaccurate minor-IV-to-Dorian recommendation and clarified Help.
+
 ## 2026-07-19 — Chord suggestions
 
 - Added compact, playable chord suggestions below the shared fretboard in Chord mode.

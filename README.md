@@ -51,7 +51,9 @@ Users do not need an app-store download.
 - Song sections, repeats, lyrics, duplication, deletion, and reordering.
 - Key analysis, borrowed-chord guidance, scale suggestions, and position boxes.
 - Compact playable chord suggestions beneath the fretboard; selecting a soloing
-  scale re-centres their priority around that scale's tonal character.
+  scale re-centres their priority around that scale's tonal character. Core
+  diatonic chords appear before richer in-scale variants; a full selected mode
+  such as harmonic minor also changes the harmonic suggestion pool.
 - Plain-text chord and lead-tab preview and export.
 - Editable JSON project backup and restore.
 - Local autosave with close/reload protection.

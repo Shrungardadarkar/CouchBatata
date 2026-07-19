@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Consistent key analysis and leaner offline install
+
+- Corrected chord-suggestion ordering so the detected tonic is ranked first in
+  every key, not only C-based contexts.
+- Exported charts now use the same key-analysis engine as the Key & Scales panel.
+- Removed the social preview image from the offline pre-cache while keeping it
+  available for WhatsApp and LinkedIn sharing.
+
 ## 2026-07-19 — In-place Solo technique edits
 
 - Turning an existing clean event into a Slide, Hammer-on, or Pull-off now

@@ -29,6 +29,8 @@ Users do not need an app-store download.
   screen** from the browser menu.
 - Installation is optional. The app also works as an ordinary website.
 - After the first successful visit, the app shell is cached for offline use.
+- The WhatsApp/LinkedIn share image stays online-only, so it is not downloaded
+  as part of the offline app shell.
 
 ## Features
 
@@ -67,7 +69,8 @@ Users do not need an app-store download.
 - Songs are stored locally under the stable key `fretwork.song.v1`.
 - Clearing browser/site data can erase local songs. Use **Back up project
   (.json)** for important work.
-- The service worker caches the app files, not the user's songs.
+- The service worker caches the app shell, not the user's songs or the social
+  share image.
 
 ## Project structure
 

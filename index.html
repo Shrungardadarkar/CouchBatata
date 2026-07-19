@@ -1083,15 +1083,6 @@ function diatonicTriadsFor(tonic,intervals,labels=DEG_RN){
     return {root:r,suf:formula?formula.suf:'',rn:labels[i]||String(i+1)};
   });
 }
-function findKeys(chordPcsList){
-  const keys=[];
-  for(let t=0;t<12;t++){
-    const ss=scaleSet(t);
-    if(chordPcsList.every(pcs=>pcs.every(pc=>ss.has(pc))))keys.push(t);
-  }
-  return keys;
-}
-
 /* ============ scale library for soloing ============ */
 const SCALES={
   major:   {name:'Major',            intervals:[0,2,4,5,7,9,11], desc:'Bright, resolved. Contains every diatonic chord tone in the key.'},
@@ -1363,8 +1354,10 @@ function suggestionContext(){
   }
   return fallback;
 }
-function suggestionDegreeOrder(intervals,mode,centreRoot){
-  const centre=intervals.indexOf((centreRoot+12)%12);
+function suggestionDegreeOrder(intervals,mode,centreRoot,contextRoot){
+  // `intervals` is relative to the current harmonic context, so convert the
+  // requested centre root to that relative pitch before finding its degree.
+  const centre=intervals.indexOf(((centreRoot-contextRoot)+12)%12);
   const minorCore=[0,4,5,3,2,1,6]; // i, V, VI, iv, III, ii°, vii°
   const base=mode==='minor'?minorCore:MAJOR_DEGREE_ORDER;
   if(centre<0)return base;
@@ -1391,7 +1384,8 @@ function chordSuggestionCandidates(){
   const context=suggestionContext();
   const inScale=new Set(context.intervals.map(iv=>(context.root+iv)%12));
   const order=suggestionDegreeOrder(context.intervals,context.mode,
-    scaleActive&& !HARMONIC_SCALE_KEYS.has(scaleActive.scale)?scaleActive.root:context.root);
+    scaleActive&& !HARMONIC_SCALE_KEYS.has(scaleActive.scale)?scaleActive.root:context.root,
+    context.root);
   const triads=diatonicTriadsFor(context.root,context.intervals,context.mode==='minor'?MINOR_ROMAN:DEG_RN);
   const items=[];
   // Tier 1: core diatonic triads always arrive before any extension or colour.
@@ -3245,11 +3239,17 @@ document.getElementById('btnAddSection').addEventListener('click',()=>{
 /* ---------- export ---------- */
 function buildExportText(){
   const chords=allChords();
-  const keys=chords.length?findKeys(chords.map(p=>p.pcs)):[];
-  const primary=keys.length?pickPrimaryKey(keys):null;
+  // Use the same fuzzy analysis that drives the on-screen Key & Scales panel.
+  // This keeps an exported chart from naming a different key than the app.
+  const keyInfo=chords.length?analyzeKey(chords):null;
   const L=[];
   L.push('COUCH BATATA — CHORD CHART');
-  if(primary!==null)L.push('Key: '+pcName(primary)+' major / '+pcName((primary+9)%12)+' minor');
+  if(keyInfo){
+    const keyLabel=keyInfo.dominantContext
+      ?pcName(keyInfo.tonic)+' dominant blues'
+      :pcName(keyInfo.tonic)+' major / '+pcName((keyInfo.tonic+9)%12)+' minor';
+    L.push('Key: '+keyLabel);
+  }
   L.push('Tuning: EADGBE   ·   frets read low E → high e   ·   x = muted');
   L.push('');
 
@@ -3379,12 +3379,6 @@ function startsLike(diatonicSuf,playedSuf){
   if(diatonicSuf==='m')return ['m','m7','m6','madd9','m9','5'].includes(playedSuf);
   if(diatonicSuf==='dim')return ['dim','m7♭5','dim7'].includes(playedSuf);
   return diatonicSuf===playedSuf;
-}
-function pickPrimaryKey(keys){
-  const cs=allChords();
-  for(const k of keys)if(cs.some(p=>p.root===k&&(p.suf===''||p.suf==='maj7'||p.suf==='add9')))return k;
-  for(const k of keys)if(cs[0]&&cs[0].root===k)return k;
-  return keys[0];
 }
 function renderKey(){
   const panel=document.getElementById('scalePanel'),

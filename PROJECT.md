@@ -84,6 +84,8 @@ Restorable application state for device transfer, backup, and continued editing.
 - The first successful visit installs the app shell in Cache Storage.
 - Navigation requests prefer the network and fall back to cached `index.html`.
 - Static assets use cache-first with a background refresh.
+- `og.png` remains available for WhatsApp/LinkedIn previews but is intentionally
+  excluded from the offline app shell to keep installs smaller.
 - Old named caches are deleted during service-worker activation.
 - Every cached release must increment the service-worker cache name.
 

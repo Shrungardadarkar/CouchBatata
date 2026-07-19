@@ -45,6 +45,9 @@ assert.match(html, /id="chordSuggestDrawer"/);
 assert.match(html, /Suggestions · core ← → colourful/);
 assert.match(html, /A raised 7th leading to V or V7/);
 assert.match(html, /summary>Chord suggestions<\/summary>/);
+assert.match(html, /centreRoot-contextRoot/);
+assert.match(html, /const keyInfo=chords\.length\?analyzeKey\(chords\):null/);
+assert.doesNotMatch(html, /function (?:findKeys|pickPrimaryKey)\(/);
 assert.match(html, /Apply to selected notes/);
 assert.match(html, /class="switch-toggle board-mode"/);
 assert.match(html, /class="switch-toggle lead-view-toggle"/);
@@ -85,6 +88,7 @@ assert.equal(manifest.icons.length, 3);
 assert.ok(manifest.icons.some(icon => icon.purpose === "maskable"));
 assert.match(worker, /couch-batata-v\d+/);
 assert.match(worker, /request\.mode === "navigate"/);
+assert.doesNotMatch(worker, /"\.\/og\.png"/);
 
 const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(match => match[1]);
 assert.equal(scripts.length, 1, "Expected one inline application script");

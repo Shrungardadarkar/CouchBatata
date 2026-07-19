@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-19 — Chord suggestions
+
+- Added compact, playable chord suggestions below the shared fretboard in Chord mode.
+- The same Key & Scales analysis now reacts to a chord being auditioned on the board;
+  that one-chord reading is labelled tentative until it becomes song context.
+- Selecting a scale re-centres suggestion priority around that scale's tonal character.
+
 ## 2026-07-18 — Open-string chord board
 
 - Chord mode now begins with all six strings selected as open notes.

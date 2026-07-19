@@ -188,6 +188,21 @@
   .board-tech-inner{padding:10px 0 2px;min-width:max-content}
   .board-tech-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
   body.solo-mode .board-tech-drawer{max-height:110px;opacity:1;transform:translateY(0);margin-top:2px}
+  .chord-suggest-drawer{max-height:0;overflow:hidden;opacity:0;transform:translateY(-12px);margin:0;transition:max-height .34s var(--ease-out-back),opacity .18s ease,transform .3s var(--ease-out-back),margin .3s var(--ease-out-back)}
+  .chord-suggest-drawer.open{max-height:92px;opacity:1;transform:translateY(0);margin-top:2px}
+  .chord-suggest-inner{padding:10px 0 2px;min-width:0}
+  .chord-suggest-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+  .chord-suggest-row{display:flex;align-items:center;gap:7px;min-width:0;overflow:hidden;padding:1px 3px 6px}
+  .chord-suggestion{flex:0 0 auto;min-height:32px;padding:5px 9px;border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.76rem;font-weight:900;line-height:1;cursor:pointer;white-space:nowrap;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .chord-suggestion:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  .chord-suggestion:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .chord-suggestion:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .chord-suggestion.neutral{background:var(--cream);color:var(--ink)}
+  .chord-suggestion.rank-0{background:var(--mint);color:var(--ink)}
+  .chord-suggestion.rank-1{background:#b8d99a;color:var(--ink)}
+  .chord-suggestion.rank-2{background:var(--gold);color:var(--ink)}
+  .chord-suggestion.rank-3{background:#e5a66d;color:var(--ink)}
+  .chord-suggestion.rank-4{background:var(--lilac);color:var(--cream)}
   .inlay{position:absolute;width:15px;height:15px;border-radius:50%;
     background:var(--cream);opacity:.5;transform:translate(-50%,-50%);pointer-events:none;
     box-shadow:inset 0 -1px 2px rgba(90,47,62,.2)}
@@ -661,6 +676,7 @@
     .board-outer{min-width:720px}
     .board{grid-template-rows:repeat(6,42px)}
     body.solo-mode .board-tech-drawer{max-height:158px}
+    .chord-suggest-drawer.open{max-height:92px}
     .board-tech-inner{min-width:0;padding-top:9px}
     .board-tech-drawer .lead-techniques{flex-wrap:nowrap;overflow-x:auto;padding:1px 3px 6px;margin:0 -3px;-webkit-overflow-scrolling:touch}
     .install-card{align-items:flex-start;flex-wrap:wrap}
@@ -779,6 +795,12 @@
         <button class="lead-tech" type="button" data-tech="~">Vibrato</button>
         <button class="lead-tech" type="button" data-tech="x">Mute</button>
       </div>
+    </div>
+  </div>
+  <div class="chord-suggest-drawer" id="chordSuggestDrawer" aria-label="Chord suggestions" aria-hidden="false">
+    <div class="chord-suggest-inner">
+      <span class="chord-suggest-label" id="chordSuggestLabel">Suggestions</span>
+      <div class="chord-suggest-row" id="chordSuggestRow"></div>
     </div>
   </div>
 </div>
@@ -1163,9 +1185,8 @@ function suggestScales(primary){
 
 /* ============ fuzzy key analysis + outlier guidance ============ */
 // Called by renderSong to compute the best-fit key even when no key is perfect
-function analyzeKey(){
-  const chords=allChords();
-  if(chords.length<2)return null;
+function analyzeKey(chords=allChords()){
+  if(!chords.length)return null;
 
   // Special case only for an I7/IV7/V7-style dominant blues. Do not classify every
   // all-dominant sequence as Mixolydian: jazz turnarounds can change tonal centers,
@@ -1219,6 +1240,119 @@ function analyzeKey(){
     alsoFits,
     dominantContext:false
   };
+}
+
+// The Key & Scales panel can include the chord currently being auditioned on
+// the fretboard. A selected song chip already exists in the progression, so it
+// is deliberately not counted twice.
+function keyAnalysisContext(){
+  const saved=allChords();
+  const includeBoard=!!current&&chordBoardTouched&&!activeChip;
+  return {chords:includeBoard?[...saved,current]:saved,includeBoard};
+}
+function refreshKeyContext(){
+  const context=keyAnalysisContext();
+  keyContextCount=context.chords.length;
+  keyContextIncludesBoard=context.includeBoard;
+  currentKeyInfo=analyzeKey(context.chords);
+  currentOutlierMap=buildOutlierMap(currentKeyInfo);
+  currentCoveringMode=findCoveringMode(currentKeyInfo);
+}
+
+const MINOR_CENTER_SCALES=new Set(['minor','melMin','harmMin','minPent','blues','dorian','phrygian','locrian']);
+const MAJOR_DEGREE_ORDER=[0,3,4,5,1,2,6];
+const MINOR_DEGREE_OFFSETS=[0,5,6,3,2,4,1];
+const STARTER_SHAPES=[
+  {root:0,suf:'',frets:[0,1,0,2,3,'x']},{root:7,suf:'',frets:[3,0,0,0,2,3]},
+  {root:2,suf:'',frets:[2,3,2,0,'x','x']},{root:9,suf:'',frets:[0,2,2,2,0,'x']},
+  {root:4,suf:'',frets:[0,0,1,2,2,0]},{root:9,suf:'m',frets:[0,1,2,2,0,'x']},
+  {root:4,suf:'m',frets:[0,0,0,2,2,0]},{root:2,suf:'m',frets:[1,3,2,0,'x','x']},
+  {root:5,suf:'',frets:[1,1,2,3,3,1]},{root:11,suf:'m',frets:[2,3,4,4,2,'x']}
+];
+const _suggestionVoicings=new Map();
+function playableSuggestion(root,suf){
+  const key=root+':'+suf;
+  if(_suggestionVoicings.has(key))return _suggestionVoicings.get(key);
+  const formula=FORMULAS.find(f=>f.suf===suf);
+  const voicing=formula?findVoicings(root,formula.iv)[0]||null:null;
+  _suggestionVoicings.set(key,voicing);
+  return voicing;
+}
+function suggestionDegreeOrder(tonic){
+  if(!scaleActive)return MAJOR_DEGREE_ORDER;
+  const degree=MAJ_SCALE.indexOf((scaleActive.root-tonic+12)%12);
+  if(degree<0)return MAJOR_DEGREE_ORDER;
+  if(MINOR_CENTER_SCALES.has(scaleActive.scale)){
+    return MINOR_DEGREE_OFFSETS.map(offset=>(degree+offset)%7);
+  }
+  return [degree,...MAJOR_DEGREE_ORDER.filter(i=>i!==degree)];
+}
+function chordSuggestionCandidates(){
+  // Bootstrap stays neutral. It starts with major/minor in a guitar-friendly
+  // root order and continues only with real, playable shapes.
+  if(!currentKeyInfo){
+    return {state:'bootstrap',items:STARTER_SHAPES.map((item,rank)=>({...item,rank}))};
+  }
+  // Dominant blues deliberately retains its existing special handling: it is
+  // not misrepresented as one ordinary diatonic scale.
+  if(currentKeyInfo.dominantContext){
+    const roots=[currentKeyInfo.tonic,(currentKeyInfo.tonic+5)%12,(currentKeyInfo.tonic+7)%12];
+    return {state:'ranked',items:roots.map((root,rank)=>({root,suf:'7',rank}))};
+  }
+  const tonic=currentKeyInfo.tonic;
+  const inScale=scaleSet(tonic);
+  const items=[];
+  for(const degree of suggestionDegreeOrder(tonic)){
+    const root=(tonic+MAJ_SCALE[degree])%12;
+    const qualities=FORMULAS
+      .filter(f=>f.iv.every(iv=>inScale.has((root+iv)%12)))
+      .sort((a,b)=>b.pr-a.pr||a.iv.length-b.iv.length);
+    for(const formula of qualities){
+      // A voicing is generated only if this compact, visible suggestion is
+      // chosen. Precomputing every candidate made the drawer sluggish on phones.
+      items.push({root,suf:formula.suf,rank:items.length});
+    }
+  }
+  return {state:'ranked',items};
+}
+function renderChordSuggestions(){
+  const drawer=document.getElementById('chordSuggestDrawer');
+  const label=document.getElementById('chordSuggestLabel');
+  const row=document.getElementById('chordSuggestRow');
+  const show=boardMode==='chord';
+  drawer.classList.toggle('open',show);
+  drawer.setAttribute('aria-hidden',String(!show));
+  if(!show)return;
+  const data=chordSuggestionCandidates();
+  label.textContent=data.state==='bootstrap'?'Suggestions':'Suggestions · common ← → rare';
+  row.innerHTML='';
+  data.items.forEach((item,index)=>{
+    const button=document.createElement('button');
+    button.type='button';
+    const tier=Math.min(4,Math.floor(index/Math.max(1,data.items.length/5)));
+    button.className='chord-suggestion '+(data.state==='bootstrap'?'neutral':'rank-'+tier);
+    button.textContent=pcName(item.root)+item.suf;
+    button.title='Load '+button.textContent+' onto the fretboard';
+    button.setAttribute('aria-label','Load '+button.textContent+' chord onto the fretboard');
+    button.addEventListener('click',()=>loadSuggestedChord(item));
+    row.appendChild(button);
+  });
+  requestAnimationFrame(()=>{
+    let room=true;
+    [...row.children].forEach(button=>{
+      button.hidden=!room || button.offsetLeft+button.offsetWidth>row.clientWidth;
+      if(button.hidden)room=false;
+    });
+  });
+}
+function loadSuggestedChord(item){
+  const shape=Array.isArray(item.frets)?{frets:item.frets}:playableSuggestion(item.root,item.suf);
+  if(!shape){flash('No playable shape found for '+pcName(item.root)+item.suf);return;}
+  selection=shape.frets.map(f=>f<0?'x':f);
+  chordBoardTouched=true;
+  activeChip=null;exitShapes();
+  analyze();
+  flash('Loaded '+pcName(item.root)+item.suf+' — edit any note, then add it when ready');
 }
 
 // Map global outlier indices to per-section {sectionId → Set of local chord idx}
@@ -1330,6 +1464,8 @@ function replaceChord(secId,cIdx,newRoot,newSuf){
 
 /* ================= state ================= */
 let selection=new Array(6).fill(0);
+// Open tuning is a friendly visual default, not an intentional chord choice.
+let chordBoardTouched=false;
 let current=null;
 let currentAlts=[];
 let shapes=[],shapeIdx=0,inShapeMode=false;
@@ -1354,6 +1490,8 @@ let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
 let currentKeyInfo=null; // {tonic, outIdxs (Set), inChords, totalChords, isPerfectFit, alsoFits}
 let currentOutlierMap=new Map(); // sectionId → Set of local chord idxs that are outliers
 let currentCoveringMode=null;    // {root, scale} that covers all chords incl. outliers, or null
+let keyContextCount=0;
+let keyContextIncludesBoard=false;
 let scalePanelExpanded=false;    // manual open/closed state, persisted
 let _hadOutliers=false;          // tracks outlier presence to auto-open once on appearance
 let _popChip=null;               // {sectionId,chordIdx} of a chip to pop-in animate once
@@ -1362,7 +1500,7 @@ const SECTION_PRESETS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Solo','In
 const findSection = id => sections.find(s=>s.id===id) || null;
 const activeSection = () => findSection(activeSectionId);
 const allChords = () => sections.flatMap(s=>s.chords);
-function resetChordSelection(){selection=new Array(6).fill(0);}
+function resetChordSelection(){selection=new Array(6).fill(0);chordBoardTouched=false;}
 
 /* ---------- persistence (localStorage) ---------- */
 const _SAVE_KEY='fretwork.song.v1';
@@ -1635,6 +1773,7 @@ function placeInlays(){
   }
 }
 window.addEventListener('resize',placeInlays);
+window.addEventListener('resize',renderChordSuggestions);
 
 const sl=document.getElementById('stringLabels');
 STR_LABEL.forEach((t,s)=>{
@@ -1733,12 +1872,12 @@ function analyze(){
   current=null;currentAlts=[];
   if(midis.length===0){
     out.innerHTML='<p class="placeholder">Nothing selected yet — click a string at any fret (the light strip on the left is the open string).</p>';
-    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();render();return;
+    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
   }
   const names=[...new Set(midis.slice().sort((a,b)=>a-b).map(m=>pcName(m%12)))];
   if(midis.length===1){
     out.innerHTML='<div class="chord-name">'+names[0]+'</div><p class="notes-line">Single note. Add more to build a chord.</p>';
-    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();render();return;
+    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
   }
   const matches=identify(midis);
   if(matches.length===0){
@@ -1751,10 +1890,16 @@ function analyze(){
     out.innerHTML='<div class="chord-name" style="font-size:1.3rem;color:var(--ink-dim)">No standard chord name</div>'+
       '<p class="notes-line">Notes: '+names.join(' – ')+'. '+intervalInfo+'</p>'+
       '<p class="notes-line">Could be a fragment — try adding or removing a note.</p>';
-    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();render();return;
+    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
   }
   current=matches[0];currentAlts=matches.slice(1,4);
-  showChord();btnShapes.disabled=false;updateAddBtn();reconcileBoardState();render();
+  showChord();btnShapes.disabled=false;updateAddBtn();reconcileBoardState();syncChordContextUI();
+}
+
+function syncChordContextUI(){
+  refreshKeyContext();
+  renderKey();
+  renderChordSuggestions();
 }
 
 function showChord(){
@@ -1816,6 +1961,7 @@ board.addEventListener('click',e=>{
   if(boardMode==='solo'){toggleLeadNote(s,f);return;}
   exitShapes();
   const wasActive=activeChip!==null;activeChip=null;
+  chordBoardTouched=true;
   // In Chord mode the nut is the one mute control. Fretted notes always stay
   // selected when tapped, which avoids accidentally clearing a string.
   selection[s]=f===0?(selection[s]==='x'?0:'x'):f;
@@ -1843,6 +1989,7 @@ function setBoardMode(mode){
   modeToggle.setAttribute('aria-label','Fretboard mode: '+(mode==='solo'?'Solo / arpeggio':'Chord'));
   document.getElementById('btnAccidental').title=(mode==='solo'?'Change note spelling for the solo markers':'Slide to toggle note spelling between sharps (♯) and flats (♭)');
   render();
+  renderChordSuggestions();
   if(mode==='solo')renderLead();
 }
 document.getElementById('btnBoardMode').addEventListener('click',()=>setBoardMode(boardMode==='chord'?'solo':'chord'));
@@ -2022,17 +2169,16 @@ function renderSong(){
 
   if(sections.length===0){
     host.innerHTML='<p class="placeholder">Add a section below (Intro, Chorus…) to start building your song. Chords you add will drop into whichever section is active — or Couch Batata will create an Intro automatically on your first add.</p>';
-    currentKeyInfo=null;currentOutlierMap=new Map();currentCoveringMode=null;
+    refreshKeyContext();
     renderKey();
+    renderChordSuggestions();
     renderLead();
     updateAddBtn();
     return;
   }
 
   // Analyze the whole progression once for outliers + covering scale
-  currentKeyInfo = analyzeKey();
-  currentOutlierMap = buildOutlierMap(currentKeyInfo);
-  currentCoveringMode = findCoveringMode(currentKeyInfo);
+  refreshKeyContext();
 
   const primary = currentKeyInfo ? currentKeyInfo.tonic : null;
 
@@ -2041,6 +2187,7 @@ function renderSong(){
   });
 
   renderKey();
+  renderChordSuggestions();
   renderLead();
   updateAddBtn();
   save();
@@ -2825,10 +2972,10 @@ function renderKey(){
         sh=document.getElementById('scaleSuggest');
   const cs=allChords();
   const keyInfo=currentKeyInfo;
-  if(cs.length<2||!keyInfo){
+  if(keyContextCount<1||!keyInfo){
     panel.hidden=true;
     _hadOutliers=false;
-    scaleActive=null;scaleBoxIdx=null;render();return;
+    scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
   panel.hidden=false;
   const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,dominantContext}=keyInfo;
@@ -2842,9 +2989,9 @@ function renderKey(){
       others=' <span style="color:var(--ink-faint);font-size:.85rem">(also fits: '+
         alsoFits.map(k=>pcName(k)+' major').join(', ')+')</span>';
     }
-    kl.innerHTML='Key: <strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+others;
+    kl.innerHTML=(keyContextIncludesBoard?'Tentative key: ':'Key: ')+'<strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+others;
   } else {
-    kl.innerHTML='Closest key: <strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+
+    kl.innerHTML=(keyContextIncludesBoard?'Tentative closest key: ':'Closest key: ')+'<strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+
       '<span class="fit-badge">'+inChords+' of '+totalChords+' fit · '+outIdxs.size+' borrowed</span>';
   }
 
@@ -2976,7 +3123,7 @@ function renderScaleSuggest(primary){
     chip.addEventListener('click',()=>{
       scaleActive=isScaleActive(sug)?null:{root:sug.root,scale:sug.scale};
       scaleBoxIdx=null;  // reset to full-neck view whenever the scale changes
-      renderScaleSuggest(primary);render();save();
+      renderScaleSuggest(primary);render();renderChordSuggestions();save();
     });
     row.appendChild(chip);
   });

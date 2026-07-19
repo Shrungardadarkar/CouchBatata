@@ -193,16 +193,15 @@
   .chord-suggest-inner{padding:10px 0 2px;min-width:0}
   .chord-suggest-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
   .chord-suggest-scroll{position:relative;min-width:0}
-  .chord-suggest-scroll::before,.chord-suggest-scroll::after{content:'';position:absolute;top:0;bottom:8px;width:42px;z-index:2;pointer-events:none;opacity:0;transition:opacity .2s ease}
-  .chord-suggest-scroll::after{right:0;background:linear-gradient(90deg,rgba(243,238,227,0),var(--cream) 84%)}
-  .chord-suggest-scroll::before{left:0;background:linear-gradient(90deg,var(--cream) 16%,rgba(243,238,227,0))}
-  .chord-suggest-scroll.has-overflow.at-start::after,.chord-suggest-scroll.has-overflow.at-end::before,.chord-suggest-scroll.has-overflow.mid-scroll::before,.chord-suggest-scroll.has-overflow.mid-scroll::after{opacity:1}
-  .chord-scroll-cue{position:absolute;z-index:3;right:5px;bottom:11px;padding:3px 6px;border:2px solid var(--ink);border-radius:999px;background:var(--sun);box-shadow:1.5px 1.5px 0 var(--ink);color:var(--ink);font-family:"Courier New",monospace;font-size:.62rem;font-weight:900;line-height:1;pointer-events:none;opacity:0;transform:translateX(5px);transition:opacity .18s ease,transform .18s var(--ease-spring)}
-  .chord-suggest-scroll.has-overflow .chord-scroll-cue{opacity:1;transform:translateX(0)}
-  .chord-suggest-scroll.at-end .chord-scroll-cue{left:5px;right:auto;transform:translateX(-5px)}
-  .chord-suggest-scroll.at-end.has-overflow .chord-scroll-cue{transform:translateX(0)}
-  @media (prefers-reduced-motion:no-preference){.chord-scroll-cue.nudge{animation:scrollCueNudge .7s var(--ease-bounce) 2}@keyframes scrollCueNudge{0%,100%{transform:translateX(0)}50%{transform:translateX(7px)}}.chord-suggest-scroll.at-end .chord-scroll-cue.nudge{animation-name:scrollCueNudgeLeft}@keyframes scrollCueNudgeLeft{0%,100%{transform:translateX(0)}50%{transform:translateX(-7px)}}}
-  .chord-suggest-row{display:flex;align-items:center;gap:7px;min-width:0;overflow-x:auto;overflow-y:hidden;padding:1px 3px 8px;scrollbar-width:thin;scrollbar-color:var(--ink-faint) transparent;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+  .chord-suggest-row{display:flex;align-items:center;gap:7px;min-width:0;overflow-x:auto;overflow-y:hidden;padding:1px 3px 8px;scrollbar-width:thin;scrollbar-color:var(--ink-faint) transparent;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;scroll-padding:0 42px}
+  .chord-suggest-scroll.has-overflow .chord-suggest-row{padding-left:42px;padding-right:42px}
+  .chord-suggest-nav{position:absolute;inset:0 0 8px;z-index:3;pointer-events:none}
+  .chord-scroll-btn{position:absolute;top:50%;display:grid;place-items:center;width:36px;height:36px;padding:0;border:2.5px solid var(--ink);border-radius:9px;background:var(--cream);box-shadow:2px 2px 0 var(--ink);color:var(--ink);font:900 .8rem/1 inherit;cursor:pointer;pointer-events:auto;transform:translateY(-50%);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .chord-scroll-btn:hover{background:var(--sun);transform:translateY(calc(-50% - 1px)) rotate(-2deg);box-shadow:3px 3px 0 var(--ink)}
+  .chord-scroll-btn:active{transform:translateY(calc(-50% + 1px));box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .chord-scroll-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .chord-scroll-btn.prev{left:2px}.chord-scroll-btn.next{right:2px}
+  .chord-scroll-btn[hidden]{display:none}
   .chord-suggest-row:focus-visible{outline:3px solid var(--tomato);outline-offset:3px;border-radius:8px}
   .chord-suggestion{flex:0 0 auto;min-height:32px;padding:5px 9px;border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.76rem;font-weight:900;line-height:1;cursor:pointer;white-space:nowrap;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .chord-suggestion:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
@@ -838,7 +837,10 @@
       <span class="chord-suggest-label" id="chordSuggestLabel">Suggestions</span>
       <div class="chord-suggest-scroll" id="chordSuggestScroll">
         <div class="chord-suggest-row" id="chordSuggestRow" tabindex="0" role="region" aria-label="Chord suggestions. Use left and right arrow keys or swipe to explore more."></div>
-        <span class="chord-scroll-cue" id="chordScrollCue" aria-hidden="true"></span>
+        <div class="chord-suggest-nav" id="chordSuggestNav" aria-label="Explore more chord suggestions" hidden>
+          <button class="chord-scroll-btn prev" id="chordScrollPrev" type="button" aria-label="Show earlier chord suggestions" title="Earlier suggestions" hidden>◀</button>
+          <button class="chord-scroll-btn next" id="chordScrollNext" type="button" aria-label="Show later chord suggestions" title="More suggestions" hidden>▶</button>
+        </div>
       </div>
     </div>
   </div>
@@ -918,7 +920,7 @@
   </ol>
   <details open>
     <summary>Fretboard &amp; chords</summary>
-    <p>Every string starts open. Tap a fret to move that string’s note, or tap its open note on the nut to mute it. When a chord is recognised, use the small ◀ ▶ arrows beside the Chord tab to browse shapes—including barre-family grips—then use <b>Add to…</b> to place it in the active song section. When the Suggestions row shows Swipe →, drag it sideways (or use its arrow keys) to explore more chords.</p>
+    <p>Every string starts open. Tap a fret to move that string’s note, or tap its open note on the nut to mute it. When a chord is recognised, use the small ◀ ▶ arrows beside the Chord tab to browse shapes—including barre-family grips—then use <b>Add to…</b> to place it in the active song section. Suggestions show matching ◀ / ▶ controls only when there are more chords to explore; you can also drag the row sideways or use its arrow keys.</p>
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
@@ -1449,38 +1451,38 @@ function renderChordSuggestions(){
     button.addEventListener('click',()=>loadSuggestedChord(item));
     row.appendChild(button);
   });
-  requestAnimationFrame(()=>updateChordSuggestionScrollCue(true));
+  requestAnimationFrame(updateChordSuggestionScrollControls);
 }
-let _chordCueTimer=null;
-function updateChordSuggestionScrollCue(nudge=false){
+function updateChordSuggestionScrollControls(){
   const row=document.getElementById('chordSuggestRow');
   const wrap=document.getElementById('chordSuggestScroll');
-  const cue=document.getElementById('chordScrollCue');
-  if(!row||!wrap||!cue)return;
+  const nav=document.getElementById('chordSuggestNav');
+  const prev=document.getElementById('chordScrollPrev');
+  const next=document.getElementById('chordScrollNext');
+  if(!row||!wrap||!nav||!prev||!next)return;
   const max=Math.max(0,row.scrollWidth-row.clientWidth);
   const overflow=max>2;
   const atStart=row.scrollLeft<=2;
   const atEnd=row.scrollLeft>=max-2;
   wrap.classList.toggle('has-overflow',overflow);
-  wrap.classList.toggle('at-start',overflow&&atStart);
-  wrap.classList.toggle('at-end',overflow&&atEnd);
-  wrap.classList.toggle('mid-scroll',overflow&&!atStart&&!atEnd);
-  cue.textContent=atEnd?'← More':'Swipe →';
-  if(nudge&&overflow&&atStart){
-    clearTimeout(_chordCueTimer);cue.classList.remove('nudge');
-    requestAnimationFrame(()=>cue.classList.add('nudge'));
-    _chordCueTimer=setTimeout(()=>cue.classList.remove('nudge'),1550);
-  }
+  nav.hidden=!overflow;
+  prev.hidden=!overflow||atStart;
+  next.hidden=!overflow||atEnd;
 }
 const chordSuggestionRow=document.getElementById('chordSuggestRow');
-chordSuggestionRow.addEventListener('scroll',()=>updateChordSuggestionScrollCue(false),{passive:true});
-chordSuggestionRow.addEventListener('keydown',event=>{
+function scrollChordSuggestions(direction){
   const amount=Math.max(120,Math.round(chordSuggestionRow.clientWidth*.7));
-  if(event.key==='ArrowRight'){event.preventDefault();chordSuggestionRow.scrollBy({left:amount,behavior:'smooth'});}
-  else if(event.key==='ArrowLeft'){event.preventDefault();chordSuggestionRow.scrollBy({left:-amount,behavior:'smooth'});}
+  chordSuggestionRow.scrollBy({left:direction*amount,behavior:'smooth'});
+}
+chordSuggestionRow.addEventListener('scroll',updateChordSuggestionScrollControls,{passive:true});
+chordSuggestionRow.addEventListener('keydown',event=>{
+  if(event.key==='ArrowRight'){event.preventDefault();scrollChordSuggestions(1);}
+  else if(event.key==='ArrowLeft'){event.preventDefault();scrollChordSuggestions(-1);}
   else if(event.key==='Home'){event.preventDefault();chordSuggestionRow.scrollTo({left:0,behavior:'smooth'});}
   else if(event.key==='End'){event.preventDefault();chordSuggestionRow.scrollTo({left:chordSuggestionRow.scrollWidth,behavior:'smooth'});}
 });
+document.getElementById('chordScrollPrev').addEventListener('click',()=>scrollChordSuggestions(-1));
+document.getElementById('chordScrollNext').addEventListener('click',()=>scrollChordSuggestions(1));
 function loadSuggestedChord(item){
   const shape=Array.isArray(item.frets)?{frets:item.frets}:playableSuggestion(item.root,item.suf);
   if(!shape){flash('No playable shape found for '+pcName(item.root)+item.suf);return;}

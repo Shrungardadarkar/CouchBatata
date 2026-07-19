@@ -815,7 +815,6 @@
   <div id="chordOut"><p class="placeholder">Every string starts open. Tap a fret to move that string’s note, or tap its nut to mute it.</p></div>
   <div class="btn-row">
     <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
-    <button class="btn" id="btnShapes" disabled title="Browse alternate voicings for this chord — same notes, different fret shapes">Show other shapes</button>
     <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
   </div>
   <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
@@ -899,7 +898,7 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Select one or more notes, then choose Clean, Bend, Hammer-on, Pull-off, Slide, and more. Hammer-ons, pull-offs and slides connect the previous event to the new note on the same string; their small ← badge shows that source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Move it to a new shape, then use Slide to record both chord shapes as one connected move. Hammer-ons, pull-offs and slides connect the previous event to the new note on the same string; their small ← badge shows that source event. Use Notes / Tab to change the display. Drag events to reorder them, and use × to repeat a unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -1864,10 +1863,12 @@ function renderLead(){
   const hasLeadSelection=leadSelection.some(Number.isInteger);
   document.getElementById('btnLeadClearSelection').disabled=!hasLeadSelection;
   const previousEvent=Number.isInteger(leadDraftEditIndex)?leadDraft[leadDraftEditIndex-1]:leadDraft[leadDraft.length-1];
+  const hasReferenceSource=!Number.isInteger(leadDraftEditIndex)&&soloChordReference?.some(Number.isInteger);
   document.querySelectorAll('.lead-tech').forEach(button=>{
     const needsSource=LEAD_LINK_TECHNIQUES.has(button.dataset.tech);
-    button.disabled=!hasLeadSelection||(needsSource&&!previousEvent);
-    button.title=needsSource&&!previousEvent?'Add a previous solo event before using this technique':'';
+    button.disabled=!hasLeadSelection||(needsSource&&!previousEvent&&!hasReferenceSource);
+    button.title=needsSource&&!previousEvent&&!hasReferenceSource
+      ?'Add a previous solo event before using this technique':'';
   });
   const displayToggle=document.getElementById('boardLeadDisplay');
   displayToggle.classList.toggle('tab',leadDisplay==='tab');
@@ -1896,13 +1897,25 @@ function saveLeadEvent(t){
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
   const editIndex=Number.isInteger(leadDraftEditIndex)?leadDraftEditIndex:null;
   const sourceIndex=editIndex===null?leadDraft.length-1:editIndex-1;
-  const source=leadDraft[sourceIndex]||null;
+  let source=leadDraft[sourceIndex]||null;
+  let sourceIsNew=false;
   let from=null,links=null;
   if(LEAD_LINK_TECHNIQUES.has(t)){
+    // A selected chord on entering Solo mode is a genuine starting event. If
+    // the player slides/hammers/pulls from it before pressing Clean, preserve
+    // that source automatically so the resulting tab has both ends.
+    if(!source&&editIndex===null){
+      const referenceNotes=(soloChordReference||[]).flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+      if(referenceNotes.length){
+        source={id:_nextLeadId++,notes:referenceNotes,t:'',from:null,links:null,rep:1};
+        sourceIsNew=true;
+      }
+    }
     if(!source){flash('Add a previous solo event before using '+LEAD_TECH_LABEL[t]);return;}
     const sourceStrings=new Set((source.notes||[]).map(note=>note.s));
     links=notes.map(note=>note.s).filter(string=>sourceStrings.has(string));
     if(!links.length){flash(LEAD_TECH_LABEL[t]+' needs a note on the same string in the previous event');return;}
+    if(sourceIsNew)leadDraft.push(source);
     from=source.id;
   }
   if(editing){
@@ -2073,16 +2086,15 @@ function analyze(){
     if(typeof v==='number')midis.push(OPEN[s]+v);
   }
   const out=document.getElementById('chordOut');
-  const btnShapes=document.getElementById('btnShapes');
   current=null;currentAlts=[];syncShapeNavigator();
   if(midis.length===0){
     out.innerHTML='<p class="placeholder">Nothing selected yet — click a string at any fret (the light strip on the left is the open string).</p>';
-    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
+    updateAddBtn();reconcileBoardState();syncChordContextUI();return;
   }
   const names=[...new Set(midis.slice().sort((a,b)=>a-b).map(m=>pcName(m%12)))];
   if(midis.length===1){
     out.innerHTML='<div class="chord-name">'+names[0]+'</div><p class="notes-line">Single note. Add more to build a chord.</p>';
-    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
+    updateAddBtn();reconcileBoardState();syncChordContextUI();return;
   }
   const matches=identify(midis);
   if(matches.length===0){
@@ -2095,10 +2107,10 @@ function analyze(){
     out.innerHTML='<div class="chord-name" style="font-size:1.3rem;color:var(--ink-dim)">No standard chord name</div>'+
       '<p class="notes-line">Notes: '+names.join(' – ')+'. '+intervalInfo+'</p>'+
       '<p class="notes-line">Could be a fragment — try adding or removing a note.</p>';
-    btnShapes.disabled=true;updateAddBtn();reconcileBoardState();syncChordContextUI();return;
+    updateAddBtn();reconcileBoardState();syncChordContextUI();return;
   }
   current=matches[0];currentAlts=matches.slice(1,4);
-  showChord();btnShapes.disabled=false;updateAddBtn();reconcileBoardState();syncChordContextUI();
+  showChord();updateAddBtn();reconcileBoardState();syncChordContextUI();
 }
 
 function syncChordContextUI(){
@@ -2259,10 +2271,6 @@ function enterShapesFor(chordObj,playedFrets){
   syncShapeNavigator();
   loadShape();
 }
-document.getElementById('btnShapes').addEventListener('click',()=>{
-  if(!current)return;
-  enterShapesFor(current,selection.slice());
-});
 function loadShape(){
   // Defensive: if state is corrupted or empty, exit cleanly instead of crashing
   if(!inShapeMode)return;

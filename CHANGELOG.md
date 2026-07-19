@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Chord-to-chord Solo slides
+
+- Removed the redundant Show other shapes button; the visible shape navigator
+  is the single place to browse voicings.
+- A chosen chord can now be the first end of a Slide, Hammer-on, or Pull-off:
+  moving its notes and applying a connection automatically records the source
+  chord and destination together when there was no earlier Solo event.
+
 ## 2026-07-19 — Saved chord-shape editing
 
 - Restored the prominent Shape 1 of N navigator below the chord actions.

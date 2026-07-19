@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Discoverable chord suggestions
+
+- Added a conditional faded edge and animated **Swipe →** / **← More** cue to
+  the chord suggestion row whenever more chords are available horizontally.
+- Added keyboard scrolling with Left/Right, Home, and End while that row is
+  focused.
+- Bumped the offline cache so installed copies receive the improvement.
+
 ## 2026-07-19 — One visual system for every picker
 
 - Replaced every native dropdown with an accessible in-app picker: New section,

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-19 — Smoke-test and handoff maintenance
+
+- Streamlined the smoke-test suite.
+- Clarified how contributors and AI sessions should begin from the shared main
+  branch and recover safely from a divergent local checkout.
+
 ## 2026-07-19 — Consistent key analysis and leaner offline install
 
 - Corrected chord-suggestion ordering so the detected tonic is ranked first in

@@ -101,4 +101,4 @@ assert.doesNotMatch(html, /<(script|link)[^>]+(?:src|href)="https?:/i,
 console.log(`✓ ${required.length} required files present`);
 console.log("✓ manifest and service worker are valid");
 console.log("✓ application JavaScript parses");
-console.log("✓ no remote runtime dependencies or blocked vendor references");
+console.log("✓ no remote runtime dependencies");

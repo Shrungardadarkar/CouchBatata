@@ -7,9 +7,11 @@ update without reconstructing prior conversation history.
 ## Start here
 
 1. Read `README.md`, this file, and `PROJECT.md` completely.
-2. Run `npm test` before editing.
-3. Serve the repository with `npm run serve` for browser work.
-4. Treat `index.html` as the product source of truth.
+2. Fetch `origin/main` and begin from its current committed state; it is the
+   shared source of truth for work handed between people and AI sessions.
+3. Run `npm test` before editing.
+4. Serve the repository with `npm run serve` for browser work.
+5. Treat `index.html` as the product source of truth.
 
 ## Architecture
 
@@ -73,6 +75,9 @@ overflow, inaccessible controls, or external network requests.
 - Work on a focused branch unless the owner requests direct-to-main changes.
 - Keep commits small and descriptive.
 - Never rewrite published history or force-push without explicit approval.
+- If a local checkout cannot fast-forward to `origin/main`, preserve any
+  uncommitted work outside the repository and start from a fresh clone rather
+  than attempting to merge unrelated histories.
 - `.github/workflows/pages.yml` deploys `main` to GitHub Pages.
 - `.github/workflows/test.yml` runs the dependency-free smoke tests.
 

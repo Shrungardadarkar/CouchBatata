@@ -110,12 +110,16 @@ require a local server or HTTPS.
 
 ## Updating the app
 
-1. Read `AGENTS.md` and `PROJECT.md`.
+1. Fetch `origin/main`, then read `AGENTS.md` and `PROJECT.md`.
 2. Edit `index.html` or the relevant static asset.
 3. Increment `CACHE_NAME` in `sw.js` when changing cached app files.
 4. Run `npm test`.
 5. Test at phone, tablet, and desktop widths.
 6. Commit and push to `main`. GitHub Pages deploys automatically.
+
+If an older checkout cannot fast-forward to `origin/main`, copy out any
+uncommitted work and make a fresh clone before continuing. This keeps handoffs
+between people and AI sessions predictable.
 
 ## License
 

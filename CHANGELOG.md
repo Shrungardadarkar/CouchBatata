@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-19 — Smooth suggestion navigation
+
+- Made full-chip suggestion pages slide in the direction of travel, so the
+  controls read as horizontal exploration rather than an abrupt replacement.
+- Widened the reserved navigation slot so both arrows, their borders, and their
+  sticker shadows remain fully visible.
+- Strengthened the core-to-colourful guide with clearly visible directional
+  arrows.
+
 ## 2026-07-19 — Visible active scale state
 
 - Added a passive mint status badge to the Key & Scales header whenever a scale

@@ -576,7 +576,7 @@
   #exportPre{white-space:pre;overflow-x:auto;font-family:"Courier New",monospace;
     font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--cream);
     border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
-  .key-line{font-size:1rem;flex:1;text-align:left;font-weight:700;color:var(--ink)}
+  .key-line{font-size:1rem;flex:1;min-width:0;text-align:left;font-weight:700;color:var(--ink)}
   .key-line strong{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.2rem;font-weight:900}
   .suggest{margin-top:10px;color:var(--ink-dim);font-size:.9rem;line-height:1.9;font-weight:600}
   .suggest .sug{display:inline-block;border:2px solid var(--ink);border-radius:7px;
@@ -592,6 +592,10 @@
   .scale-panel-header:hover{background:var(--cream-2)}
   .scale-panel-chevron{color:var(--ink);font-size:1rem;font-weight:900;transition:transform .3s var(--ease-out-back);flex-shrink:0}
   .scale-panel-header[aria-expanded="true"] .scale-panel-chevron{transform:rotate(180deg)}
+  .scale-overlay-status{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;max-width:320px;
+    padding:5px 9px;border:2px solid var(--ink);border-radius:999px;background:var(--mint);color:var(--ink);
+    box-shadow:1.5px 1.5px 0 var(--ink);font-size:.73rem;font-weight:900;line-height:1.1;white-space:nowrap}
+  .scale-overlay-status[hidden]{display:none}
   .scale-panel.forced-open .scale-panel-header{cursor:default}
   .scale-panel.forced-open .scale-panel-chevron{opacity:.35}
   .scale-panel-forced-note{font-size:.72rem;color:var(--tomato);font-style:italic;font-weight:800;
@@ -705,6 +709,9 @@
     .toggle.flats .acc-knob{transform:translateX(29px)}
     .scale-panel{padding:0}
     .scale-panel-header{padding:22px 15px 16px}
+    .scale-panel-header.has-active-scale{flex-wrap:wrap;gap:8px 10px}
+    .scale-panel-header.has-active-scale .key-line{flex:1 1 calc(100% - 32px)}
+    .scale-panel-header.has-active-scale .scale-overlay-status{order:3;max-width:100%}
     .scale-panel-body{padding-left:15px;padding-right:15px}
     .btn{padding:9px 13px;font-size:.85rem}
     .btn-row{gap:9px}
@@ -782,6 +789,7 @@
 <div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
   <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
     <div class="key-line" id="keyLine"></div>
+    <span class="scale-overlay-status" id="scaleOverlayStatus" aria-live="polite" hidden></span>
     <span class="scale-panel-chevron" id="scalePanelChevron" aria-hidden="true">▾</span>
   </button>
   <div class="scale-panel-body" id="scalePanelBody" hidden>
@@ -936,7 +944,7 @@
   </details>
   <details>
     <summary>Key, scales &amp; notes</summary>
-    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. Click a scale to display it on the fretboard, including in Solo mode. Use ♯ / ♭ to change note spelling.</p>
+    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. When a scale is on the fretboard, its name appears in the collapsed header. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
   </details>
   <details>
     <summary>Chord suggestions</summary>
@@ -3806,6 +3814,7 @@ function renderGuidance(keyInfo){
 
 function renderScaleSuggest(primary){
   const host=document.getElementById('scaleSuggest');
+  renderScaleOverlayStatus();
   host.hidden=false;
   const sugs=suggestScales(primary);
   host.innerHTML='<h3>For soloing — try one of these scales:</h3>';
@@ -3868,6 +3877,18 @@ function renderScaleSuggest(primary){
       });
     });
   }
+}
+function renderScaleOverlayStatus(){
+  const status=document.getElementById('scaleOverlayStatus');
+  const header=document.getElementById('scalePanelHeader');
+  if(!status)return;
+  if(!scaleActive){status.hidden=true;status.textContent='';header?.classList.remove('has-active-scale');return;}
+  const scale=SCALES[scaleActive.scale];
+  if(!scale){status.hidden=true;status.textContent='';header?.classList.remove('has-active-scale');return;}
+  status.hidden=false;
+  header?.classList.add('has-active-scale');
+  status.textContent='● Fretboard: '+pcName(scaleActive.root)+' '+scale.name+' active';
+  status.title='This scale is currently shown on the fretboard. Open Key & Scales and select the active scale card to turn it off.';
 }
 function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;

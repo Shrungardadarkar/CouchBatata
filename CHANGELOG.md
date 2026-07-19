@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-19 — Visible active scale state
+
+- Added a passive mint status badge to the Key & Scales header whenever a scale
+  is displayed on the fretboard.
+- The header remains one large click target; selecting the active scale card is
+  still the only way to turn the overlay off.
+- Bumped the offline cache so installed copies receive the indicator.
+
 ## 2026-07-19 — Accurate scale names and spellings
 
 - Renamed the ambiguous **Blues** entry to **Minor blues**; its formula is

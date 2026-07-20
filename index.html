@@ -349,6 +349,12 @@
   .sound-toggle.muted .sound-icon::after{transform:translateY(-50%) rotate(-45deg) scaleX(1)}
   .strum-icon .pick-body{fill:var(--ink)}
   .strum-icon .skull-face{fill:var(--cream)}
+  .icon-bare-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;
+    background:transparent;border:0;padding:2px;cursor:pointer;
+    transition:transform .16s var(--ease-spring)}
+  .icon-bare-btn:hover{transform:scale(1.1) rotate(-5deg)}
+  .icon-bare-btn:active{transform:scale(.92);transition-duration:.05s}
+  .icon-bare-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px;border-radius:6px}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -769,6 +775,8 @@
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     .modal-dialog{transform:none !important}
     .help-fab:hover,.help-close:hover{transform:none !important}
+    .icon-bare-btn{transition-duration:.12s !important}
+    .icon-bare-btn:hover{transform:none !important}
   }
 </style>
 
@@ -839,15 +847,16 @@
     </button>
     <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
       aria-label="Toggle pluck sound" title="Sound on — tap to mute"><span class="sound-icon" aria-hidden="true">♪</span></button>
-    <button class="btn ghost sound-toggle" id="btnStrum" type="button"
+    <button class="icon-bare-btn" id="btnStrum" type="button"
       aria-label="Strum the current shape" title="Strum the current shape">
-      <svg class="strum-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <svg class="strum-icon" viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
         <path class="pick-body" d="M6.1 5.5L17.9 5.5Q20 5.5 19.3 7.5L14.3 19.5Q13.3 22 12 22Q10.7 22 9.7 19.5L4.7 7.5Q4 5.5 6.1 5.5Z"/>
-        <ellipse class="skull-face" cx="12" cy="10.6" rx="5.3" ry="4.9"/>
-        <circle class="pick-body" cx="9.7" cy="9.7" r="1.3"/>
-        <circle class="pick-body" cx="14.3" cy="9.7" r="1.3"/>
-        <path class="pick-body" d="M11.4 11.4L12.6 11.4L12 13Z"/>
-        <rect class="pick-body" x="9.3" y="14.2" width="5.4" height="1.8" rx="0.5"/>
+        <g transform="translate(12,12.5) scale(0.72) translate(-12,-10.9)">
+          <path class="skull-face" d="M12 2.6C7.5 2.6 4.4 6.1 4.4 11.1C4.4 14.5 5.9 16.8 7.7 18.2C8 18.7 8.5 18.8 8.8 18.5C9.1 18.9 9.6 19 9.9 18.7C10.3 19.1 10.9 19.2 12 19.2C13.1 19.2 13.7 19.1 14.1 18.7C14.4 19 14.9 18.9 15.2 18.5C15.5 18.8 16 18.7 16.3 18.2C18.1 16.8 19.6 14.5 19.6 11.1C19.6 6.1 16.5 2.6 12 2.6Z"/>
+          <circle class="pick-body" cx="8.6" cy="10.1" r="2.5"/>
+          <circle class="pick-body" cx="15.4" cy="10.1" r="2.5"/>
+          <path class="pick-body" d="M12 12.3C11.6 11.7 10.7 11.8 10.5 12.5C10.3 13.1 10.9 13.7 12 14.7C13.1 13.7 13.7 13.1 13.5 12.5C13.3 11.8 12.4 11.7 12 12.3Z"/>
+        </g>
       </svg>
     </button>
   </div>

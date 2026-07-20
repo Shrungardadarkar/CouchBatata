@@ -1,11 +1,11 @@
-# Couch Batata - A tab builder for singer-songwriter.
+# Couch Batata — Catch the chord. Keep the song.
 
-**Explore Chords, Scales, Progressions and Create Tabs; always create music.**
+**For the songs you almost forgot.**
 
-Couch Batata is a free, installable guitar chord and song builder for phones,
-tablets, and laptops. Pick notes on the fretboard, identify the chord, arrange
-sections, add lyrics, inspect key and scale suggestions, and export a portable
-chord chart.
+Couch Batata is a free, private guitar chord finder and song builder for phones,
+tablets, and laptops. Tap the notes you played, identify the chord, save the
+shape or progression while the idea is fresh, and keep building the song. It
+works offline after the first visit and does not require an account.
 
 ## Why I built Couch Batata
 
@@ -36,6 +36,8 @@ it.
 Once GitHub Pages is enabled, the public app is available at:
 
 **https://shrungardadarkar.github.io/CouchBatata/**
+
+**[Try Couch Batata](https://shrungardadarkar.github.io/CouchBatata/)**
 
 The link can be shared through WhatsApp, LinkedIn, email, or any other service.
 Users do not need an app-store download.

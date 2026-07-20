@@ -1,7 +1,7 @@
 {
   "name": "Couch Batata",
   "short_name": "Couch Batata",
-  "description": "Build guitar chords, song sections and soloing ideas. Works offline after the first visit.",
+  "description": "Catch the chord. Keep the song. Tap the notes you played, find the chord, and save the idea. Free, private, and works offline.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",

@@ -1003,7 +1003,13 @@ function audioCtx(){
     _actx=new Ctx();
     _master=_actx.createGain();
     _master.gain.value=soundOn?0.85:0;
-    _master.connect(_actx.destination);
+    // Up to 6 plucked strings can sum past 1.0 with no limiter — a full
+    // strummed chord would clip and sound harsh/distorted. A compressor on
+    // the shared bus keeps chords glued together instead of crackling.
+    const limiter=_actx.createDynamicsCompressor();
+    limiter.threshold.value=-16;limiter.knee.value=18;limiter.ratio.value=8;
+    limiter.attack.value=0.003;limiter.release.value=0.16;
+    _master.connect(limiter).connect(_actx.destination);
   }
   if(_actx.state==='suspended')_actx.resume();
   return _actx;
@@ -1024,7 +1030,12 @@ function pluckBuffer(ctx,midi){
   const buf=ctx.createBuffer(1,len,sr);
   const out=buf.getChannelData(0);
   const line=new Float32Array(n);
-  for(let i=0;i<n;i++)line[i]=Math.random()*2-1;   // bipolar noise burst = the pluck
+  // A raw white-noise burst has a harsh, clicky attack — real fingertips/pick
+  // strikes don't excite a string with pure noise. Lightly smoothing the
+  // burst (a one-pole running average) softens that without touching pitch
+  // or decay, both governed entirely by the feedback loop below.
+  let prevNoise=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;line[i]=(w+prevNoise)*0.5;prevNoise=w;}
   let prev=line[n-1];
   for(let i=0;i<len;i++){
     const j=i%n;
@@ -1096,7 +1107,7 @@ function strumSelection(sel){
   for(let s=5;s>=0;s--){            // low E -> high e: a downstroke
     const v=sel[s];
     if(v==='x'||v==null)continue;
-    pluck(s,OPEN[s]+v,{when:t0+k*0.028,velocity:1-k*0.04});
+    pluck(s,OPEN[s]+v,{when:t0+k*0.065,velocity:1-k*0.04});
     k++;
   }
 }
@@ -2180,7 +2191,11 @@ function selectLeadDraftEvent(index){
 function toggleLeadNote(s,f){
   const sectionId=activeSection()?.id??null;
   if(leadSelectionSectionId!==sectionId){leadSelection.fill(null);leadSelectionSectionId=sectionId;}
-  leadSelection[s]=leadSelection[s]===f?null:f;
+  const deselecting=leadSelection[s]===f;
+  leadSelection[s]=deselecting?null:f;
+  // A deselected note must actually disappear, not fall back to the faint
+  // chord-reference ghost still sitting underneath it on that string.
+  if(deselecting&&soloChordReference&&soloChordReference[s]===f)soloChordReference[s]=null;
   if(leadSelection[s]===f)pluck(s,OPEN[s]+f);
   render();renderLead();
 }

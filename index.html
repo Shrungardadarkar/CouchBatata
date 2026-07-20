@@ -349,8 +349,9 @@
   .sound-toggle.muted{background:var(--tomato)}
   .sound-toggle.muted .sound-icon::after{transform:translateY(-50%) rotate(-45deg) scaleX(1)}
   .strum-icon .pick-body{fill:var(--ink)}
-  .strum-icon .skull-outline{fill:var(--cream);stroke:var(--ink);stroke-width:.6}
+  .strum-icon .skull-outline{fill:var(--cream)}
   .strum-icon .skull-mark{fill:var(--ink)}
+  .strum-btn:hover{background:var(--sun)}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -849,16 +850,15 @@
         </svg>
       </span>
     </button>
-    <button class="btn ghost sound-toggle" id="btnStrum" type="button"
+    <button class="btn sound-toggle strum-btn" id="btnStrum" type="button"
       aria-label="Strum the current shape" title="Strum the current shape">
       <svg class="strum-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
         <path class="pick-body" d="M6.1 5.5L17.9 5.5Q20 5.5 19.3 7.5L14.3 19.5Q13.3 22 12 22Q10.7 22 9.7 19.5L4.7 7.5Q4 5.5 6.1 5.5Z"/>
-        <g transform="translate(12,12.2) scale(0.72) translate(-12,-11.35)">
-          <path class="skull-outline" d="M12 4.2C7.2 4.2 4 7.4 4 11.7C4 15 6 17.2 9.5 17.6C9.7 18.3 10.3 18.5 10.8 18.1C11.2 18.5 12.8 18.5 13.2 18.1C13.7 18.5 14.3 18.3 14.5 17.6C18 17.2 20 15 20 11.7C20 7.4 16.8 4.2 12 4.2Z"/>
-          <ellipse class="skull-mark" cx="8.9" cy="10.6" rx="1.9" ry="2.3"/>
-          <ellipse class="skull-mark" cx="15.1" cy="10.6" rx="1.9" ry="2.3"/>
-          <path class="skull-mark" d="M12 12.5C11.5 12.5 11.1 12.9 11.3 13.4C11.5 13.8 11.8 14.1 12 14.3C12.2 14.1 12.5 13.8 12.7 13.4C12.9 12.9 12.5 12.5 12 12.5Z"/>
-          <path class="skull-mark" d="M9.7 16.9L14.3 16.9L14.3 17.4C14.3 17.4 13.6 17.7 13 17.4C13 17.4 12.5 17.7 12 17.4C12 17.4 11.5 17.7 11 17.4C11 17.4 10.4 17.7 9.7 17.4Z"/>
+        <g transform="translate(12,12.4) scale(0.62) translate(-12,-12)">
+          <path class="skull-outline" d="M12 0.3C16.5 0.4 19 1.2 19.8 2.4C21.5 4.5 22.6 5.7 23.1 7.2C23.6 8.7 23.95 10 23.95 12C23.95 14 23.7 15.3 23.4 16.8C23 18.7 21.8 19.7 20.2 20.4C18.5 21.1 17.3 21.3 16.1 21.8C14.9 22.3 13.2 23.3 12 23.7C10.8 23.3 9.1 22.3 7.9 21.8C6.7 21.3 5.5 21.1 3.8 20.4C2.2 19.7 1 18.7 0.6 16.8C0.3 15.3 0.05 14 0.05 12C0.05 10 0.4 8.7 0.9 7.2C1.4 5.7 2.5 4.5 4.2 2.4C5 1.2 7.5 0.4 12 0.3Z"/>
+          <ellipse class="skull-mark" cx="7.3" cy="12.98" rx="3.57" ry="4.85"/>
+          <ellipse class="skull-mark" cx="18.1" cy="14.1" rx="1.83" ry="3.65"/>
+          <path class="skull-mark" d="M12.7 17C13.8 18 14 18.8 13.5 19.1C13.1 19.4 12.3 19.4 11.9 19.1C11.4 18.8 11.6 18 12.7 17Z"/>
         </g>
       </svg>
     </button>

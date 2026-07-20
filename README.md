@@ -20,9 +20,6 @@ record it as a voice memo—but I had no simple way to document what I had
 actually played. Later, I would try to recreate it by ear, often unable to
 remember the chord shape, notes, or progression that made the idea work.
 
-I also realised I had become stuck. My original goal was to learn guitar, but
-the more important goal should have been to make music.
-
 Couch Batata grew from that gap. I wanted a simple place to tap the notes I was
 holding, figure out the chord, save the progression or arpeggio while the idea
 was fresh, and keep building the song. It is made for guitarists who play by

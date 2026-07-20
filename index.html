@@ -341,6 +341,8 @@
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
 
+  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem}
+
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
   .shape-nav .btn{display:grid;place-items:center;justify-self:center;width:42px;height:38px;padding:0;border-radius:9px;font-size:.82rem}
@@ -827,6 +829,8 @@
       <span class="acc-opt acc-sharp" aria-hidden="true">♯</span>
       <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
     </button>
+    <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
+      aria-label="Toggle pluck sound" title="Sound on — tap to mute">🔊</button>
   </div>
   <div class="board-wrap">
     <div class="board-outer">
@@ -870,6 +874,7 @@
   <div class="btn-row">
     <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
     <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
+    <button class="btn ghost" id="btnStrum" type="button" title="Hear the current shape">▶ Strum</button>
   </div>
   <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
     <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>
@@ -979,6 +984,93 @@ const escapeHtml=value=>String(value).replace(/[&<>"']/g,ch=>({
 
 const OPEN=[64,59,55,50,45,40];
 const STR_LABEL=['e','B','G','D','A','E'];
+
+/* ---------- sound (Karplus-Strong pluck synthesis) ----------
+   Runs entirely offline with no assets: each pitch is rendered once into an
+   AudioBuffer (noise burst decaying through a feedback low-pass, the classic
+   plucked-string trick) and cached by MIDI note for instant replay. */
+const SOUND_KEY='couch-batata.sound.v1';
+let soundOn=localStorage.getItem(SOUND_KEY)!=='off';
+let _actx=null,_master=null;
+const _pluckBufCache=new Map();       // midi -> AudioBuffer
+const _stringVoices=new Array(6).fill(null); // per-string active GainNode, for voice stealing
+
+function _audioCtx(){
+  if(!_actx){
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    _actx=new Ctx();
+    _master=_actx.createGain();
+    _master.gain.value=soundOn?0.9:0;
+    _master.connect(_actx.destination);
+  }
+  if(_actx.state==='suspended')_actx.resume();
+  return _actx;
+}
+
+function _pluckBuffer(ctx,midi){
+  if(_pluckBufCache.has(midi))return _pluckBufCache.get(midi);
+  const sr=ctx.sampleRate;
+  const freq=440*Math.pow(2,(midi-69)/12);
+  const n=Math.max(2,Math.round(sr/freq));       // delay-line length sets the pitch
+  const dur=Math.min(3.2,0.8+90/freq);           // low notes ring longer, like real strings
+  const len=Math.floor(sr*dur);
+  const buf=ctx.createBuffer(1,len,sr);
+  const out=buf.getChannelData(0);
+  const line=new Float32Array(n);
+  let prevNoise=0;
+  for(let i=0;i<n;i++){const w=Math.random()*2-1;line[i]=(w+prevNoise)*0.5;prevNoise=w;}
+  const decay=0.996;
+  let prev=line[n-1];
+  for(let i=0;i<len;i++){
+    const j=i%n;
+    const cur=line[j];
+    line[j]=decay*0.5*(cur+prev);
+    prev=cur;
+    out[i]=cur;
+  }
+  _pluckBufCache.set(midi,buf);
+  return buf;
+}
+
+function pluck(stringIndex,midi,when=0,velocity=1){
+  if(!soundOn)return;
+  const ctx=_audioCtx();
+  const t=Math.max(ctx.currentTime,when||ctx.currentTime);
+  const prevVoice=_stringVoices[stringIndex];
+  if(prevVoice)prevVoice.gain.setTargetAtTime(0,t,0.01); // re-fretting silences the old ring
+  const src=ctx.createBufferSource();
+  src.buffer=_pluckBuffer(ctx,midi);
+  const gain=ctx.createGain();
+  gain.gain.value=0.5*velocity;
+  src.connect(gain);gain.connect(_master);
+  src.start(t);
+  _stringVoices[stringIndex]=gain;
+}
+
+function strumSelection(sel){
+  if(!soundOn)return;
+  const ctx=_audioCtx();
+  const t0=ctx.currentTime+0.03;
+  let k=0;
+  for(let s=5;s>=0;s--){            // low E -> high e: a downstroke
+    const v=sel[s];
+    if(v==='x')continue;
+    pluck(s,OPEN[s]+v,t0+k*0.028,1-k*0.04);
+    k++;
+  }
+}
+
+function setSoundOn(on){
+  soundOn=on;
+  localStorage.setItem(SOUND_KEY,on?'on':'off');
+  if(_actx&&_master)_master.gain.setTargetAtTime(on?0.9:0,_actx.currentTime,0.01); // also silences any ringing tails
+  const btn=document.getElementById('btnSound');
+  if(btn){
+    btn.setAttribute('aria-pressed',String(on));
+    btn.textContent=on?'🔊':'🔇';
+    btn.title=on?'Sound on — tap to mute':'Sound off — tap to unmute';
+  }
+}
 
 const FORMULAS=[
  {suf:'',      iv:[0,4,7],        pr:10, mood:'bright, open, resolved'},
@@ -2076,6 +2168,7 @@ function toggleLeadNote(s,f){
   const sectionId=activeSection()?.id??null;
   if(leadSelectionSectionId!==sectionId){leadSelection.fill(null);leadSelectionSectionId=sectionId;}
   leadSelection[s]=leadSelection[s]===f?null:f;
+  if(leadSelection[s]===f)pluck(s,OPEN[s]+f);
   render();renderLead();
 }
 function saveLeadEvent(t){
@@ -2427,6 +2520,7 @@ board.addEventListener('click',e=>{
   // In Chord mode the nut is the one mute control. Fretted notes always stay
   // selected when tapped, which avoids accidentally clearing a string.
   selection[s]=f===0?(selection[s]==='x'?0:'x'):f;
+  if(selection[s]!=='x')pluck(s,OPEN[s]+selection[s]);
   analyze();
   if(wasActive)renderSong();
 });
@@ -2439,6 +2533,11 @@ document.getElementById('btnClear').addEventListener('click',()=>{
   const wasActive=activeChip!==null;activeChip=null;
   analyze();if(wasActive)renderSong();
 });
+
+document.getElementById('btnStrum').addEventListener('click',()=>strumSelection(selection));
+
+document.getElementById('btnSound').addEventListener('click',()=>setSoundOn(!soundOn));
+setSoundOn(soundOn);
 
 function setBoardMode(mode){
   if(mode!== 'chord'&&mode!== 'solo')return;

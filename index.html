@@ -396,10 +396,11 @@
   .section-transfer .transfer-cancel{border-color:transparent;background:transparent;box-shadow:none;color:var(--ink-faint)}
 
   /* toast → sticker popup */
-  #toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(16px) rotate(-2deg) scale(.9);
+  #toast{position:fixed;left:50%;top:max(16px,env(safe-area-inset-top));bottom:auto;transform:translateX(-50%) translateY(-16px) rotate(-2deg) scale(.9);
     background:var(--sun);color:var(--ink);font-weight:900;font-size:.88rem;
     padding:11px 20px;border:2.5px solid var(--ink);border-radius:10px;box-shadow:var(--shadow);
-    opacity:0;pointer-events:none;transition:opacity .22s,transform .32s var(--ease-out-back);z-index:50}
+    max-width:min(90vw,420px);text-align:center;
+    opacity:0;pointer-events:none;transition:opacity .22s,transform .32s var(--ease-out-back);z-index:95}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0) rotate(-1.5deg) scale(1)}
 
   .install-card,.update-card{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));z-index:90;
@@ -755,7 +756,7 @@
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
     .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover{transform:none !important}
     .mascot:hover{animation:none !important}
-    #toast{transform:translateX(-50%) translateY(12px) !important}
+    #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     .modal-dialog{transform:none !important}
     .help-fab:hover,.help-close:hover{transform:none !important}

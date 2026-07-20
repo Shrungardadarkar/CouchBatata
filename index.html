@@ -341,6 +341,12 @@
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
   .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem}
+  .sound-toggle .sound-icon{position:relative;display:inline-block;font-size:1.2rem;line-height:1;color:var(--mint-dk);transition:color .15s}
+  .sound-toggle .sound-icon::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:2.5px;
+    background:var(--ink);border-radius:2px;transform-origin:center;
+    transform:translateY(-50%) rotate(-45deg) scaleX(0);transition:transform .18s var(--ease-spring)}
+  .sound-toggle.muted .sound-icon{color:var(--tomato)}
+  .sound-toggle.muted .sound-icon::after{transform:translateY(-50%) rotate(-45deg) scaleX(1)}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -830,7 +836,7 @@
       <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
     </button>
     <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
-      aria-label="Toggle pluck sound" title="Sound on — tap to mute">🔊</button>
+      aria-label="Toggle pluck sound" title="Sound on — tap to mute"><span class="sound-icon" aria-hidden="true">♪</span></button>
   </div>
   <div class="board-wrap">
     <div class="board-outer">
@@ -1003,13 +1009,18 @@ function audioCtx(){
     _actx=new Ctx();
     _master=_actx.createGain();
     _master.gain.value=soundOn?0.85:0;
+    // A gentle overall lowpass is most of what separates a warm, classical
+    // nylon-string tone from a bright steel-string one — rolling off the top
+    // end here warms every voice at once instead of re-tuning each pluck.
+    const warmth=_actx.createBiquadFilter();
+    warmth.type='lowpass';warmth.frequency.value=3200;warmth.Q.value=0.6;
     // Up to 6 plucked strings can sum past 1.0 with no limiter — a full
     // strummed chord would clip and sound harsh/distorted. A compressor on
     // the shared bus keeps chords glued together instead of crackling.
     const limiter=_actx.createDynamicsCompressor();
     limiter.threshold.value=-16;limiter.knee.value=18;limiter.ratio.value=8;
     limiter.attack.value=0.003;limiter.release.value=0.16;
-    _master.connect(limiter).connect(_actx.destination);
+    _master.connect(warmth).connect(limiter).connect(_actx.destination);
   }
   if(_actx.state==='suspended')_actx.resume();
   return _actx;
@@ -1030,12 +1041,15 @@ function pluckBuffer(ctx,midi){
   const buf=ctx.createBuffer(1,len,sr);
   const out=buf.getChannelData(0);
   const line=new Float32Array(n);
-  // A raw white-noise burst has a harsh, clicky attack — real fingertips/pick
-  // strikes don't excite a string with pure noise. Lightly smoothing the
-  // burst (a one-pole running average) softens that without touching pitch
-  // or decay, both governed entirely by the feedback loop below.
+  // A raw white-noise burst has a harsh, clicky attack — real fingertips
+  // strike a nylon string far more softly than a pick hits steel. Smoothing
+  // the burst twice (two passes of a one-pole running average) rounds off
+  // that transient into something closer to a fingerstyle pluck, without
+  // touching pitch or decay — both are entirely the feedback loop's job.
   let prevNoise=0;
   for(let i=0;i<n;i++){const w=Math.random()*2-1;line[i]=(w+prevNoise)*0.5;prevNoise=w;}
+  let prevNoise2=line[n-1];
+  for(let i=0;i<n;i++){const w=line[i];line[i]=(w+prevNoise2)*0.5;prevNoise2=w;}
   let prev=line[n-1];
   for(let i=0;i<len;i++){
     const j=i%n;
@@ -1052,7 +1066,11 @@ function pluckBuffer(ctx,midi){
 // fadeInMs (soften the attack for legato hammer-on/pull-off), vibrato:{depthCents,rateHz}
 function pluck(stringIndex,midi,opts={}){
   if(!soundOn)return null;
-  const {when=0,velocity=1,detuneFromCents=0,detuneToCents=detuneFromCents,rampMs=0,fadeInMs=0,vibrato=null}=opts;
+  // A tiny default fade-in (imperceptible as latency, well under a real
+  // pick/finger attack) removes the instant-step discontinuity a hard
+  // gain jump leaves at the very start of every pluck — one more small
+  // contributor to a softer, less digital-sounding attack.
+  const {when=0,velocity=1,detuneFromCents=0,detuneToCents=detuneFromCents,rampMs=0,fadeInMs=4,vibrato=null}=opts;
   const ctx=audioCtx();
   const t=Math.max(ctx.currentTime,when||ctx.currentTime);
   const prevVoice=_stringVoices[stringIndex];
@@ -1107,7 +1125,7 @@ function strumSelection(sel){
   for(let s=5;s>=0;s--){            // low E -> high e: a downstroke
     const v=sel[s];
     if(v==='x'||v==null)continue;
-    pluck(s,OPEN[s]+v,{when:t0+k*0.065,velocity:1-k*0.04});
+    pluck(s,OPEN[s]+v,{when:t0+k*0.075,velocity:1-k*0.04});
     k++;
   }
 }
@@ -1127,7 +1145,7 @@ function setSoundOn(on){
   const btn=document.getElementById('btnSound');
   if(btn){
     btn.setAttribute('aria-pressed',String(on));
-    btn.textContent=on?'🔊':'🔇';
+    btn.classList.toggle('muted',!on);
     btn.title=on?'Sound on — tap to mute':'Sound off — tap to unmute';
   }
 }
@@ -2226,7 +2244,7 @@ function playLeadConnectionPreview(sourceByString,technique,links,destinationNot
   const linkedSet=new Set(links);
   const legato=technique==='h'||technique==='p';
   const rampMs=legato?90:180;
-  const fadeInMs=legato?18:0;
+  const fadeInMs=legato?18:4; // slide still keeps a pick-like onset, just not a hard digital step
   destinationNotes.forEach(({s,f})=>{
     const midi=OPEN[s]+f;
     if(linkedSet.has(s)){

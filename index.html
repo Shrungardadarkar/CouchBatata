@@ -340,13 +340,17 @@
   .btn.primary:hover{background:var(--gold)}
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
-  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem}
-  .sound-toggle .sound-icon{position:relative;display:inline-block;font-size:1.2rem;line-height:1;color:var(--mint-dk);transition:color .15s}
-  .sound-toggle .sound-icon::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:2.5px;
+  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem;transition:background .15s}
+  .sound-toggle .sound-icon{position:relative;display:inline-block;width:20px;height:20px}
+  .sound-toggle .note-mark{fill:var(--ink)}
+  .sound-toggle .sound-icon::after{content:'';position:absolute;left:-3px;right:-3px;top:50%;height:3.5px;
     background:var(--ink);border-radius:2px;transform-origin:center;
     transform:translateY(-50%) rotate(-45deg) scaleX(0);transition:transform .18s var(--ease-spring)}
-  .sound-toggle.muted .sound-icon{color:var(--tomato)}
+  .sound-toggle.muted{background:var(--tomato)}
   .sound-toggle.muted .sound-icon::after{transform:translateY(-50%) rotate(-45deg) scaleX(1)}
+  .strum-icon .pick-body{fill:var(--ink)}
+  .strum-icon .skull-outline{fill:var(--cream);stroke:var(--ink);stroke-width:.6}
+  .strum-icon .skull-mark{fill:var(--ink)}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -836,7 +840,28 @@
       <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
     </button>
     <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
-      aria-label="Toggle pluck sound" title="Sound on — tap to mute"><span class="sound-icon" aria-hidden="true">♪</span></button>
+      aria-label="Toggle pluck sound" title="Sound on — tap to mute">
+      <span class="sound-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <ellipse class="note-mark" cx="8.6" cy="17.6" rx="4.3" ry="3.5"/>
+          <rect class="note-mark" x="11.7" y="3.2" width="2.8" height="14.6" rx="1.2"/>
+          <path class="note-mark" d="M14.5 3.2C19.2 3.8 20.6 8 18.6 11.2C17.4 8.8 15.8 7.2 14.5 6.4Z"/>
+        </svg>
+      </span>
+    </button>
+    <button class="btn ghost sound-toggle" id="btnStrum" type="button"
+      aria-label="Strum the current shape" title="Strum the current shape">
+      <svg class="strum-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path class="pick-body" d="M6.1 5.5L17.9 5.5Q20 5.5 19.3 7.5L14.3 19.5Q13.3 22 12 22Q10.7 22 9.7 19.5L4.7 7.5Q4 5.5 6.1 5.5Z"/>
+        <g transform="translate(12,12.2) scale(0.72) translate(-12,-11.35)">
+          <path class="skull-outline" d="M12 4.2C7.2 4.2 4 7.4 4 11.7C4 15 6 17.2 9.5 17.6C9.7 18.3 10.3 18.5 10.8 18.1C11.2 18.5 12.8 18.5 13.2 18.1C13.7 18.5 14.3 18.3 14.5 17.6C18 17.2 20 15 20 11.7C20 7.4 16.8 4.2 12 4.2Z"/>
+          <ellipse class="skull-mark" cx="8.9" cy="10.6" rx="1.9" ry="2.3"/>
+          <ellipse class="skull-mark" cx="15.1" cy="10.6" rx="1.9" ry="2.3"/>
+          <path class="skull-mark" d="M12 12.5C11.5 12.5 11.1 12.9 11.3 13.4C11.5 13.8 11.8 14.1 12 14.3C12.2 14.1 12.5 13.8 12.7 13.4C12.9 12.9 12.5 12.5 12 12.5Z"/>
+          <path class="skull-mark" d="M9.7 16.9L14.3 16.9L14.3 17.4C14.3 17.4 13.6 17.7 13 17.4C13 17.4 12.5 17.7 12 17.4C12 17.4 11.5 17.7 11 17.4C11 17.4 10.4 17.7 9.7 17.4Z"/>
+        </g>
+      </svg>
+    </button>
   </div>
   <div class="board-wrap">
     <div class="board-outer">
@@ -878,7 +903,6 @@
   <div class="btn-row">
     <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
     <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
-    <button class="btn ghost" id="btnStrum" type="button" title="Hear the current shape">▶ Strum</button>
   </div>
   <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
     <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>

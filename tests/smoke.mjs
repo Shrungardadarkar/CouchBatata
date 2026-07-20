@@ -145,6 +145,7 @@ assert.match(manifest.description, /Catch the chord\. Keep the song\./);
 assert.match(manifest.description, /A tab builder for singer-songwriters\./);
 assert.match(html, /<title>Couch Batata — For the songs that you almost wrote\.<\/title>/);
 assert.match(html, /For the songs that you almost wrote\./);
+assert.match(html, /og\.png\?v=20260720/);
 assert.match(html, /made with Couch Batata — Catch the chord\. Keep the song\. https:\/\/shrungardadarkar\.github\.io\/CouchBatata\//);
 assert.equal(manifest.icons.length, 3);
 assert.ok(manifest.icons.some(icon => icon.purpose === "maskable"));

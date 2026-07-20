@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-20 — Fresh social previews
+
+- Versioned the social-card image URL so WhatsApp, LinkedIn, and other preview
+  crawlers can retrieve the refreshed card rather than reusing the prior image.
+
 ## 2026-07-20 — Explicit product description
 
 - Kept the emotional headline as the title and made **“A tab builder for

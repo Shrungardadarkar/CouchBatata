@@ -137,6 +137,14 @@ assert.match(html, /const \[moved\]=sections\.splice\(drag\.sourceIdx,1\);[\s\S]
 assert.match(html, /fretwork\.song\.v1/);
 assert.match(html, /Back up project \(\.json\)/);
 assert.match(html, /@media \(pointer:coarse\)/);
+assert.match(html, /id="btnSound"/);
+assert.match(html, /id="btnStrum"/);
+assert.match(html, /function pluckBuffer\(ctx,midi\)/);
+assert.match(html, /function pluck\(stringIndex,midi,opts=\{\}\)/);
+assert.match(html, /function strumSelection\(sel\)/);
+assert.match(html, /function playLeadEventPreview\(event\)/);
+assert.match(html, /function playLeadConnectionPreview\(sourceByString,technique,links,destinationNotes\)/);
+assert.doesNotMatch(html, /<audio\b|new Audio\(/, "Sound must be synthesized, not loaded from audio assets");
 assert.equal(manifest.start_url, "./index.html");
 assert.equal(manifest.scope, "./");
 assert.equal(manifest.display, "standalone");

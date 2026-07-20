@@ -340,6 +340,7 @@
   .btn.primary:hover{background:var(--gold)}
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
+  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -828,6 +829,8 @@
       <span class="acc-opt acc-sharp" aria-hidden="true">♯</span>
       <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
     </button>
+    <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
+      aria-label="Toggle pluck sound" title="Sound on — tap to mute">🔊</button>
   </div>
   <div class="board-wrap">
     <div class="board-outer">
@@ -869,6 +872,7 @@
   <div class="btn-row">
     <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
     <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
+    <button class="btn ghost" id="btnStrum" type="button" title="Hear the current shape">▶ Strum</button>
   </div>
   <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
     <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>
@@ -978,6 +982,144 @@ const escapeHtml=value=>String(value).replace(/[&<>"']/g,ch=>({
 
 const OPEN=[64,59,55,50,45,40];
 const STR_LABEL=['e','B','G','D','A','E'];
+
+/* ---------- sound: offline Karplus-Strong plucked-string synthesis ----------
+   One noise burst circulated through a decaying feedback delay line renders
+   each pitch once; the AudioBuffer is cached by MIDI note and replayed with
+   AudioBufferSourceNode. No assets, no dependency — just Web Audio.
+   Bend/release/vibrato/hammer-on/pull-off/slide are approximated by
+   automating BufferSourceNode.detune around the already-rendered buffer
+   rather than re-synthesizing per gesture — accurate enough for a short
+   preview pluck, and it keeps the whole engine to one code path. */
+const SOUND_KEY='couch-batata.sound.v1';
+let soundOn=localStorage.getItem(SOUND_KEY)!=='off';
+let _actx=null,_master=null;
+const _pluckCache=new Map();                  // midi -> AudioBuffer
+const _stringVoices=new Array(6).fill(null);  // per-string active GainNode, for voice-stealing
+
+function audioCtx(){
+  if(!_actx){
+    const Ctx=window.AudioContext||window.webkitAudioContext;
+    _actx=new Ctx();
+    _master=_actx.createGain();
+    _master.gain.value=soundOn?0.85:0;
+    _master.connect(_actx.destination);
+  }
+  if(_actx.state==='suspended')_actx.resume();
+  return _actx;
+}
+const midiToFreq=midi=>440*Math.pow(2,(midi-69)/12);
+
+function pluckBuffer(ctx,midi){
+  if(_pluckCache.has(midi))return _pluckCache.get(midi);
+  const sr=ctx.sampleRate;
+  const freq=midiToFreq(midi);
+  const n=Math.max(2,Math.round(sr/freq));      // delay-line length sets the pitch
+  const dur=Math.min(3,0.6+70/freq);            // low notes ring longer, like real strings
+  // Real strings damp faster at higher pitch — scale the loop filter's decay
+  // by frequency instead of using one constant for every note.
+  const t=Math.min(1,Math.max(0,(freq-80)/520));
+  const decay=0.997-0.008*t;
+  const len=Math.floor(sr*dur);
+  const buf=ctx.createBuffer(1,len,sr);
+  const out=buf.getChannelData(0);
+  const line=new Float32Array(n);
+  for(let i=0;i<n;i++)line[i]=Math.random()*2-1;   // bipolar noise burst = the pluck
+  let prev=line[n-1];
+  for(let i=0;i<len;i++){
+    const j=i%n;
+    const cur=line[j];
+    line[j]=decay*0.5*(cur+prev);                  // averaging + decay = the string's feedback loop
+    prev=cur;
+    out[i]=cur;
+  }
+  _pluckCache.set(midi,buf);
+  return buf;
+}
+
+// opts: when, velocity, detuneFromCents, detuneToCents, rampMs (bend/release/hammer/pull/slide),
+// fadeInMs (soften the attack for legato hammer-on/pull-off), vibrato:{depthCents,rateHz}
+function pluck(stringIndex,midi,opts={}){
+  if(!soundOn)return null;
+  const {when=0,velocity=1,detuneFromCents=0,detuneToCents=detuneFromCents,rampMs=0,fadeInMs=0,vibrato=null}=opts;
+  const ctx=audioCtx();
+  const t=Math.max(ctx.currentTime,when||ctx.currentTime);
+  const prevVoice=_stringVoices[stringIndex];
+  if(prevVoice)prevVoice.gain.setTargetAtTime(0,t,0.01); // re-fretting/re-triggering silences the old ring
+  const buffer=pluckBuffer(ctx,midi);
+  const src=ctx.createBufferSource();
+  src.buffer=buffer;
+  src.detune.setValueAtTime(detuneFromCents,t);
+  if(rampMs>0)src.detune.linearRampToValueAtTime(detuneToCents,t+rampMs/1000);
+  if(vibrato){
+    const lfo=ctx.createOscillator();lfo.type='sine';lfo.frequency.value=vibrato.rateHz??5.5;
+    const depth=ctx.createGain();depth.gain.value=vibrato.depthCents??25;
+    lfo.connect(depth).connect(src.detune);
+    lfo.start(t);lfo.stop(t+buffer.duration);
+  }
+  const gain=ctx.createGain();
+  if(fadeInMs>0){
+    gain.gain.setValueAtTime(0.0001,t);
+    gain.gain.linearRampToValueAtTime(0.5*velocity,t+fadeInMs/1000);
+  }else{
+    gain.gain.setValueAtTime(0.5*velocity,t);
+  }
+  src.connect(gain);gain.connect(_master);
+  src.start(t);
+  _stringVoices[stringIndex]=gain;
+  return t;
+}
+
+// A muted/"x" hit: percussive, heavily damped, no clear ring — reuses the
+// same buffer engine with a fast forced decay instead of a separate voice.
+function mutedClick(stringIndex,midi,when=0){
+  if(!soundOn)return;
+  const ctx=audioCtx();
+  const t=Math.max(ctx.currentTime,when||ctx.currentTime);
+  const prevVoice=_stringVoices[stringIndex];
+  if(prevVoice)prevVoice.gain.setTargetAtTime(0,t,0.01);
+  const src=ctx.createBufferSource();
+  src.buffer=pluckBuffer(ctx,midi);
+  const gain=ctx.createGain();
+  gain.gain.setValueAtTime(0.35,t);
+  gain.gain.exponentialRampToValueAtTime(0.001,t+0.06);
+  src.connect(gain);gain.connect(_master);
+  src.start(t);src.stop(t+0.09);
+  _stringVoices[stringIndex]=gain;
+}
+
+function strumSelection(sel){
+  if(!soundOn)return;
+  const ctx=audioCtx();
+  const t0=ctx.currentTime+0.03;
+  let k=0;
+  for(let s=5;s>=0;s--){            // low E -> high e: a downstroke
+    const v=sel[s];
+    if(v==='x'||v==null)continue;
+    pluck(s,OPEN[s]+v,{when:t0+k*0.028,velocity:1-k*0.04});
+    k++;
+  }
+}
+
+// Shared debounce so rapid chip-flicking or arrow-key shape browsing only
+// strums the selection you land on, not every intermediate step.
+let _autoStrumTimer=null;
+function autoStrumSelection(sel){
+  clearTimeout(_autoStrumTimer);
+  _autoStrumTimer=setTimeout(()=>strumSelection(sel),90);
+}
+
+function setSoundOn(on){
+  soundOn=on;
+  localStorage.setItem(SOUND_KEY,on?'on':'off');
+  if(_actx&&_master)_master.gain.setTargetAtTime(on?0.85:0,_actx.currentTime,0.01); // also silences any ringing tails
+  const btn=document.getElementById('btnSound');
+  if(btn){
+    btn.setAttribute('aria-pressed',String(on));
+    btn.textContent=on?'🔊':'🔇';
+    btn.title=on?'Sound on — tap to mute':'Sound off — tap to unmute';
+  }
+}
 
 const FORMULAS=[
  {suf:'',      iv:[0,4,7],        pr:10, mood:'bright, open, resolved'},
@@ -1517,10 +1659,6 @@ chordSuggestionRow.addEventListener('keydown',event=>{
 });
 chordScrollPrevBtn.addEventListener('click',()=>scrollChordSuggestions(-1));
 chordScrollNextBtn.addEventListener('click',()=>scrollChordSuggestions(1));
-window.addEventListener('resize',()=>{
-  clearTimeout(paginateChordSuggestions.resizeTimer);
-  paginateChordSuggestions.resizeTimer=setTimeout(()=>{if(boardMode==='chord')paginateChordSuggestions();},120);
-});
 function loadSuggestedChord(item){
   const shape=Array.isArray(item.frets)?{frets:item.frets}:playableSuggestion(item.root,item.suf);
   if(!shape){flash('No playable shape found for '+pcName(item.root)+item.suf);return;}
@@ -1528,6 +1666,7 @@ function loadSuggestedChord(item){
   chordBoardTouched=true;
   activeChip=null;exitShapes();
   analyze();
+  autoStrumSelection(selection);
   flash('Loaded '+pcName(item.root)+item.suf+' — edit any note, then add it when ready');
 }
 
@@ -2042,8 +2181,48 @@ function toggleLeadNote(s,f){
   const sectionId=activeSection()?.id??null;
   if(leadSelectionSectionId!==sectionId){leadSelection.fill(null);leadSelectionSectionId=sectionId;}
   leadSelection[s]=leadSelection[s]===f?null:f;
+  if(leadSelection[s]===f)pluck(s,OPEN[s]+f);
   render();renderLead();
 }
+// Plays a just-saved solo event the way its technique tag implies. Bend/
+// release/vibrato/mute carry no source pitch in this data model (they're
+// flat single-note tags), so bend/release use a fixed default interval —
+// an honest approximation, not a physical model.
+function playLeadEventPreview(event){
+  if(!soundOn||!event||!event.notes||!event.notes.length)return;
+  const t0=audioCtx().currentTime+0.02;
+  event.notes.forEach(({s,f})=>{
+    const midi=OPEN[s]+f;
+    if(event.t==='b')pluck(s,midi,{when:t0,detuneFromCents:0,detuneToCents:200,rampMs:140});
+    else if(event.t==='r')pluck(s,midi,{when:t0,detuneFromCents:200,detuneToCents:0,rampMs:140});
+    else if(event.t==='~')pluck(s,midi,{when:t0,vibrato:{depthCents:25,rateHz:5.5}});
+    else if(event.t==='x')mutedClick(s,midi,t0);
+    else pluck(s,midi,{when:t0});
+  });
+}
+
+// Hammer-on/pull-off/slide DO carry real source and destination frets
+// (that's what "linked" means here), so these get an exact-interval ramp
+// instead of a guessed default — legato techniques (h/p) also get a
+// softened attack, since there's no fresh pick strike on the real gesture.
+function playLeadConnectionPreview(sourceByString,technique,links,destinationNotes){
+  if(!soundOn)return;
+  const t0=audioCtx().currentTime+0.02;
+  const linkedSet=new Set(links);
+  const legato=technique==='h'||technique==='p';
+  const rampMs=legato?90:180;
+  const fadeInMs=legato?18:0;
+  destinationNotes.forEach(({s,f})=>{
+    const midi=OPEN[s]+f;
+    if(linkedSet.has(s)){
+      const fromCents=(sourceByString.get(s).f-f)*100;
+      pluck(s,midi,{when:t0,detuneFromCents:fromCents,detuneToCents:0,rampMs,fadeInMs,velocity:legato?0.75:1});
+    }else{
+      pluck(s,midi,{when:t0});
+    }
+  });
+}
+
 function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
@@ -2057,6 +2236,7 @@ function saveLeadEvent(t){
     _popLeadDraftIndex=leadDraft.length-1;
   }
   const saved=leadDraft[_popLeadDraftIndex];
+  playLeadEventPreview(saved);
   const message=editing?'Updated solo event':'Added '+leadEventLabel(saved)+' to the draft';
   leadDraftEditIndex=null;
   // The chosen chord is a one-shot starting point for this Solo event. Once
@@ -2120,6 +2300,7 @@ function commitLeadConnection(){
     const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
     leadDraft.push(source,target);_popLeadDraftIndex=leadDraft.length-1;
   }
+  playLeadConnectionPreview(sourceByString,technique,links,destination);
   leadTechniquePending=null;leadDraftEditIndex=null;
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
   renderSong();render();renderLead();
@@ -2393,6 +2574,7 @@ board.addEventListener('click',e=>{
   // In Chord mode the nut is the one mute control. Fretted notes always stay
   // selected when tapped, which avoids accidentally clearing a string.
   selection[s]=f===0?(selection[s]==='x'?0:'x'):f;
+  if(selection[s]!=='x')pluck(s,OPEN[s]+selection[s]);
   analyze();
   if(wasActive)renderSong();
 });
@@ -2405,6 +2587,10 @@ document.getElementById('btnClear').addEventListener('click',()=>{
   const wasActive=activeChip!==null;activeChip=null;
   analyze();if(wasActive)renderSong();
 });
+
+document.getElementById('btnStrum').addEventListener('click',()=>strumSelection(selection));
+document.getElementById('btnSound').addEventListener('click',()=>setSoundOn(!soundOn));
+setSoundOn(soundOn);
 
 function setBoardMode(mode){
   if(mode!== 'chord'&&mode!== 'solo')return;
@@ -2523,6 +2709,7 @@ function loadShape(direction=0){
       }
     }
   }
+  autoStrumSelection(selection);
 }
 document.getElementById('btnPrevShape').addEventListener('click',()=>{
   if(!current)return;

@@ -340,12 +340,13 @@
   .btn.primary:hover{background:var(--gold)}
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
-  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem}
-  .sound-toggle .sound-icon{position:relative;display:inline-block;font-size:1.2rem;line-height:1;color:var(--mint-dk);transition:color .15s}
-  .sound-toggle .sound-icon::after{content:'';position:absolute;left:-4px;right:-4px;top:50%;height:2.5px;
+  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem;transition:background .15s}
+  .sound-toggle .sound-icon{position:relative;display:inline-block;width:20px;height:20px}
+  .sound-toggle .note-mark{fill:var(--ink)}
+  .sound-toggle .sound-icon::after{content:'';position:absolute;left:-3px;right:-3px;top:50%;height:3.5px;
     background:var(--ink);border-radius:2px;transform-origin:center;
     transform:translateY(-50%) rotate(-45deg) scaleX(0);transition:transform .18s var(--ease-spring)}
-  .sound-toggle.muted .sound-icon{color:var(--tomato)}
+  .sound-toggle.muted{background:var(--tomato)}
   .sound-toggle.muted .sound-icon::after{transform:translateY(-50%) rotate(-45deg) scaleX(1)}
   .strum-icon .pick-body{fill:var(--ink)}
   .strum-icon .skull-outline{fill:var(--cream);stroke:var(--ink);stroke-width:.6}
@@ -839,7 +840,15 @@
       <span class="acc-opt acc-flat" aria-hidden="true">♭</span>
     </button>
     <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
-      aria-label="Toggle pluck sound" title="Sound on — tap to mute"><span class="sound-icon" aria-hidden="true">♪</span></button>
+      aria-label="Toggle pluck sound" title="Sound on — tap to mute">
+      <span class="sound-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <ellipse class="note-mark" cx="8.6" cy="17.6" rx="4.3" ry="3.5"/>
+          <rect class="note-mark" x="11.7" y="3.2" width="2.8" height="14.6" rx="1.2"/>
+          <path class="note-mark" d="M14.5 3.2C19.2 3.8 20.6 8 18.6 11.2C17.4 8.8 15.8 7.2 14.5 6.4Z"/>
+        </svg>
+      </span>
+    </button>
     <button class="btn ghost sound-toggle" id="btnStrum" type="button"
       aria-label="Strum the current shape" title="Strum the current shape">
       <svg class="strum-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">

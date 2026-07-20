@@ -340,15 +340,31 @@
   .btn.primary:hover{background:var(--gold)}
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
-  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:40px;height:36px;padding:0;font-size:1rem;transition:background .15s}
-  .sound-toggle .sound-icon{position:relative;display:inline-block;width:20px;height:20px}
+  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:44px;height:40px;padding:0;font-size:1rem;transition:background .15s}
+  .sound-toggle .sound-icon{position:relative;display:inline-block;width:31px;height:31px}
   .sound-toggle .note-mark{fill:var(--ink)}
-  .sound-toggle .note-off-mark{display:none}
-  .sound-toggle.muted .note-on-mark{display:none}
-  .sound-toggle.muted .note-off-mark{display:block}
+  .sound-icon .note-on-mark,.sound-icon .note-off-mark{
+    transform-box:fill-box;transform-origin:center;
+    transition:opacity .22s var(--ease-spring),transform .22s var(--ease-spring)}
+  .sound-icon .note-off-mark{opacity:0;transform:scale(.4) rotate(30deg);pointer-events:none}
+  .sound-toggle.muted .note-on-mark{opacity:0;transform:scale(.4) rotate(-30deg)}
+  .sound-toggle.muted .note-off-mark{opacity:1;transform:scale(1) rotate(0deg)}
   .sound-toggle.muted{background:var(--tomato)}
   .strum-icon .skull-outline{fill:var(--ink)}
   .strum-icon .skull-mark{fill:var(--cream)}
+  @keyframes bobblehead{
+    0%{transform:rotate(0deg) scale(1)}
+    8%{transform:rotate(-9deg) scale(1.04)}
+    20%{transform:rotate(8deg) scale(1.03)}
+    33%{transform:rotate(-6deg) scale(1.02)}
+    47%{transform:rotate(5deg) scale(1.015)}
+    61%{transform:rotate(-3deg) scale(1.01)}
+    76%{transform:rotate(2deg) scale(1.005)}
+    90%{transform:rotate(-1deg) scale(1)}
+    100%{transform:rotate(0deg) scale(1)}
+  }
+  .strum-btn .strum-icon{transform-box:fill-box;transform-origin:50% 88%}
+  .strum-btn.ringing .strum-icon{animation:bobblehead 1.9s ease-in-out}
   .strum-btn:hover{background:var(--sun)}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
@@ -762,7 +778,8 @@
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
     .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
-    #toast,.modal-dialog,.help-fab,.help-panel,.help-close{transition-duration:.12s !important;transition-timing-function:ease !important}
+    #toast,.modal-dialog,.help-fab,.help-panel,.help-close,
+    .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
     .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover{transform:none !important}
     .mascot:hover{animation:none !important}
@@ -770,6 +787,10 @@
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     .modal-dialog{transform:none !important}
     .help-fab:hover,.help-close:hover{transform:none !important}
+    .sound-icon .note-off-mark{transform:none !important}
+    .sound-toggle.muted .note-on-mark{transform:none !important}
+    .sound-toggle.muted .note-off-mark{transform:none !important}
+    .strum-btn .strum-icon{animation:none !important}
   }
 </style>
 
@@ -841,7 +862,7 @@
     <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
       aria-label="Toggle pluck sound" title="Sound on — tap to mute">
       <span class="sound-icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="20" height="20">
+        <svg viewBox="0 0 24 24" width="31" height="31">
           <g class="note-on-mark">
             <path class="note-mark" transform="translate(12,12) scale(1.11) translate(-6.005,-9.005)" d="M 1.179688 16.828125 C 0.398438 16.050781 0 15.101562 0 14 C 0 12.898438 0.390625 11.960938 1.179688 11.171875 C 1.960938 10.390625 2.910156 9.988281 4.011719 9.988281 C 4.390625 9.988281 4.75 10.039062 5.070312 10.128906 C 5.390625 10.21875 5.710938 10.359375 6.011719 10.539062 L 6.011719 0 L 12.011719 0 L 12.011719 4 L 8.011719 4 L 8.011719 14 C 8.011719 15.101562 7.621094 16.039062 6.832031 16.828125 C 6.050781 17.609375 5.101562 18.011719 4 18.011719 C 2.898438 18.011719 1.960938 17.621094 1.167969 16.828125 L 1.179688 16.828125 "/>
           </g>
@@ -853,7 +874,7 @@
     </button>
     <button class="btn sound-toggle strum-btn" id="btnStrum" type="button"
       aria-label="Strum the current shape" title="Strum the current shape">
-      <svg class="strum-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <svg class="strum-icon" viewBox="0 0 24 24" width="33" height="33" aria-hidden="true">
         <g transform="translate(12,12) scale(0.161) translate(-59.75,-52.85)">
           <path class="skull-outline" d="M 68.929688 107.898438 C 67.121094 108.941406 64.75 108.820312 62.988281 107.710938 C 61.21875 106.660156 60.171875 104.398438 59.179688 103.691406 C 58.191406 102.96875 57.421875 103.550781 56.328125 104.300781 C 53.269531 107.128906 47.921875 107.660156 45.910156 103.421875 C 44.191406 99.199219 46.699219 95.078125 39.980469 95.359375 C 24.75 95.75 11.449219 94.300781 4.300781 78.960938 C 1.5 72.890625 0.75 66.171875 0.28125 59.628906 C -2.289062 31.308594 12.960938 4.96875 41.929688 1.019531 C 71.730469 -3.21875 106.101562 5.238281 116.730469 36.28125 C 120.398438 47.308594 121.800781 59.589844 119.539062 71.089844 C 117.410156 80.519531 110.910156 89.308594 101.429688 91.980469 C 98.960938 92.660156 96.378906 92.960938 93.808594 93.058594 C 91.058594 93.199219 87.878906 92.808594 86.699219 93.808594 C 86.089844 94.269531 85.929688 95 85.921875 95.761719 C 85.960938 97.640625 86.621094 99.761719 86.230469 101.671875 C 85.820312 104.859375 82.738281 107.058594 79.621094 106.46875 C 77.410156 106.199219 75.460938 104.28125 74.171875 103.921875 C 73.191406 103.570312 72.441406 104.25 71.828125 104.988281 C 71.050781 105.941406 70.179688 107.179688 69.058594 107.820312 L 68.910156 107.910156 Z"/>
           <path class="skull-mark" d="M 88.371094 79.238281 C 94.558594 82.898438 101.148438 79.019531 102.78125 72.421875 C 105.269531 63.890625 102.679688 53.558594 95.539062 48.871094 C 82.238281 41.421875 78.328125 59.890625 81.171875 69.398438 C 82.269531 73.398438 84.601562 77 88.210938 79.140625 L 88.378906 79.238281 Z"/>
@@ -2645,7 +2666,16 @@ document.getElementById('btnClear').addEventListener('click',()=>{
   analyze();if(wasActive)renderSong();
 });
 
-document.getElementById('btnStrum').addEventListener('click',()=>strumSelection(selection));
+const btnStrumEl=document.getElementById('btnStrum');
+btnStrumEl.addEventListener('click',()=>{
+  strumSelection(selection);
+  btnStrumEl.classList.remove('ringing');
+  void btnStrumEl.offsetWidth;
+  btnStrumEl.classList.add('ringing');
+});
+btnStrumEl.addEventListener('animationend',e=>{
+  if(e.animationName==='bobblehead')btnStrumEl.classList.remove('ringing');
+});
 document.getElementById('btnSound').addEventListener('click',()=>setSoundOn(!soundOn));
 setSoundOn(soundOn);
 

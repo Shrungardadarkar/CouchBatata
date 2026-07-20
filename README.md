@@ -10,7 +10,12 @@ does not require an account.
 
 ## Why I built Couch Batata
 
-I have played guitar on and off for years. Whenever an idea came to me, I would
+I have played guitar on and off for years with the intent to learn the instrument.
+I learnt chords for songs but was never able to remember them. It wasn't going anywhere.
+Then my goal shifted from learning guitar (which I still suck at) to writing
+songs—hoping that at least I'd be able to remember my own songs. That posed
+a new challenge, though a good problem to have. Whenever an idea came to me,
+I would start finding a finger formation on the guitar without knowing the chord,
 record it as a voice memo—but I had no simple way to document what I had
 actually played. Later, I would try to recreate it by ear, often unable to
 remember the chord shape, notes, or progression that made the idea work.

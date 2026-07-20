@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-20 — Builder story
+
+- Added the creator’s story to the README: the need to preserve voice-memo
+  guitar ideas, identify what was played, and make music rather than only study
+  guitar.
+
 ## 2026-07-19 — Consistent shape navigation
 
 - Applied the suggestion navigator’s roomy, no-crop control treatment to the

@@ -7,6 +7,25 @@ tablets, and laptops. Pick notes on the fretboard, identify the chord, arrange
 sections, add lyrics, inspect key and scale suggestions, and export a portable
 chord chart.
 
+## Why I built Couch Batata
+
+I have played guitar on and off for years. Whenever an idea came to me, I would
+record it as a voice memo—but I had no simple way to document what I had
+actually played. Later, I would try to recreate it by ear, often unable to
+remember the chord shape, notes, or progression that made the idea work.
+
+I also realised I had become stuck. My original goal was to learn guitar, but
+the more important goal should have been to make music.
+
+Couch Batata grew from that gap. I wanted a simple place to tap the notes I was
+holding, figure out the chord, save the progression or arpeggio while the idea
+was fresh, and keep building the song. It is made for guitarists who play by
+listening and experimenting—not only for people who already know the chord
+name.
+
+It is free, private, works offline after the first visit, and does not ask for
+an account or track you.
+
 The production app is a self-contained static website. It has no accounts, no
 analytics, no advertising, no server-side database, and no runtime package
 dependencies. Song data stays in the browser unless the user explicitly exports

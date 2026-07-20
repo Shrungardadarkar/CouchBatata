@@ -1,7 +1,7 @@
 {
   "name": "Couch Batata",
   "short_name": "Couch Batata",
-  "description": "Catch the chord. Keep the song. Tap the notes you played, find the chord, and save the idea. Free, private, and works offline.",
+  "description": "A tab builder for singer-songwriters. Catch the chord. Keep the song. Free, private, and works offline.",
   "id": "./",
   "start_url": "./index.html",
   "scope": "./",

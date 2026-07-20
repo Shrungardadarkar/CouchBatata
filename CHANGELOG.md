@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-20 — Explicit product description
+
+- Kept the emotional headline as the title and made **“A tab builder for
+  singer-songwriters”** the explicit product description in the app metadata,
+  social descriptions, installable-app manifest, README, and product guide.
+
 ## 2026-07-20 — For the songs that you almost wrote.
 
 - Repositioned Couch Batata around its real purpose: preserving the guitar

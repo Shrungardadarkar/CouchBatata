@@ -142,6 +142,7 @@ assert.equal(manifest.scope, "./");
 assert.equal(manifest.display, "standalone");
 assert.equal(manifest.name, "Couch Batata");
 assert.match(manifest.description, /Catch the chord\. Keep the song\./);
+assert.match(manifest.description, /A tab builder for singer-songwriters\./);
 assert.match(html, /<title>Couch Batata — For the songs that you almost wrote\.<\/title>/);
 assert.match(html, /For the songs that you almost wrote\./);
 assert.match(html, /made with Couch Batata — Catch the chord\. Keep the song\. https:\/\/shrungardadarkar\.github\.io\/CouchBatata\//);

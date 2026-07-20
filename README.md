@@ -2,10 +2,11 @@
 
 **Catch the chord. Keep the song.**
 
-Couch Batata is a free, private guitar chord finder and song builder for phones,
-tablets, and laptops. Tap the notes you played, identify the chord, save the
-shape or progression while the idea is fresh, and keep building the song. It
-works offline after the first visit and does not require an account.
+Couch Batata is a free, private tab builder for singer-songwriters—and a guitar
+chord finder and song workspace for phones, tablets, and laptops. Tap the notes
+you played, identify the chord, save the shape or progression while the idea is
+fresh, and keep building the song. It works offline after the first visit and
+does not require an account.
 
 ## Why I built Couch Batata
 

@@ -347,6 +347,8 @@
     transform:translateY(-50%) rotate(-45deg) scaleX(0);transition:transform .18s var(--ease-spring)}
   .sound-toggle.muted .sound-icon{color:var(--tomato)}
   .sound-toggle.muted .sound-icon::after{transform:translateY(-50%) rotate(-45deg) scaleX(1)}
+  .strum-icon .pick-body{fill:var(--ink)}
+  .strum-icon .skull-face{fill:var(--cream)}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -837,6 +839,17 @@
     </button>
     <button class="btn ghost sound-toggle" id="btnSound" type="button" aria-pressed="true"
       aria-label="Toggle pluck sound" title="Sound on — tap to mute"><span class="sound-icon" aria-hidden="true">♪</span></button>
+    <button class="btn ghost sound-toggle" id="btnStrum" type="button"
+      aria-label="Strum the current shape" title="Strum the current shape">
+      <svg class="strum-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path class="pick-body" d="M6.1 5.5L17.9 5.5Q20 5.5 19.3 7.5L14.3 19.5Q13.3 22 12 22Q10.7 22 9.7 19.5L4.7 7.5Q4 5.5 6.1 5.5Z"/>
+        <ellipse class="skull-face" cx="12" cy="10.6" rx="5.3" ry="4.9"/>
+        <circle class="pick-body" cx="9.7" cy="9.7" r="1.3"/>
+        <circle class="pick-body" cx="14.3" cy="9.7" r="1.3"/>
+        <path class="pick-body" d="M11.4 11.4L12.6 11.4L12 13Z"/>
+        <rect class="pick-body" x="9.3" y="14.2" width="5.4" height="1.8" rx="0.5"/>
+      </svg>
+    </button>
   </div>
   <div class="board-wrap">
     <div class="board-outer">
@@ -878,7 +891,6 @@
   <div class="btn-row">
     <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
     <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
-    <button class="btn ghost" id="btnStrum" type="button" title="Hear the current shape">▶ Strum</button>
   </div>
   <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
     <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>

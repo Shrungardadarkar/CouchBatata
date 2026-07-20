@@ -3,9 +3,9 @@
 ## Product
 
 Couch Batata helps guitarists capture a song idea without needing notation
-software. Its brand promise is **“Catch the chord. Keep the song.”** It exists
-for the songs a player might otherwise almost forget: an idea their hands found
-before they knew its name. The primary loop is:
+software. Its emotional promise is **“For the songs that you almost wrote.”**
+Its practical promise is **“Catch the chord. Keep the song.”** It exists for an
+idea a player’s hands found before they knew its name. The primary loop is:
 
 1. Select or mute notes on a guitar fretboard.
 2. Review the identified chord and alternate interpretations.

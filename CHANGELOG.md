@@ -1,11 +1,11 @@
 # Changelog
 
-## 2026-07-20 — Catch the chord. Keep the song.
+## 2026-07-20 — For the songs that you almost wrote.
 
 - Repositioned Couch Batata around its real purpose: preserving the guitar
   ideas that might otherwise be lost.
 - Replaced the former “Build songs from the sofa” share-card message with
-  “For the songs you almost forgot. Catch the chord. Keep the song.”
+  “For the songs that you almost wrote. Catch the chord. Keep the song.”
 - Updated the app header, browser/installable-app text, GitHub README, social
   metadata, and exported-chart credit line to use the new positioning.
 - Replaced the WhatsApp/LinkedIn preview with a calmer, acoustic-guitar mascot

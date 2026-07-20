@@ -1,6 +1,6 @@
-# Couch Batata — Catch the chord. Keep the song.
+# Couch Batata — For the songs that you almost wrote.
 
-**For the songs you almost forgot.**
+**Catch the chord. Keep the song.**
 
 Couch Batata is a free, private guitar chord finder and song builder for phones,
 tablets, and laptops. Tap the notes you played, identify the chord, save the

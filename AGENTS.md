@@ -6,7 +6,13 @@ update without reconstructing prior conversation history.
 
 ## Start here
 
-1. Read `README.md`, this file, and `PROJECT.md` completely.
+1. Read this file and `PROJECT.md` completely. Couch Batata is a free,
+   private, offline-capable guitar tab builder — "Catch the chord. Keep the
+   song." No accounts, no analytics, no server-side database, no runtime
+   dependencies; song data stays in the browser. From `README.md`, only
+   **Project structure**, **Work locally**, and **Updating the app** are
+   operationally relevant — the rest (founder's story, phone install steps,
+   feature list, license) is for human visitors, not agents.
 2. Fetch `origin/main` and begin from its current committed state; it is the
    shared source of truth for work handed between people and AI sessions.
 3. Run `npm test` before editing.

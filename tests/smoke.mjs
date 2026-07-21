@@ -73,7 +73,7 @@ assert.doesNotMatch(html, /id="leadBoard"/);
 assert.match(html, /data-tech="p"/);
 assert.match(html, /data-tech="b"/);
 assert.match(html, /id="boardLeadDisplay" type="button" role="switch"/);
-assert.match(html, /soloMode&&leadDisplay==='tab'\?String\(f\):scaleNoteName\(scaleActive\.root,scaleActive\.scale,scaleIndex\)/);
+assert.match(html, /leadDisplay==='tab'\?String\(f\):scaleNoteName\(scaleActive\.root,scaleActive\.scale,scaleIndex\)/);
 assert.match(html, /btnLeadCreate/);
 assert.match(html, /leadDraft/);
 assert.match(html, /leadDraft\.push\(\{id:_nextLeadId\+\+,notes,t,from:null,links:null,rep:1\}\)/);

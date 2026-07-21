@@ -3030,7 +3030,13 @@ function exitShapes(){
   if(!inShapeMode)return;
   inShapeMode=false;
   shapes=[];shapeIdx=0;  // clear state so a stale click can't reach into old data
-  syncShapeNavigator();
+  // Not the full syncShapeNavigator() — every call site here either follows
+  // up with analyze() in the same tick (which will rebuild `shapes` for
+  // whatever chord it finds) or already has current===null. Rebuilding
+  // eagerly here would pair the OLD `current` against a `selection` that
+  // may already have been updated to a different chord's frets by the
+  // caller, producing voicings for neither chord.
+  document.getElementById('shapeNav').hidden=!current;
 }
 
 /* ---------- add chord to progression ---------- */

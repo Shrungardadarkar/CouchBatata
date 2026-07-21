@@ -41,6 +41,7 @@
     --sky-dk:#3862a8;
     --sun:#f5c518;
     --sun-soft:#f7d873;       /* pastel butter for title bars */
+    --link-tint:#fff4e9;      /* pale peach highlight for a linked hammer-on/pull-off/slide source */
     --fretwood:#b8a894;       /* pastel greyish-brown fretboard */
     --fretwood-2:#ad9c86;     /* slightly deeper edge for depth */
     --fretstring:#f6f1e6;     /* light strings/frets so they read on the taupe */
@@ -118,7 +119,7 @@
   #tabPanel .toggle{position:relative;z-index:1;flex:0 0 auto}
   .fret-controls{display:flex;align-items:center;gap:9px;overflow-x:auto;padding:2px 4px 10px;margin:0 -4px;-webkit-overflow-scrolling:touch}
   .switch-toggle{position:relative;display:inline-flex;align-items:center;height:36px;padding:0;background:var(--paper);border:var(--outline);border-radius:999px;box-shadow:2.5px 2.5px 0 var(--ink);cursor:pointer;font-family:inherit;overflow:hidden;flex:0 0 auto;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
-  .switch-toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}
+  @media (hover:hover){.switch-toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}}
   .switch-toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
   .switch-toggle:focus-visible{outline:none;box-shadow:2.5px 2.5px 0 var(--ink),0 0 0 3px var(--mint)}
   .board-mode{width:226px}
@@ -136,7 +137,7 @@
     background:var(--paper);border:var(--outline);border-radius:999px;
     box-shadow:2.5px 2.5px 0 var(--ink);cursor:pointer;
     font-family:inherit;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring);overflow:hidden}
-  .toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}
+  @media (hover:hover){.toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}}
   .toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
   .toggle:focus-visible{outline:none;box-shadow:2.5px 2.5px 0 var(--ink),0 0 0 3px var(--mint)}
   /* the two icons, always visible, one per half */
@@ -202,14 +203,14 @@
   .chord-suggest-row.can-scroll-right{-webkit-mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%)}
   .chord-suggest-row.can-scroll-left.can-scroll-right{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
   .chord-scroll-btn{display:grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;border:2.5px solid var(--ink);border-radius:9px;background:var(--cream);box-shadow:2px 2px 0 var(--ink);color:var(--ink);font:900 .8rem/1 inherit;cursor:pointer;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .chord-scroll-btn:hover{background:var(--sun);transform:translateY(-1px) rotate(-2deg);box-shadow:3px 3px 0 var(--ink)}
+  @media (hover:hover){.chord-scroll-btn:hover{background:var(--sun);transform:translateY(-1px) rotate(-2deg);box-shadow:3px 3px 0 var(--ink)}}
   .chord-scroll-btn:active{transform:translateY(1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .chord-scroll-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .chord-scroll-btn:disabled{opacity:.32;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.35)}
   .chord-scroll-btn[hidden]{display:none}
   .chord-suggest-row:focus-visible{outline:3px solid var(--tomato);outline-offset:3px;border-radius:8px}
   .chord-suggestion{flex:0 0 auto;scroll-snap-align:start;min-height:32px;padding:5px 9px;border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.76rem;font-weight:900;line-height:1;cursor:pointer;white-space:nowrap;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .chord-suggestion:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  @media (hover:hover){.chord-suggestion:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .chord-suggestion:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .chord-suggestion:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .chord-suggestion.neutral{background:var(--cream);color:var(--ink)}
@@ -282,7 +283,7 @@
   .box-chip{background:var(--cream);border:2.5px solid var(--ink);color:var(--ink);
     padding:5px 11px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.8rem;font-weight:800;
     box-shadow:2px 2px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring);line-height:1.2}
-  .box-chip:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:4px 4px 0 var(--ink)}
+  @media (hover:hover){.box-chip:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:4px 4px 0 var(--ink)}}
   .box-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .box-chip.on{background:var(--sun)}
   .box-chip .box-frets{color:var(--ink-dim);font-size:.72rem;font-weight:700;margin-left:3px}
@@ -323,7 +324,7 @@
   .alts button{background:var(--cream);border:2.5px solid var(--ink);border-radius:7px;color:var(--ink);
     padding:4px 11px;margin:2px 5px 0 0;cursor:pointer;font-size:.82rem;font-weight:800;
     box-shadow:2px 2px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s;font-family:inherit}
-  .alts button:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:4px 4px 0 var(--ink);background:var(--sun)}
+  @media (hover:hover){.alts button:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:4px 4px 0 var(--ink);background:var(--sun)}}
   .alts button:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .placeholder{color:var(--ink-dim);font-size:.95rem;font-weight:600}
 
@@ -333,10 +334,11 @@
     border-radius:9px;padding:10px 17px;font-size:.9rem;font-weight:800;cursor:pointer;
     box-shadow:var(--shadow-sm);font-family:inherit;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .btn:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink)}
+  @media (hover:hover){.btn:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink)}}
   .btn:active{transform:translate(2px,2px) rotate(0deg);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .btn.primary{background:var(--sun);color:var(--ink);font-weight:900}
-  .btn.primary:hover{background:var(--gold)}
+  @media (hover:hover){.btn.primary:hover{background:var(--gold)}}
   .btn.ghost{background:var(--mint)}
   .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
   .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:38px;height:36px;padding:0;font-size:1rem;transition:background .15s}
@@ -367,7 +369,7 @@
   }
   .strum-btn .strum-icon{transform-box:fill-box;transform-origin:50% 88%}
   .strum-btn.ringing .strum-icon{animation:bobblehead 1.9s ease-in-out}
-  .strum-btn:hover{background:var(--sun)}
+  @media (hover:hover){.strum-btn:hover{background:var(--sun)}}
 
   .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
   .shape-nav[hidden]{display:none}
@@ -386,40 +388,42 @@
   .lead-target b{color:var(--ink)}
   .lead-techniques{display:flex;gap:6px;flex-wrap:wrap}
   .lead-tech{font:inherit;font-size:.76rem;font-weight:850;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:5px 8px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  @media (hover:hover){.lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .lead-tech.armed{background:var(--tomato);color:var(--cream);border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
   .lead-tech:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .lead-tech:disabled{opacity:.38;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.4)}
   .lead-tech:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
   .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .lead-event:hover,.lead-event.selected{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  .lead-event.selected{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
+  @media (hover:hover){.lead-event:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .lead-event.dragging{opacity:.3}
   .lead-event.lead-pop{animation:leadPop .34s var(--ease-bounce)}
   .lead-event.lead-link-source{background:var(--cream);border:2.5px dashed var(--tomato);box-shadow:1.5px 1.5px 0 var(--tomato)}
-  .lead-event.lead-link-source:hover,.lead-event.lead-link-source.selected{background:#fff4e9;box-shadow:3px 3px 0 var(--tomato)}
+  .lead-event.lead-link-source.selected{background:var(--link-tint);box-shadow:3px 3px 0 var(--tomato)}
+  @media (hover:hover){.lead-event.lead-link-source:hover{background:var(--link-tint);box-shadow:3px 3px 0 var(--tomato)}}
   .lead-event.lead-link-target{border-color:var(--tomato);box-shadow:1.5px 1.5px 0 var(--tomato)}
   .lead-connection-cue{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:2px 5px;background:var(--tomato);color:var(--cream);font-family:"Courier New",monospace;font-size:.62rem;font-weight:900;line-height:1;white-space:nowrap}
   @keyframes leadPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
-  .lead-event-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
-  .lead-event-x:hover{background:var(--tomato);color:var(--cream)}
-  .lead-event-copy{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:5px;background:var(--cream);color:var(--ink);font:inherit;font-size:.72rem;font-weight:900;line-height:1;cursor:pointer}
-  .lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}
+  .lead-event-x{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
+  @media (hover:hover){.lead-event-x:hover{background:var(--tomato);color:var(--cream)}}
+  .lead-event-copy{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:5px;background:var(--cream);color:var(--ink);font:inherit;font-size:.72rem;font-weight:900;line-height:1;cursor:pointer}
+  @media (hover:hover){.lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}}
   .lead-event .repeat-picker{font-size:.68rem;flex:0 0 auto}
   .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1;white-space:nowrap}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
-  .lead-summary-x{display:grid;place-items:center;width:20px;height:20px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
-  .lead-summary-x:hover{background:var(--tomato);color:var(--cream)}
+  .lead-summary-x{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
+  @media (hover:hover){.lead-summary-x:hover{background:var(--tomato);color:var(--cream)}}
   .lead-edit{font:inherit;font-size:.74rem;font-weight:900;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:4px 8px;cursor:pointer;box-shadow:1px 1px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .lead-edit:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:2px 2px 0 var(--ink)}
+  @media (hover:hover){.lead-edit:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:2px 2px 0 var(--ink)}}
   .sect-lead{margin-top:10px;padding-top:9px;border-top:2px dashed rgba(90,47,62,.45)}
   .sect-lead .lead-sequence{margin:7px 0 0;min-height:0}
   .section-transfer{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-3px 0 11px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--ink-soft);border-radius:9px;color:var(--ink-dim);font-size:.76rem;font-weight:800}
   .section-transfer-label{font-family:"Courier New",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
   .section-transfer .picker{min-width:116px;max-width:190px}
   .section-transfer button{font:inherit;font-size:.74rem;font-weight:900;border:2px solid var(--ink);border-radius:7px;padding:5px 8px;color:var(--ink);background:var(--paper);box-shadow:1px 1px 0 var(--ink);cursor:pointer}
-  .section-transfer button:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
+  @media (hover:hover){.section-transfer button:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
   .section-transfer .transfer-move{background:var(--mint)}
   .section-transfer .transfer-cancel{border-color:transparent;background:transparent;box-shadow:none;color:var(--ink-faint)}
 
@@ -439,16 +443,16 @@
   .install-card-copy,.update-card-copy{flex:1;min-width:0;font-size:.82rem;line-height:1.4;font-weight:700;color:var(--ink-dim)}
   .install-card-copy b,.update-card-copy b{display:block;color:var(--ink);font-size:.9rem}
   .install-card .btn,.update-card .btn{flex-shrink:0;padding:8px 12px}
-  .install-dismiss{width:32px;height:32px;border:0;background:transparent;color:var(--ink);
+  .install-dismiss{width:28px;height:28px;border:0;background:transparent;color:var(--ink);
     font-size:1.15rem;font-weight:900;cursor:pointer;border-radius:50%}
-  .install-dismiss:hover{background:var(--cream-2)}
+  @media (hover:hover){.install-dismiss:hover{background:var(--cream-2)}}
 
   /* floating help — available without interrupting the music-making flow */
   .help-fab{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:max(16px,env(safe-area-inset-bottom));z-index:80;
     width:48px;height:48px;border:2.5px solid var(--ink);border-radius:50%;background:var(--sun);color:var(--ink);
     box-shadow:4px 4px 0 var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1.28rem;font-weight:900;cursor:pointer;
     transition:transform .18s var(--ease-spring),box-shadow .18s var(--ease-spring),background .12s}
-  .help-fab:hover{background:var(--mint);transform:translate(-2px,-2px) rotate(-6deg);box-shadow:6px 6px 0 var(--ink)}
+  @media (hover:hover){.help-fab:hover{background:var(--mint);transform:translate(-2px,-2px) rotate(-6deg);box-shadow:6px 6px 0 var(--ink)}}
   .help-fab:active{transform:translate(2px,2px) rotate(0);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
   .help-fab:focus-visible{outline:3px solid var(--tomato);outline-offset:3px}
   .help-fab.help-nudge{animation:helpNudge .75s var(--ease-bounce) 2}
@@ -459,8 +463,8 @@
   .help-panel.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1) rotate(0)}
   .help-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
   .help-head h2{font-family:"Arial Black",Arial,sans-serif;color:var(--ink);font-size:1.05rem;margin:0;flex:1}
-  .help-close{width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-size:1.25rem;font-weight:900;cursor:pointer;transition:transform .18s var(--ease-spring),background .12s}
-  .help-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}
+  .help-close{width:28px;height:28px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-size:1.25rem;font-weight:900;cursor:pointer;transition:transform .18s var(--ease-spring),background .12s}
+  @media (hover:hover){.help-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}}
   .help-intro{color:var(--ink-dim);font-size:.84rem;font-weight:650;line-height:1.45;margin:0 0 11px}
   .help-quick{margin:0 0 10px;padding:10px 12px 10px 29px;background:var(--mint);border:2px solid var(--ink);border-radius:10px;font-size:.8rem;font-weight:750;line-height:1.55}
   .help-panel details{border-top:2px dashed rgba(90,47,62,.4);padding:8px 0}
@@ -481,7 +485,7 @@
   .modal-msg{color:var(--ink);font-size:1rem;font-weight:700;line-height:1.5;margin-bottom:18px}
   .modal-btns{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
   .btn.danger{background:var(--tomato);color:var(--cream);font-weight:900}
-  .btn.danger:hover{background:var(--tomato-dk)}
+  @media (hover:hover){.btn.danger:hover{background:var(--tomato-dk)}}
 
   /* Every picker is custom because native popups are drawn by the OS. */
   .picker{position:relative;display:inline-block;z-index:2;font-family:inherit}
@@ -494,7 +498,8 @@
   .picker-menu{position:absolute;top:calc(100% + 7px);left:0;z-index:50;min-width:max(100%,150px);max-width:min(280px,calc(100vw - 36px));max-height:min(340px,55vh);overflow-y:auto;padding:6px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
   .picker-menu[hidden]{display:none}
   .picker-option{display:flex;width:100%;border:0;border-radius:6px;background:transparent;color:var(--ink);padding:7px 9px;text-align:left;cursor:pointer;font:800 .8rem/1.2 "Helvetica Neue",Arial,sans-serif}
-  .picker-option:hover,.picker-option:focus{outline:none;background:var(--sun)}
+  .picker-option:focus{outline:none;background:var(--sun)}
+  @media (hover:hover){.picker-option:hover{outline:none;background:var(--sun)}}
   .picker-option[aria-selected="true"]{background:var(--ink);color:var(--cream)}
   .picker-option[aria-selected="true"]::before{content:'✓';display:inline-block;width:19px;font-weight:900}
   .picker-option:not([aria-selected="true"])::before{content:'';display:inline-block;width:19px}
@@ -509,7 +514,7 @@
   .song-sect{border:2.5px solid var(--ink);border-radius:11px;background:var(--cream);
     padding:12px 12px 14px;cursor:pointer;box-shadow:var(--shadow-sm);
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .song-sect:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+  @media (hover:hover){.song-sect:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}}
   .song-sect:focus-visible{outline:none;background:var(--cream-2)}
   .song-sect.active{background:var(--sun);
     box-shadow:4px 4px 0 var(--ink)}
@@ -527,7 +532,7 @@
     letter-spacing:0;font-weight:900;box-shadow:2px 2px 0 var(--ink);
     background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-  .sect-name:hover{background-color:var(--mint-dk)}
+  @media (hover:hover){.sect-name:hover{background-color:var(--mint-dk)}}
   .sect-name:focus-visible{outline:none;box-shadow:2px 2px 0 var(--ink),0 0 0 3px var(--sun)}
   /* Active section → tomato fill needs a LIGHT (cream) chevron for contrast */
   .song-sect.active .sect-name{background-color:var(--tomato);color:var(--cream);
@@ -544,7 +549,8 @@
   .sect-name-option{display:block;width:100%;border:0;border-radius:7px;background:transparent;
     color:var(--ink);padding:9px 12px;text-align:left;cursor:pointer;
     font:800 .95rem/1.2 "Helvetica Neue",Arial,sans-serif}
-  .sect-name-option:hover,.sect-name-option:focus{outline:none;background:var(--sun);color:var(--ink)}
+  .sect-name-option:focus{outline:none;background:var(--sun);color:var(--ink)}
+  @media (hover:hover){.sect-name-option:hover{outline:none;background:var(--sun);color:var(--ink)}}
   .sect-name-option[aria-selected="true"]{background:var(--ink);color:var(--cream)}
   .sect-name-option[aria-selected="true"]::before{content:"✓";display:inline-block;width:22px;font-weight:900}
   .sect-name-option:not([aria-selected="true"])::before{content:"";display:inline-block;width:22px}
@@ -552,7 +558,7 @@
   .active-badge{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;
     color:var(--ink);padding:4px 11px;border-radius:999px;border:2px solid var(--ink);
     background:var(--cream);cursor:pointer;line-height:1;transition:transform .16s var(--ease-spring),background .12s;user-select:none;font-family:"Courier New",monospace}
-  .active-badge:hover{background:var(--cream-2);transform:scale(1.08) rotate(-2deg)}
+  @media (hover:hover){.active-badge:hover{background:var(--cream-2);transform:scale(1.08) rotate(-2deg)}}
   .active-badge:active{transform:scale(.94);transition-duration:.05s}
   .song-sect.active .active-badge{color:var(--cream);border-color:var(--ink);
     background:var(--ink)}
@@ -572,7 +578,7 @@
     border:2.5px solid var(--ink);border-radius:999px;padding:3px 6px 3px 4px;
     box-shadow:2px 2px 0 var(--ink);
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .chip:hover{transform:translate(-1px,-1px) rotate(-1.5deg);box-shadow:3px 3px 0 var(--ink)}
+  @media (hover:hover){.chip:hover{transform:translate(-1px,-1px) rotate(-1.5deg);box-shadow:3px 3px 0 var(--ink)}}
   .chip.chip-pop{animation:chipPop .34s var(--ease-bounce)}
   @keyframes chipPop{
     0%{transform:scale(.2) rotate(-14deg);opacity:0}
@@ -591,15 +597,15 @@
   /* On the active tomato chip, the repeat picker keeps a cream fill for contrast. */
   .chip.active .repeat-picker .picker-trigger{background-color:var(--cream);color:var(--ink)}
   .chip-x{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:1.1rem;font-weight:900;
-    width:24px;height:24px;border-radius:50%;line-height:1;
+    width:22px;height:22px;border-radius:50%;line-height:1;
     transition:color .12s,transform .2s var(--ease-spring)}
-  .chip-x:hover{color:var(--tomato);transform:rotate(90deg) scale(1.2)}
+  @media (hover:hover){.chip-x:hover{color:var(--tomato);transform:rotate(90deg) scale(1.2)}}
   .chip.active .chip-x{color:var(--cream)}
-  .chip.active .chip-x:hover{color:var(--ink)}
+  @media (hover:hover){.chip.active .chip-x:hover{color:var(--ink)}}
   .sect-dup{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:.95rem;
-    width:26px;height:26px;border-radius:6px;line-height:1;font-family:inherit;font-weight:800;
+    width:28px;height:28px;border-radius:6px;line-height:1;font-family:inherit;font-weight:800;
     transition:color .12s,background .12s,transform .18s var(--ease-spring)}
-  .sect-dup:hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}
+  @media (hover:hover){.sect-dup:hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}}
   .sect-dup:active{transform:scale(.95);transition-duration:.05s}
 
   .sect-lyrics{margin-top:10px}
@@ -628,7 +634,7 @@
   .scale-panel-header{width:100%;display:flex;align-items:center;gap:12px;
     background:none;border:0;color:inherit;font-family:inherit;cursor:pointer;
     padding:22px 22px 18px;text-align:left;border-radius:16px}
-  .scale-panel-header:hover{background:var(--cream-2)}
+  @media (hover:hover){.scale-panel-header:hover{background:var(--cream-2)}}
   .scale-panel-chevron{color:var(--ink);font-size:1rem;font-weight:900;transition:transform .3s var(--ease-out-back);flex-shrink:0}
   .scale-panel-header[aria-expanded="true"] .scale-panel-chevron{transform:rotate(180deg)}
   .scale-overlay-status{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;max-width:320px;
@@ -660,7 +666,7 @@
     border-radius:10px;padding:10px 13px;cursor:pointer;text-align:left;font-family:inherit;
     display:flex;flex-direction:column;gap:3px;box-shadow:var(--shadow-sm);
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s;min-width:170px;max-width:240px}
-  .scale-chip:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink);background:var(--sun)}
+  @media (hover:hover){.scale-chip:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink);background:var(--sun)}}
   .scale-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .scale-chip b{font-size:.9rem;color:var(--ink);font-weight:900}
   .scale-chip .why{font-size:.76rem;color:var(--ink-dim);font-style:italic;line-height:1.35;font-weight:600}
@@ -679,7 +685,7 @@
   .sect-bar::before{content:"⋮⋮";position:absolute;left:2px;top:50%;transform:translateY(-50%);
     color:var(--ink);font-size:1rem;letter-spacing:-2px;line-height:1;font-weight:900;
     transition:color .15s}
-  .sect-bar:hover::before{color:var(--ink-dim)}
+  @media (hover:hover){.sect-bar:hover::before{color:var(--ink-dim)}}
   .song-sect.dragging .sect-bar{cursor:grabbing}
   .chip.dragging,.song-sect.dragging{opacity:.25}
   .drag-ghost{position:fixed;z-index:200;pointer-events:none;opacity:.96;
@@ -716,7 +722,7 @@
     border-radius:7px;color:var(--ink);margin:0 2px;font-weight:800;cursor:pointer;
     background:var(--cream);font-family:inherit;font-size:.82rem;box-shadow:1.5px 1.5px 0 var(--ink);
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .repl-btn:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:3.5px 3.5px 0 var(--ink);background:var(--mint)}
+  @media (hover:hover){.repl-btn:hover{transform:translate(-2px,-2px) rotate(-1.5deg);box-shadow:3.5px 3.5px 0 var(--ink);background:var(--mint)}}
   .repl-btn:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .cover-note{color:var(--ink-dim);font-size:.86rem;margin-top:10px;padding-top:10px;
     border-top:2px dashed var(--ink);line-height:1.55;font-weight:600}
@@ -778,14 +784,6 @@
      available; touch users can edit, delete and duplicate without the page locking. */
   @media (pointer:coarse){
     .chip,.sect-bar{touch-action:pan-y}
-    .song-sect:hover,.chip:hover,.btn:hover,.toggle:hover,.switch-toggle:hover{transform:none}
-    /* iOS Safari treats a hover-styled element's first tap as a hover-only
-       event (no click fires) — the button then sits stuck in its hover look
-       until something else is tapped. Strum/Pick hit this hardest since its
-       hover swaps the whole background. Neutralizing the hover style on
-       coarse pointers restores single-tap clicking and stops the stuck
-       highlight. */
-    .strum-btn:hover{background:var(--cream)}
   }
 
   /* Respect users who prefer reduced motion — keep interactions functional but calm:

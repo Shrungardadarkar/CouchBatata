@@ -2281,10 +2281,12 @@ function playLeadEventPreview(event){
   if(!soundOn||!event||!event.notes||!event.notes.length)return;
   const t0=audioCtx().currentTime+0.02;
   // Solo/arpeggio notes are picked one at a time, never hit together like a
-  // chord strum — even a multi-note event (e.g. a double-stop) gets a short
-  // per-note stagger instead of firing every string at the same instant.
+  // chord strum — even a multi-note event (e.g. a double-stop) gets a
+  // per-note stagger. Deliberately slower than the chord strum's 75ms: a
+  // strum is one continuous sweep across strings, but picked notes need to
+  // read as distinct events, not a fast blur.
   event.notes.forEach(({s,f},i)=>{
-    const when=t0+i*0.045;
+    const when=t0+i*0.12;
     const midi=OPEN[s]+f;
     if(event.t==='b')pluck(s,midi,{when,detuneFromCents:0,detuneToCents:200,rampMs:140});
     else if(event.t==='r')pluck(s,midi,{when,detuneFromCents:200,detuneToCents:0,rampMs:140});

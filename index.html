@@ -621,11 +621,13 @@
 
   .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
   .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
-  .song-name-row{display:flex;align-items:center;gap:10px;min-height:36px}
+  .song-name-row{display:flex;align-items:center;gap:10px;min-height:44px}
   /* Same weight/size as .chord-name — the song title is the headline of this
-     panel the way the chord name is the headline of the chord board. */
+     panel the way the chord name is the headline of the chord board. Line-height
+     is looser than .chord-name's since this sits in a shorter row where a
+     descender (g, j, y) getting clipped by overflow:hidden would be obvious. */
   .song-name-display{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:2rem;
-    line-height:1.05;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    line-height:1.3;padding:2px 0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .song-name-display.placeholder{color:var(--ink-faint);font-weight:700}
   .song-name-row.editing .song-name-display{display:none}
   .song-name-input-wrap{flex:0 1 50%;min-width:150px;max-width:50%;display:none}
@@ -636,28 +638,27 @@
     box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
   .song-title-input:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .song-title-input::placeholder{color:var(--ink-faint);font-weight:700}
-  /* Same bordered icon-chip treatment as .lead-event-x / .picker-trigger — ink
-     border, cream fill, sun-lift-and-shadow on hover. One button, not two: it
-     IS the edit control, then IS the save control once editing starts. */
+  /* Same ghost icon-button treatment as .sect-dup / .sect-transfer — no
+     border, transparent until hovered. One button, not two: it IS the edit
+     control, then IS the save control once editing starts. */
   .song-name-btn{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;
-    border:2px solid var(--ink);background:var(--cream);color:var(--ink);border-radius:50%;
-    cursor:pointer;padding:0;
-    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),
-      background .12s,border-color .12s,color .12s}
+    background:none;border:0;border-radius:6px;color:var(--ink-faint);cursor:pointer;padding:0;
+    transition:color .12s,background .12s,transform .18s var(--ease-spring)}
   .song-name-btn svg{width:16px;height:16px;grid-area:1/1}
   .song-name-btn .icon-pencil{stroke-width:2.4}
   .song-name-btn .icon-check{display:none;stroke-width:3.2}
   .song-name-btn.editing .icon-pencil{display:none}
   .song-name-btn.editing .icon-check{display:block}
-  @media (hover:hover){.song-name-btn:not(.editing):hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
-  .song-name-btn:not(.editing):active{transform:translate(1px,1px);box-shadow:none;transition-duration:.05s}
+  @media (hover:hover){.song-name-btn:not(.editing):hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}}
+  .song-name-btn:not(.editing):active{transform:scale(.95);transition-duration:.05s}
   /* Editing but nothing changed yet — grey/faded, same as any other inactive
      control. Only once armed does it turn green (save = affirmative, never
      red — red is reserved for destructive actions elsewhere in the app). */
-  .song-name-btn.editing{border-color:var(--ink-faint);color:var(--ink-faint);cursor:not-allowed}
-  .song-name-btn.editing.armed{border-color:var(--mint-dk);color:var(--mint-dk);cursor:pointer}
-  @media (hover:hover){.song-name-btn.editing.armed:hover{background:var(--mint);border-color:var(--ink);color:var(--ink);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
-  .song-name-btn.editing.armed:active{transform:translate(1px,1px);box-shadow:none;transition-duration:.05s}
+  .song-name-btn.editing{color:var(--ink-faint);cursor:not-allowed}
+  .song-name-btn.editing.armed{color:var(--mint-dk);cursor:pointer}
+  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--mint);transform:scale(1.15)}}
+  .song-name-btn.editing.armed:active{transform:scale(.95);transition-duration:.05s}
+  .song-name-btn.editing:not(.armed):active{transform:none}
   .song-name-btn.editing:not(.armed):active{transform:none}
 
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}

@@ -494,6 +494,7 @@
   .picker-trigger::after{content:'▾';font-size:.75rem;line-height:1;transition:transform .16s var(--ease-spring)}
   .picker.open .picker-trigger{background:var(--sun);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}
   .picker.open .picker-trigger::after{transform:rotate(180deg)}
+  @media (hover:hover){.picker:not(.open) .picker-trigger:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .picker-trigger:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .picker-menu{position:absolute;top:calc(100% + 7px);left:0;z-index:50;min-width:max(100%,150px);max-width:min(280px,calc(100vw - 36px));max-height:min(340px,55vh);overflow-y:auto;padding:6px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
   .picker-menu[hidden]{display:none}
@@ -507,6 +508,9 @@
   .add-section-picker .picker-trigger{border:2.5px solid var(--ink);border-radius:9px;padding:8px 11px;font-size:.85rem;box-shadow:2px 2px 0 var(--ink)}
   .repeat-picker{min-width:0}
   .repeat-picker .picker-trigger{min-width:44px;border-radius:6px;padding:3px 6px;font-size:.72rem;box-shadow:none}
+  /* Nested inside a chip/lead-event, already tight on space — keep the hover
+     cue to a color tint, skip the lift+shadow the standalone pickers get. */
+  @media (hover:hover){.repeat-picker:not(.open) .picker-trigger:hover{background:var(--sun);transform:none;box-shadow:none}}
   .repeat-picker .picker-menu{min-width:72px;max-height:240px}
 
   /* song = stack of section cards */
@@ -615,13 +619,47 @@
   .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
-  .song-title-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-  .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace;flex:0 0 auto}
-  .song-title-input{flex:1 1 240px;min-width:160px;background:var(--cream);color:var(--ink);
-    border:2.5px solid var(--ink);border-radius:8px;padding:8px 12px;font-family:inherit;
-    font-size:1rem;font-weight:800;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
+  .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+  .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
+  .song-name-row{display:flex;align-items:center;gap:10px;min-height:44px}
+  /* Same weight/size as .chord-name — the song title is the headline of this
+     panel the way the chord name is the headline of the chord board. Line-height
+     is looser than .chord-name's since this sits in a shorter row where a
+     descender (g, j, y) getting clipped by overflow:hidden would be obvious. */
+  .song-name-display{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:2rem;
+    line-height:1.3;padding:2px 0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .song-name-display.placeholder{color:var(--ink-faint);font-weight:700}
+  .song-name-row.editing .song-name-display{display:none}
+  .song-name-input-wrap{flex:0 1 50%;min-width:150px;max-width:50%;display:none}
+  .song-name-input-wrap.active{display:block}
+  .song-title-input{width:100%;background:var(--cream);color:var(--ink);
+    border:2.5px solid var(--tomato);border-radius:8px;padding:5px 10px;
+    font-family:"Arial Black",Arial,sans-serif;font-size:1.5rem;font-weight:900;
+    box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
   .song-title-input:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
-  .song-title-input::placeholder{color:var(--ink-faint);font-weight:600}
+  .song-title-input::placeholder{color:var(--ink-faint);font-weight:700}
+  /* Same ghost icon-button treatment as .sect-dup / .sect-transfer — no
+     border, transparent until hovered. One button, not two: it IS the edit
+     control, then IS the save control once editing starts. */
+  .song-name-btn{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;
+    background:none;border:0;border-radius:6px;color:var(--ink-faint);cursor:pointer;padding:0;
+    transition:color .12s,background .12s,transform .18s var(--ease-spring)}
+  .song-name-btn svg{width:16px;height:16px;grid-area:1/1}
+  .song-name-btn .icon-pencil{stroke-width:2.4}
+  .song-name-btn .icon-check{display:none;stroke-width:3.2}
+  .song-name-btn.editing .icon-pencil{display:none}
+  .song-name-btn.editing .icon-check{display:block}
+  @media (hover:hover){.song-name-btn:not(.editing):hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}}
+  .song-name-btn:not(.editing):active{transform:scale(.95);transition-duration:.05s}
+  /* Editing but nothing changed yet — grey/faded, same as any other inactive
+     control. Only once armed does it turn green (save = affirmative, never
+     red — red is reserved for destructive actions elsewhere in the app). */
+  .song-name-btn.editing{color:var(--ink-faint);cursor:not-allowed}
+  .song-name-btn.editing.armed{color:var(--mint-dk);cursor:pointer}
+  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--mint);transform:scale(1.15)}}
+  .song-name-btn.editing.armed:active{transform:scale(.95);transition-duration:.05s}
+  .song-name-btn.editing:not(.armed):active{transform:none}
+  .song-name-btn.editing:not(.armed):active{transform:none}
 
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
   .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
@@ -799,11 +837,11 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
-    .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
+    .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,.scale-panel-chevron,.mascot,
     #toast,.modal-dialog,.help-fab,.help-panel,.help-close,
     .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
-    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover{transform:none !important}
+    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover{transform:none !important}
     .mascot:hover{animation:none !important}
     #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
@@ -870,7 +908,7 @@
       <span class="switch-label first" aria-hidden="true">Chord</span>
       <span class="switch-label last" aria-hidden="true">Solo / arpeggio</span>
     </button>
-    <button class="switch-toggle lead-view-toggle" id="boardLeadDisplay" type="button" role="switch" aria-checked="false" aria-label="Solo marker display: Notes">
+    <button class="switch-toggle lead-view-toggle" id="boardLeadDisplay" type="button" role="switch" aria-checked="false" aria-label="Fretboard display: Notes">
       <span class="switch-knob" aria-hidden="true"></span>
       <span class="switch-label first" aria-hidden="true">Notes</span>
       <span class="switch-label last" aria-hidden="true">Tab</span>
@@ -969,12 +1007,21 @@
   </div>
 </div>
 
-<div class="panel win-tomato" data-win="Song">
-  <h2>Song</h2>
-  <div class="song-title-row">
-    <label class="song-title-label" for="songTitleInput">Song:</label>
-    <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
-      placeholder="Untitled song" autocomplete="off" aria-label="Song title">
+<div class="panel win-tomato" data-win="Tab builder">
+  <h2>Tab builder</h2>
+  <div class="song-title-block">
+    <label class="song-title-label" for="songTitleInput">Song name</label>
+    <div class="song-name-row" id="songNameRow">
+      <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
+      <div class="song-name-input-wrap" id="songNameInputWrap">
+        <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
+          placeholder="Untitled song" autocomplete="off" aria-label="Song name">
+      </div>
+      <button type="button" class="song-name-btn" id="songNameBtn" title="Edit song name" aria-label="Edit song name">
+        <svg class="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
+      </button>
+    </div>
   </div>
   <div id="song"></div>
 
@@ -2255,7 +2302,7 @@ function renderLead(){
   const displayToggle=document.getElementById('boardLeadDisplay');
   displayToggle.classList.toggle('tab',leadDisplay==='tab');
   displayToggle.setAttribute('aria-checked',String(leadDisplay==='tab'));
-  displayToggle.setAttribute('aria-label','Solo marker display: '+(leadDisplay==='tab'?'Tab':'Notes'));
+  displayToggle.setAttribute('aria-label','Fretboard display: '+(leadDisplay==='tab'?'Tab':'Notes'));
   displayToggle.title='Switch solo markers between Notes and Tab';
 }
 function selectLeadDraftEvent(index){
@@ -2568,7 +2615,7 @@ function render(){
           const outOfBox=!!activeBox&&!activeBox.perString[s].has(f);
           const d=document.createElement('div');
           d.className='dot-note scale '+scaleDegreeClass(iv)+(outOfBox?' out-of-box':'');
-          d.textContent=soloMode&&leadDisplay==='tab'?String(f):scaleNoteName(scaleActive.root,scaleActive.scale,scaleIndex);
+          d.textContent=leadDisplay==='tab'?String(f):scaleNoteName(scaleActive.root,scaleActive.scale,scaleIndex);
           cells[s][f].appendChild(d);
         }
       }
@@ -2604,7 +2651,7 @@ function render(){
       const pc=(OPEN[s]+v)%12;
       const d=document.createElement('div');
       d.className='dot-note sel'+(pc===rootPc?' root':'');
-      d.textContent=pcName(pc);
+      d.textContent=leadDisplay==='tab'?String(v):pcName(pc);
       cells[s][v].appendChild(d);
     } else if(v==='x'){
       const d=document.createElement('div');
@@ -4245,24 +4292,69 @@ function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;
 }
 
-/* song title */
+/* song name — one interchangeable icon button: pencil (edit) in view mode,
+   checkmark (save) once editing. Explicit save, not autosave-as-you-type. */
+const songNameRow=document.getElementById('songNameRow');
+const songNameDisplay=document.getElementById('songNameDisplay');
+const songNameInputWrap=document.getElementById('songNameInputWrap');
 const songTitleInput=document.getElementById('songTitleInput');
+const songNameBtn=document.getElementById('songNameBtn');
 function updateDocumentTitle(){
   const trimmed=songName.trim();
   document.title=trimmed?trimmed+' — Couch Batata':'Couch Batata';
 }
-function syncSongTitleUI(){
-  songTitleInput.value=songName;
-  updateDocumentTitle();
-}
-songTitleInput.addEventListener('input',()=>{
-  songName=songTitleInput.value.slice(0,120);
-  updateDocumentTitle();
-  save();
-});
-songTitleInput.addEventListener('blur',()=>{
+function renderSongNameDisplay(){
   const trimmed=songName.trim();
-  if(trimmed!==songName){songName=trimmed;songTitleInput.value=trimmed;save(true);}
+  songNameDisplay.textContent=trimmed||'Untitled song';
+  songNameDisplay.classList.toggle('placeholder',!trimmed);
+}
+function setSongNameArmed(armed){
+  songNameBtn.classList.toggle('armed',armed);
+  songNameBtn.setAttribute('aria-label',armed?'Save song name':'Song name unchanged');
+}
+function enterSongNameEdit(){
+  songTitleInput.value=songName;
+  songNameRow.classList.add('editing');
+  songNameInputWrap.classList.add('active');
+  songNameBtn.classList.add('editing');
+  songNameBtn.title='Save song name';
+  setSongNameArmed(false);
+  songTitleInput.focus();
+  songTitleInput.select();
+}
+function exitSongNameEdit(){
+  songNameRow.classList.remove('editing');
+  songNameInputWrap.classList.remove('active');
+  songNameBtn.classList.remove('editing','armed');
+  songNameBtn.title='Edit song name';
+  songNameBtn.setAttribute('aria-label','Edit song name');
+}
+function saveSongName(){
+  if(!songNameBtn.classList.contains('armed'))return; // nothing changed — no-op
+  songName=songTitleInput.value.trim().slice(0,120);
+  updateDocumentTitle();
+  renderSongNameDisplay();
+  save(true);
+  // Refresh an already-open preview instead of leaving it showing the old name.
+  const exportPanel=document.getElementById('exportPanel');
+  if(exportPanel&&!exportPanel.hidden)document.getElementById('exportPre').textContent=buildExportText();
+  exitSongNameEdit();
+}
+function syncSongTitleUI(){
+  updateDocumentTitle();
+  renderSongNameDisplay();
+  exitSongNameEdit();
+}
+songNameBtn.addEventListener('click',()=>{
+  if(!songNameRow.classList.contains('editing'))enterSongNameEdit();
+  else saveSongName();
+});
+songTitleInput.addEventListener('input',()=>{
+  setSongNameArmed(songTitleInput.value!==songName);
+});
+songTitleInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();saveSongName();}
+  if(e.key==='Escape'){e.preventDefault();exitSongNameEdit();}
 });
 
 /* clear entire song */

@@ -636,16 +636,19 @@
   .song-name-btn{background:none;border:0;color:var(--ink-faint);cursor:pointer;
     width:28px;height:28px;border-radius:50%;line-height:1;display:grid;place-items:center;flex:0 0 auto;
     transition:color .12s,background .12s,transform .18s var(--ease-spring)}
-  .song-name-btn svg{width:14px;height:14px;grid-area:1/1}
-  .song-name-btn .icon-check{display:none}
+  .song-name-btn svg{width:16px;height:16px;grid-area:1/1}
+  .song-name-btn .icon-pencil{stroke-width:2.4}
+  .song-name-btn .icon-check{display:none;stroke-width:3.2}
   .song-name-btn.editing .icon-pencil{display:none}
   .song-name-btn.editing .icon-check{display:block}
   @media (hover:hover){.song-name-btn:not(.editing):hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}}
   .song-name-btn:not(.editing):active{transform:scale(.95);transition-duration:.05s}
-  /* Editing but nothing changed yet — same button, inactive until armed. */
-  .song-name-btn.editing{cursor:not-allowed}
-  .song-name-btn.editing.armed{color:var(--tomato-dk);cursor:pointer}
-  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--sun);transform:scale(1.15)}}
+  /* Editing but nothing changed yet — grey/faded, same as any other inactive
+     control. Only once armed does it turn green (save = affirmative, never
+     red — red is reserved for destructive actions elsewhere in the app). */
+  .song-name-btn.editing{color:var(--ink-faint);cursor:not-allowed}
+  .song-name-btn.editing.armed{color:var(--mint-dk);cursor:pointer}
+  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--mint);transform:scale(1.15)}}
   .song-name-btn.editing.armed:active{transform:scale(.95);transition-duration:.05s}
 
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}

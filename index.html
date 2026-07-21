@@ -615,6 +615,14 @@
   .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
+  .song-title-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace;flex:0 0 auto}
+  .song-title-input{flex:1 1 240px;min-width:160px;background:var(--cream);color:var(--ink);
+    border:2.5px solid var(--ink);border-radius:8px;padding:8px 12px;font-family:inherit;
+    font-size:1rem;font-weight:800;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
+  .song-title-input:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
+  .song-title-input::placeholder{color:var(--ink-faint);font-weight:600}
+
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
   .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
   .export-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
@@ -963,6 +971,11 @@
 
 <div class="panel win-tomato" data-win="Song">
   <h2>Song</h2>
+  <div class="song-title-row">
+    <label class="song-title-label" for="songTitleInput">Song:</label>
+    <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
+      placeholder="Untitled song" autocomplete="off" aria-label="Song title">
+  </div>
   <div id="song"></div>
 
   <div class="add-sect-row">
@@ -1878,6 +1891,7 @@ let shapes=[],shapeIdx=0,inShapeMode=false;
 // Sections model — the whole song lives here
 let sections=[];         // [{id, name, chords, lead:[{id,notes:[{s,f}],t,from?,links?,rep}], lyrics}]
 let activeSectionId=null;
+let songName='';         // free-text title, shown as "Song: <name>" everywhere it appears
 let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
 let _nextLeadId=1;
@@ -1933,6 +1947,7 @@ let _saveFailedNotified=false;
 function projectSnapshot(){
   return {
     app:'Couch Batata',version:1,
+    songName,
     sections:sections.map(s=>({
       id:s.id, name:s.name, lyrics:s.lyrics||'',
       lead:(s.lead||[]).map(event=>({
@@ -2026,6 +2041,7 @@ function restoreProject(d){
   sections=normSections;
   activeSectionId=normSections.some(s=>s.id===d.activeSectionId)
     ?d.activeSectionId:(normSections[0]?.id||null);
+  songName=typeof d.songName==='string'?d.songName.trim().slice(0,120):'';
   useFlats=!!d.useFlats;
   scaleActive=d.scaleActive&&Number.isInteger(d.scaleActive.root)&&SCALES[d.scaleActive.scale]
     ?{root:((d.scaleActive.root%12)+12)%12,scale:d.scaleActive.scale}:null;
@@ -3862,6 +3878,7 @@ function buildExportText(){
   const keyInfo=chords.length?analyzeKey(chords):null;
   const L=[];
   L.push('COUCH BATATA — CHORD CHART');
+  if(songName.trim())L.push('Song: '+songName.trim());
   if(keyInfo){
     const keyLabel=keyInfo.dominantContext
       ?pcName(keyInfo.tonic)+' dominant blues'
@@ -3983,6 +4000,7 @@ document.getElementById('projectFile').addEventListener('change',async e=>{
     const data=JSON.parse(await file.text());
     if(!restoreProject(data))throw new Error('Unsupported project format');
     activeChip=null;resetChordSelection();exitShapes();
+    syncSongTitleUI();
     setFlats(useFlats);
     analyze();renderSong();save(true);
     flash('Opened project "'+file.name+'"');
@@ -4227,6 +4245,26 @@ function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;
 }
 
+/* song title */
+const songTitleInput=document.getElementById('songTitleInput');
+function updateDocumentTitle(){
+  const trimmed=songName.trim();
+  document.title=trimmed?trimmed+' — Couch Batata':'Couch Batata';
+}
+function syncSongTitleUI(){
+  songTitleInput.value=songName;
+  updateDocumentTitle();
+}
+songTitleInput.addEventListener('input',()=>{
+  songName=songTitleInput.value.slice(0,120);
+  updateDocumentTitle();
+  save();
+});
+songTitleInput.addEventListener('blur',()=>{
+  const trimmed=songName.trim();
+  if(trimmed!==songName){songName=trimmed;songTitleInput.value=trimmed;save(true);}
+});
+
 /* clear entire song */
 document.getElementById('btnClearSong').addEventListener('click',async ()=>{
   if(!sections.length){flash('Nothing to clear');return;}
@@ -4237,6 +4275,8 @@ document.getElementById('btnClearSong').addEventListener('click',async ()=>{
   sections=[];
   activeSectionId=null;
   activeChip=null;
+  songName='';
+  syncSongTitleUI();
   scaleActive=null;scaleBoxIdx=null;
   resetChordSelection();
   exitShapes();
@@ -4279,6 +4319,7 @@ try{
 
 /* init */
 const _wasRestored = load() && sections.length>0;
+syncSongTitleUI();
 // Sync the accidental toggle's icon/state to the restored (or default) useFlats value
 setFlats(useFlats);
 analyze();renderSong();placeInlays();

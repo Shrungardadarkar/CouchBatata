@@ -1,4 +1,4 @@
-const CACHE_NAME = "couch-batata-v57";
+const CACHE_NAME = "couch-batata-v58";
 const APP_URL = new URL("./index.html", self.registration.scope).href;
 const APP_SHELL = [
   "./index.html",

@@ -1,0 +1,29 @@
+{
+  "skill_name": "music-theory-audit",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just added a new entry to FAMILIAR_VOICING_TEMPLATES in CouchBatata's index.html for an open C major shape. What do I need to verify before I ship this, and how exactly should I check it -- not just what to run, but what actually counts as done?",
+      "expected_output": "Requires computing the entry's pitch classes fresh from OPEN[] and comparing against the FORMULAS interval set (not trusting a hand-typed/remembered shape), running `npm run compare:voicings` and reading every line of its output rather than sampling, treating a large blast radius (many unrelated chords changing) as a red flag rather than evidence of thoroughness, and running `npm test` (which includes tests/voicing-audit.mjs) before considering the change done.",
+      "files": [],
+      "expectations": [
+        "Gives the concrete pitch-class verification snippet/method (OPEN[] + fret arithmetic), not just 'double check it looks right'",
+        "Requires running npm run compare:voicings and reading all of its output, not just running tests generically",
+        "States explicitly that a large number of changed combinations is a warning sign, not proof of a good fix",
+        "References the prior C7/mistranscribed-barre-shape mistakes as the reason hand-verification isn't trustworthy"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I want to write a small Node script that pulls FORMULAS and findVoicings() out of index.html to test them outside a browser. What's the right way to extract them so the script actually runs?",
+      "expected_output": "Warns against slicing one contiguous span of the file from OPEN through findVoicings, since the audio engine (which touches localStorage at the top level) sits between them and will throw in a non-browser vm context. Recommends extracting each declaration independently by name and concatenating just those, and flags that const/let top-level declarations don't attach to a vm context object -- the extracted code needs to be wrapped in an IIFE that explicitly returns the needed bindings.",
+      "files": [],
+      "expectations": [
+        "Specifically warns against a single contiguous slice from OPEN through findVoicings",
+        "Names the localStorage/audio-engine problem as the concrete reason why",
+        "Explains the const/let-doesn't-attach-to-vm-context gotcha and the IIFE-with-explicit-return fix",
+        "Points to tests/voicing-audit.mjs or tests/voicing-compare.mjs as the working reference pattern"
+      ]
+    }
+  ]
+}

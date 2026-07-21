@@ -71,7 +71,7 @@ the specific failure modes to watch for:
 `findVoicings()` — there's a large chunk of browser-dependent code (the audio
 engine, which touches `localStorage` at the top level) sitting between them
 that will throw when `eval`'d outside a browser. Extract each declaration
-independently by name (see `tests/voicing-audit.mjs` / `voicing-compare.mjs`
+independently by name (see `tests/voicing-audit.mjs` / `tests/voicing-compare.mjs`
 for the working pattern) and concatenate just those. Also note: `const`/`let`
 top-level declarations do not become properties of a Node `vm` context object
 — wrap the extracted source in an IIFE that explicitly returns the bindings

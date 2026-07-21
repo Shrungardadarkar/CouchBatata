@@ -88,6 +88,50 @@ For meaningful UI changes, test at minimum:
 Confirm that there are no console errors, unintended page-level horizontal
 overflow, inaccessible controls, or external network requests.
 
+## Skills and agents
+
+This repo has project-scoped skills (`.claude/skills/`) and agents
+(`.claude/agents/`) built from real mistakes made while working on it —
+consult them at these specific points rather than only when they happen to
+come to mind:
+
+- **Touching `FORMULAS`, `OPEN`, `findVoicings()`, `identify()`, or
+  `SCALES`?** Use the `music-theory-audit` skill before and after — it's the
+  pitch-class verification method and the `compare:voicings` blast-radius
+  process above, with the reasoning for why each step exists.
+- **Touching a fret shape, `FAMILIAR_VOICING_TEMPLATES`, or any claim about
+  what's "playable"?** Use the `guitar-fundamentals` skill — it covers
+  playability specifically (fret span, muted-string cost, the E-shape vs
+  A-shape barre recognition gap), which pitch-correctness alone doesn't
+  guarantee.
+- **Before merging a change to CSS hover/focus states, `findVoicings()`, or
+  anything that touched more files/lines than the stated intent?** Spawn the
+  `couchbatata-code-reviewer` agent for an independent second opinion. It
+  knows this repo's specific recurring failure modes (CSS specificity
+  silently eating a hover state, missing `@media (hover:hover)` wraps,
+  stale-state pairing bugs, squash-merge branch divergence) and will run the
+  required validation commands itself rather than trusting a description of
+  them.
+- **Deciding whether/how to build a proposed feature, or scoping one down?**
+  Spawn `product-strategist` — it evaluates against the actual promise,
+  audience, and dependency-free/no-account constraints, not generic product
+  advice.
+- **Reviewing a flow for friction, confusion, or a weak reward/feedback
+  loop?** Spawn `behavioral-ux-reviewer` — it runs the app and reviews the
+  real experience against the "capture the idea before it slips away"
+  premise, not abstract UX heuristics.
+- **Drafting or reviewing user-facing copy** (README, in-app microcopy, meta
+  tags, announcements)? Spawn `marketing-copywriter` — it's calibrated to the
+  established voice and will reuse existing phrasing instead of drafting a
+  near-duplicate.
+
+None of these substitute for the required validation above — they're an
+additional, specialized check, not a replacement for `npm test` and
+`compare:voicings`. `scripts/validate-agents.mjs` (part of `npm test`) checks
+that these docs' own code references haven't gone stale; it does not check
+whether following their guidance produces good outcomes. For that, see
+`.claude/agents/EVALS.md` and each skill's `evals/` directory.
+
 ## Git and deployment
 
 - Work on a focused branch unless the owner requests direct-to-main changes.

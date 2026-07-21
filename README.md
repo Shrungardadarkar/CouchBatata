@@ -116,9 +116,12 @@ PROJECT.md                 Product and technical specification
 AGENTS.md                  Instructions for AI coding agents
 CONTRIBUTING.md             Human and AI contribution workflow
 scripts/serve.mjs          Dependency-free local web server
+scripts/validate-agents.mjs  Checks .claude/ skill and agent docs for stale references
 tests/smoke.mjs            Dependency-free app-shell validation
 tests/voicing-audit.mjs    Pitch-class and familiar-voicing regression checks
 tests/voicing-compare.mjs  Before/after voicing comparison for generator work
+.claude/skills/            Project skills (music theory, guitar playability)
+.claude/agents/            Project agents (product, UX, marketing, code review)
 .github/workflows/         Tests and GitHub Pages deployment
 ```
 

@@ -6,9 +6,10 @@
   "type": "module",
   "engines": {"node": ">=20"},
   "scripts": {
-    "test": "node tests/smoke.mjs && node tests/voicing-audit.mjs",
+    "test": "node tests/smoke.mjs && node tests/voicing-audit.mjs && node scripts/validate-agents.mjs",
     "test:voicings": "node tests/voicing-audit.mjs",
     "compare:voicings": "node tests/voicing-compare.mjs",
+    "validate:agents": "node scripts/validate-agents.mjs",
     "serve": "node scripts/serve.mjs"
   }
 }

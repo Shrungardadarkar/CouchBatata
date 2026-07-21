@@ -1,0 +1,28 @@
+{
+  "skill_name": "guitar-fundamentals",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "In CouchBatata, the shape browser for Bm currently shows '2,0,4,0,2,-1' as its best voicing instead of the classic open-position A-shape barre 'x24432'. Is the current top suggestion actually the shape people expect, and if not, what's the right way to fix it?",
+      "expected_output": "Identifies this as the A-shape barre recognition gap: the barre fret only repeats on 2 sounded strings (not 3+) once the low E is muted, so the existing isBarreFamily()/fullEBarre heuristic never recognizes it. Recommends adding an entry to FAMILIAR_VOICING_TEMPLATES rather than generalizing the barre-recognition scoring logic, and explicitly warns that two prior attempts at a generalized fix both failed (one didn't even fix the target and touched 17 unrelated chords; a second fixed the target but regressed two already-correct chords).",
+      "files": [],
+      "expectations": [
+        "Names the A-shape vs E-shape barre distinction specifically",
+        "Explains why isBarreFamily's '3+ shared fret' check fails for A-shape barres with a muted low E",
+        "Recommends FAMILIAR_VOICING_TEMPLATES as the fix, not a change to scoring/recognition logic",
+        "Warns against re-attempting a generalized barre-recognition heuristic, citing that prior attempts touched unrelated chords"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm about to write a new open-position voicing by hand for Csus4 in FAMILIAR_VOICING_TEMPLATES: frets [1,1,0,3,3,-1] (in the app's high-e-to-low-E index order). Before I add it, walk me through whether this is actually a comfortable, playable shape.",
+      "expected_output": "Applies the cost hierarchy (muted-string-in-the-middle > fret span > redundant fretted note > free open string), checks the index order is high-e-to-low-E (not low-E-to-high-e), and notes that playability review is necessary but not sufficient -- pitch-class correctness still needs to be checked via music-theory-audit before this can be trusted as correct.",
+      "files": [],
+      "expectations": [
+        "Correctly reads the fret array in high-e-to-low-E order, not low-E-to-high-e",
+        "Applies the specific cost hierarchy from the skill (muted-middle-string worst, then span, then redundant fretted note, open strings free)",
+        "Points out that this skill covers playability only and pitch-class correctness needs separate verification"
+      ]
+    }
+  ]
+}

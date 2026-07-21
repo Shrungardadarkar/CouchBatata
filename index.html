@@ -2725,7 +2725,18 @@ function showChord(){
 function syncShapeNavigator(){
   const nav=document.getElementById('shapeNav');
   nav.hidden=!current;
-  if(current&&!inShapeMode)document.getElementById('shapeLabel').textContent='Browse shapes';
+  if(!current)return;
+  // Eagerly compute the voicing list so the label always reads "Shape 1 of N"
+  // instead of a vague "Browse shapes" prompt, even before the user has
+  // clicked either arrow.
+  if(!inShapeMode){
+    shapes=buildShapesFor(current,selection.slice());
+    shapeIdx=0;inShapeMode=true;
+  }
+  const v=shapes[shapeIdx]||shapes[0];
+  const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
+  const savedIn=activeChip&&findSection(activeChip.sectionId)?' · saved to '+findSection(activeChip.sectionId).name:'';
+  document.getElementById('shapeLabel').textContent='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName+savedIn;
 }
 function fullQuality(suf){
   const m={'':'major','m':'minor','7':'dominant 7','maj7':'major 7','m7':'minor 7',
@@ -2849,13 +2860,13 @@ function setFlats(v){useFlats=v;
 document.getElementById('btnAccidental').addEventListener('click',()=>setFlats(!useFlats));
 
 /* ---------- shapes ---------- */
-function enterShapesFor(chordObj,playedFrets,loadInitial=true){
-  if(!chordObj||typeof chordObj.root!=='number'||!Array.isArray(chordObj.pcs)){
-    // Corrupt input — refuse to enter shape mode
-    return;
-  }
+// Pure: builds the ordered voicing list for a chord without touching any
+// shape-navigator state, so it can be reused for the eager idle-state
+// preview (syncShapeNavigator) as well as the real entry point below.
+function buildShapesFor(chordObj,playedFrets){
   const ivs=[...new Set(chordObj.pcs.map(p=>((p-chordObj.root)+12)%12))];
   let gen=findVoicings(chordObj.root,ivs);
+  let result;
   if(Array.isArray(playedFrets)&&playedFrets.length>0){
     const pf=new Array(6).fill(-1);
     for(let i=0;i<6;i++){
@@ -2865,13 +2876,21 @@ function enterShapesFor(chordObj,playedFrets,loadInitial=true){
     gen=gen.filter(v=>v.frets.join()!==pf.join());
     const fr=pf.filter(f=>f>0);
     const minF=fr.length?Math.min(...fr):0;
-    shapes=[{frets:pf,minF,asPlayed:true},...gen];
+    result=[{frets:pf,minF,asPlayed:true},...gen];
   } else {
-    shapes=gen;
+    result=gen;
   }
-  if(shapes.length===0){
-    shapes=[{frets:selection.map(f=>(f===null||f==='x')?-1:f),minF:0}];
+  if(result.length===0){
+    result=[{frets:selection.map(f=>(f===null||f==='x')?-1:f),minF:0}];
   }
+  return result;
+}
+function enterShapesFor(chordObj,playedFrets,loadInitial=true){
+  if(!chordObj||typeof chordObj.root!=='number'||!Array.isArray(chordObj.pcs)){
+    // Corrupt input — refuse to enter shape mode
+    return;
+  }
+  shapes=buildShapesFor(chordObj,playedFrets);
   current=chordObj;currentAlts=[];
   inShapeMode=true;shapeIdx=0;
   syncShapeNavigator();

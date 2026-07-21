@@ -617,25 +617,36 @@
 
   .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
   .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
-  .song-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .song-title-input{flex:1 1 200px;min-width:140px;background:var(--cream);color:var(--ink);
-    border:2.5px solid var(--ink);border-radius:8px;padding:8px 12px;font-family:inherit;
+  .song-name-row{display:flex;align-items:center;gap:8px;min-height:28px}
+  .song-name-display{font-size:1.02rem;font-weight:800;color:var(--ink);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .song-name-display.placeholder{color:var(--ink-faint);font-weight:600}
+  .song-name-row.editing .song-name-display{display:none}
+  .song-name-input-wrap{flex:0 1 50%;min-width:150px;max-width:50%;display:none}
+  .song-name-input-wrap.active{display:block}
+  .song-title-input{width:100%;background:var(--cream);color:var(--ink);
+    border:2.5px solid var(--tomato);border-radius:8px;padding:7px 10px;font-family:inherit;
     font-size:1rem;font-weight:800;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
   .song-title-input:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .song-title-input::placeholder{color:var(--ink-faint);font-weight:600}
-  .song-title-save{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
-    border:2.5px solid var(--ink);background:var(--cream);color:var(--ink-faint);
-    border-radius:8px;padding:8px 13px;font-family:inherit;font-size:.84rem;font-weight:800;
-    cursor:not-allowed;box-shadow:2px 2px 0 rgba(26,24,21,.25);
-    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s,color .12s}
-  .song-title-save.armed{color:var(--ink);background:var(--sun);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
-  @media (hover:hover){.song-title-save.armed:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink);background:var(--gold)}}
-  .song-title-save.armed:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .song-title-save svg{width:14px;height:14px;flex:0 0 auto}
-  .song-title-status{min-height:18px;font-size:.76rem;font-weight:700;color:var(--ink-faint);display:flex;align-items:center;gap:6px}
-  .song-title-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
-  .song-title-status.dirty{color:var(--tomato-dk)}
-  .song-title-status.saved{color:var(--mint-dk)}
+  /* Same ghost icon-button treatment as .sect-dup — it's the same role (a small
+     utility action sitting right next to a text label), just edit instead of
+     duplicate. One button, not two: it IS the edit control, then IS the save
+     control once editing starts. */
+  .song-name-btn{background:none;border:0;color:var(--ink-faint);cursor:pointer;
+    width:28px;height:28px;border-radius:50%;line-height:1;display:grid;place-items:center;flex:0 0 auto;
+    transition:color .12s,background .12s,transform .18s var(--ease-spring)}
+  .song-name-btn svg{width:14px;height:14px;grid-area:1/1}
+  .song-name-btn .icon-check{display:none}
+  .song-name-btn.editing .icon-pencil{display:none}
+  .song-name-btn.editing .icon-check{display:block}
+  @media (hover:hover){.song-name-btn:not(.editing):hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}}
+  .song-name-btn:not(.editing):active{transform:scale(.95);transition-duration:.05s}
+  /* Editing but nothing changed yet — same button, inactive until armed. */
+  .song-name-btn.editing{cursor:not-allowed}
+  .song-name-btn.editing.armed{color:var(--tomato-dk);cursor:pointer}
+  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--sun);transform:scale(1.15)}}
+  .song-name-btn.editing.armed:active{transform:scale(.95);transition-duration:.05s}
 
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
   .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
@@ -813,11 +824,11 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
-    .active-badge,.chip-x,.sect-dup,.acc-knob,.scale-panel-chevron,.mascot,
+    .active-badge,.chip-x,.sect-dup,.song-name-btn,.acc-knob,.scale-panel-chevron,.mascot,
     #toast,.modal-dialog,.help-fab,.help-panel,.help-close,
     .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
-    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover{transform:none !important}
+    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover{transform:none !important}
     .mascot:hover{animation:none !important}
     #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
@@ -987,15 +998,17 @@
   <h2>Tab builder</h2>
   <div class="song-title-block">
     <label class="song-title-label" for="songTitleInput">Song name</label>
-    <div class="song-title-row">
-      <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
-        placeholder="Untitled song" autocomplete="off" aria-label="Song name">
-      <button type="button" class="song-title-save" id="songTitleSave" disabled title="Save the song name">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
-        Save
+    <div class="song-name-row" id="songNameRow">
+      <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
+      <div class="song-name-input-wrap" id="songNameInputWrap">
+        <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
+          placeholder="Untitled song" autocomplete="off" aria-label="Song name">
+      </div>
+      <button type="button" class="song-name-btn" id="songNameBtn" title="Edit song name" aria-label="Edit song name">
+        <svg class="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
       </button>
     </div>
-    <div class="song-title-status saved" id="songTitleStatus" aria-live="polite"><span class="dot" aria-hidden="true"></span>Saved</div>
   </div>
   <div id="song"></div>
 
@@ -4266,44 +4279,70 @@ function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;
 }
 
-/* song title — explicit save, not autosave-as-you-type */
+/* song name — one interchangeable icon button: pencil (edit) in view mode,
+   checkmark (save) once editing. Explicit save, not autosave-as-you-type. */
+const songNameRow=document.getElementById('songNameRow');
+const songNameDisplay=document.getElementById('songNameDisplay');
+const songNameInputWrap=document.getElementById('songNameInputWrap');
 const songTitleInput=document.getElementById('songTitleInput');
-const songTitleSave=document.getElementById('songTitleSave');
-const songTitleStatus=document.getElementById('songTitleStatus');
+const songNameBtn=document.getElementById('songNameBtn');
 function updateDocumentTitle(){
   const trimmed=songName.trim();
   document.title=trimmed?trimmed+' — Couch Batata':'Couch Batata';
 }
-function setSongTitleDirty(dirty){
-  songTitleSave.disabled=!dirty;
-  songTitleSave.classList.toggle('armed',dirty);
-  songTitleStatus.classList.toggle('dirty',dirty);
-  songTitleStatus.classList.toggle('saved',!dirty);
-  songTitleStatus.innerHTML='<span class="dot" aria-hidden="true"></span>'+(dirty?'Unsaved changes':'Saved');
+function renderSongNameDisplay(){
+  const trimmed=songName.trim();
+  songNameDisplay.textContent=trimmed||'Untitled song';
+  songNameDisplay.classList.toggle('placeholder',!trimmed);
 }
-function syncSongTitleUI(){
+function setSongNameArmed(armed){
+  songNameBtn.classList.toggle('armed',armed);
+  songNameBtn.setAttribute('aria-label',armed?'Save song name':'Song name unchanged');
+}
+function enterSongNameEdit(){
   songTitleInput.value=songName;
-  updateDocumentTitle();
-  setSongTitleDirty(false);
+  songNameRow.classList.add('editing');
+  songNameInputWrap.classList.add('active');
+  songNameBtn.classList.add('editing');
+  songNameBtn.title='Save song name';
+  setSongNameArmed(false);
+  songTitleInput.focus();
+  songTitleInput.select();
 }
-function saveSongTitle(){
-  if(songTitleSave.disabled)return;
+function exitSongNameEdit(){
+  songNameRow.classList.remove('editing');
+  songNameInputWrap.classList.remove('active');
+  songNameBtn.classList.remove('editing','armed');
+  songNameBtn.title='Edit song name';
+  songNameBtn.setAttribute('aria-label','Edit song name');
+}
+function saveSongName(){
+  if(!songNameBtn.classList.contains('armed'))return; // nothing changed — no-op
   songName=songTitleInput.value.trim().slice(0,120);
-  songTitleInput.value=songName;
   updateDocumentTitle();
-  setSongTitleDirty(false);
+  renderSongNameDisplay();
   save(true);
   // Refresh an already-open preview instead of leaving it showing the old name.
   const exportPanel=document.getElementById('exportPanel');
   if(exportPanel&&!exportPanel.hidden)document.getElementById('exportPre').textContent=buildExportText();
+  exitSongNameEdit();
 }
+function syncSongTitleUI(){
+  updateDocumentTitle();
+  renderSongNameDisplay();
+  exitSongNameEdit();
+}
+songNameBtn.addEventListener('click',()=>{
+  if(!songNameRow.classList.contains('editing'))enterSongNameEdit();
+  else saveSongName();
+});
 songTitleInput.addEventListener('input',()=>{
-  setSongTitleDirty(songTitleInput.value!==songName);
+  setSongNameArmed(songTitleInput.value!==songName);
 });
 songTitleInput.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){e.preventDefault();saveSongTitle();}
+  if(e.key==='Enter'){e.preventDefault();saveSongName();}
+  if(e.key==='Escape'){e.preventDefault();exitSongNameEdit();}
 });
-songTitleSave.addEventListener('click',saveSongTitle);
 
 /* clear entire song */
 document.getElementById('btnClearSong').addEventListener('click',async ()=>{

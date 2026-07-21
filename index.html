@@ -1395,6 +1395,31 @@ function findVoicings(rootPc,ivs){
     if(picked.length>=5)picked[picked.length-1]=barre;
     else picked.push(barre);
   }
+  // Prefer muting a redundant fretted "edge" string (the outermost played
+  // string, closest to the low E) over fretting it, when doing so doesn't
+  // drop any required tone and the simpler shape's own score is close
+  // behind — e.g. this is what turns "0,2,2,2,0,5" (a real but awkward open-A
+  // variant that also frets the low E for a doubled A) back into the classic
+  // "0,2,2,2,0,x" open A shape. Deliberately narrow: it only ever swaps two
+  // voicings that are identical apart from that one string, so it can't
+  // reshuffle the ranking for anything else.
+  for(let bi=0;bi<picked.length;bi++){
+    const v=picked[bi];
+    const played=[];v.frets.forEach((f,i)=>{if(f>=0)played.push(i)});
+    if(played.length<=Math.max(3,needAll.length))continue;
+    const edge=played[played.length-1];
+    if(v.frets[edge]<=0)continue; // only when it costs a finger
+    const withoutEdge=new Set(played.filter(i=>i!==edge).map(i=>(OPEN[i]+v.frets[i])%12));
+    if(!needAll.every(pc=>withoutEdge.has(pc)))continue; // edge note isn't redundant
+    const bucket=Math.floor(v.minF/2);
+    const alt=out.find(o=>{
+      if(Math.floor(o.minF/2)!==bucket)return false;
+      if(o.frets[edge]!==-1)return false;
+      for(let i=0;i<6;i++)if(i!==edge&&o.frets[i]!==v.frets[i])return false;
+      return true;
+    });
+    if(alt&&alt.score>=v.score-1.5)picked[bi]=alt;
+  }
   picked.sort((a,b)=>a.minF-b.minF);
   return picked;
 }

@@ -615,13 +615,27 @@
   .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
-  .song-title-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-  .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace;flex:0 0 auto}
-  .song-title-input{flex:1 1 240px;min-width:160px;background:var(--cream);color:var(--ink);
+  .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+  .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
+  .song-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .song-title-input{flex:1 1 200px;min-width:140px;background:var(--cream);color:var(--ink);
     border:2.5px solid var(--ink);border-radius:8px;padding:8px 12px;font-family:inherit;
     font-size:1rem;font-weight:800;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
   .song-title-input:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .song-title-input::placeholder{color:var(--ink-faint);font-weight:600}
+  .song-title-save{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;
+    border:2.5px solid var(--ink);background:var(--cream);color:var(--ink-faint);
+    border-radius:8px;padding:8px 13px;font-family:inherit;font-size:.84rem;font-weight:800;
+    cursor:not-allowed;box-shadow:2px 2px 0 rgba(26,24,21,.25);
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s,color .12s}
+  .song-title-save.armed{color:var(--ink);background:var(--sun);cursor:pointer;box-shadow:2px 2px 0 var(--ink)}
+  @media (hover:hover){.song-title-save.armed:hover{transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink);background:var(--gold)}}
+  .song-title-save.armed:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .song-title-save svg{width:14px;height:14px;flex:0 0 auto}
+  .song-title-status{min-height:18px;font-size:.76rem;font-weight:700;color:var(--ink-faint);display:flex;align-items:center;gap:6px}
+  .song-title-status .dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:0 0 auto}
+  .song-title-status.dirty{color:var(--tomato-dk)}
+  .song-title-status.saved{color:var(--mint-dk)}
 
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
   .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
@@ -969,12 +983,19 @@
   </div>
 </div>
 
-<div class="panel win-tomato" data-win="Song">
-  <h2>Song</h2>
-  <div class="song-title-row">
-    <label class="song-title-label" for="songTitleInput">Song:</label>
-    <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
-      placeholder="Untitled song" autocomplete="off" aria-label="Song title">
+<div class="panel win-tomato" data-win="Tab builder">
+  <h2>Tab builder</h2>
+  <div class="song-title-block">
+    <label class="song-title-label" for="songTitleInput">Song name</label>
+    <div class="song-title-row">
+      <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
+        placeholder="Untitled song" autocomplete="off" aria-label="Song name">
+      <button type="button" class="song-title-save" id="songTitleSave" disabled title="Save the song name">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
+        Save
+      </button>
+    </div>
+    <div class="song-title-status saved" id="songTitleStatus" aria-live="polite"><span class="dot" aria-hidden="true"></span>Saved</div>
   </div>
   <div id="song"></div>
 
@@ -4245,25 +4266,44 @@ function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;
 }
 
-/* song title */
+/* song title — explicit save, not autosave-as-you-type */
 const songTitleInput=document.getElementById('songTitleInput');
+const songTitleSave=document.getElementById('songTitleSave');
+const songTitleStatus=document.getElementById('songTitleStatus');
 function updateDocumentTitle(){
   const trimmed=songName.trim();
   document.title=trimmed?trimmed+' — Couch Batata':'Couch Batata';
 }
+function setSongTitleDirty(dirty){
+  songTitleSave.disabled=!dirty;
+  songTitleSave.classList.toggle('armed',dirty);
+  songTitleStatus.classList.toggle('dirty',dirty);
+  songTitleStatus.classList.toggle('saved',!dirty);
+  songTitleStatus.innerHTML='<span class="dot" aria-hidden="true"></span>'+(dirty?'Unsaved changes':'Saved');
+}
 function syncSongTitleUI(){
   songTitleInput.value=songName;
   updateDocumentTitle();
+  setSongTitleDirty(false);
+}
+function saveSongTitle(){
+  if(songTitleSave.disabled)return;
+  songName=songTitleInput.value.trim().slice(0,120);
+  songTitleInput.value=songName;
+  updateDocumentTitle();
+  setSongTitleDirty(false);
+  save(true);
+  // Refresh an already-open preview instead of leaving it showing the old name.
+  const exportPanel=document.getElementById('exportPanel');
+  if(exportPanel&&!exportPanel.hidden)document.getElementById('exportPre').textContent=buildExportText();
 }
 songTitleInput.addEventListener('input',()=>{
-  songName=songTitleInput.value.slice(0,120);
-  updateDocumentTitle();
-  save();
+  setSongTitleDirty(songTitleInput.value!==songName);
 });
-songTitleInput.addEventListener('blur',()=>{
-  const trimmed=songName.trim();
-  if(trimmed!==songName){songName=trimmed;songTitleInput.value=trimmed;save(true);}
+songTitleInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();saveSongTitle();}
 });
+songTitleSave.addEventListener('click',saveSongTitle);
 
 /* clear entire song */
 document.getElementById('btnClearSong').addEventListener('click',async ()=>{

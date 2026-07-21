@@ -779,6 +779,13 @@
   @media (pointer:coarse){
     .chip,.sect-bar{touch-action:pan-y}
     .song-sect:hover,.chip:hover,.btn:hover,.toggle:hover,.switch-toggle:hover{transform:none}
+    /* iOS Safari treats a hover-styled element's first tap as a hover-only
+       event (no click fires) — the button then sits stuck in its hover look
+       until something else is tapped. Strum/Pick hit this hardest since its
+       hover swaps the whole background. Neutralizing the hover style on
+       coarse pointers restores single-tap clicking and stops the stuck
+       highlight. */
+    .strum-btn:hover{background:var(--cream)}
   }
 
   /* Respect users who prefer reduced motion — keep interactions functional but calm:
@@ -2724,6 +2731,9 @@ btnStrumEl.addEventListener('click',()=>{
   btnStrumEl.classList.remove('ringing');
   void btnStrumEl.offsetWidth;
   btnStrumEl.classList.add('ringing');
+  // animationend never fires with prefers-reduced-motion forcing animation:none —
+  // this fallback guarantees the class still clears instead of sticking forever.
+  setTimeout(()=>btnStrumEl.classList.remove('ringing'),1900);
 });
 btnStrumEl.addEventListener('animationend',e=>{
   if(e.animationName==='bobblehead')btnStrumEl.classList.remove('ringing');

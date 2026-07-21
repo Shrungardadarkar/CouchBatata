@@ -50,6 +50,9 @@ update without reconstructing prior conversation history.
   chord pitch classes.
 - Keep `OPEN = [64,59,55,50,45,40]`; index 0 is high e and index 5 is low E.
 - Exported fret shapes read low E to high e.
+- `findVoicings()` is intentionally a general search with a tiny, explicit
+  catalogue of pitch-checked familiar shapes. Do not add a broad shape matcher
+  or global score tweak without comparing every root × formula result.
 
 ## Required validation
 
@@ -58,6 +61,15 @@ Before committing:
 ```bash
 npm test
 ```
+
+When changing `FORMULAS`, `OPEN`, or `findVoicings()`, also run:
+
+```bash
+npm run compare:voicings
+```
+
+It compares all 300 root × formula results with `HEAD`. Inspect every changed
+shape; only keep changes that are deliberate and musically preferable.
 
 For meaningful UI changes, test at minimum:
 

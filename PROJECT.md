@@ -74,6 +74,11 @@ useFlats              note spelling preference
 - Standard tuning: `OPEN = [64,59,55,50,45,40]` in high-e-to-low-E order.
 - Chord identification compares unique pitch classes against the built-in
   formula library and considers bass-note inversions.
+- The voicing generator searches playable fretboard combinations, then keeps
+  positional variety. A very small, pitch-checked catalogue preserves a few
+  widely taught grips that a lower-effort alternative would otherwise hide.
+  Changes to its selection must be compared across all 12 roots and 25 chord
+  formulas before release.
 - Key analysis scores all twelve major collections and reports ambiguity.
 - Dominant I/IV/V blues progressions are presented as a dominant-blues tonal
   context, not as one universal Mixolydian scale.

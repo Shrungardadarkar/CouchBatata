@@ -116,7 +116,9 @@ PROJECT.md                 Product and technical specification
 AGENTS.md                  Instructions for AI coding agents
 CONTRIBUTING.md             Human and AI contribution workflow
 scripts/serve.mjs          Dependency-free local web server
-tests/smoke.mjs            Dependency-free validation suite
+tests/smoke.mjs            Dependency-free app-shell validation
+tests/voicing-audit.mjs    Pitch-class and familiar-voicing regression checks
+tests/voicing-compare.mjs  Before/after voicing comparison for generator work
 .github/workflows/         Tests and GitHub Pages deployment
 ```
 

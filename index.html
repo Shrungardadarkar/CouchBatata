@@ -1300,6 +1300,20 @@ const FORMULAS=[
 ];
 const IVNAME={0:'root',1:'♭2',2:'2nd',3:'♭3',4:'3rd',5:'4th',6:'♭5',7:'5th',8:'♯5',9:'6th',10:'♭7',11:'7th'};
 
+// A deliberately narrow, pitch-checked catalogue of a few widely taught grips
+// that the general voicing search passes over in favor of a lower-effort
+// alternative in the same neck position (see the swap in findVoicings below).
+// Every entry's pitch classes are asserted against FORMULAS in
+// tests/voicing-audit.mjs — do not add or edit an entry without updating that
+// check, and never widen this into a general shape matcher.
+const FAMILIAR_VOICING_TEMPLATES=[
+  {suf:'m',    root:11, frets:[2,3,4,4,2,-1]}, // Bm: x24432
+  {suf:'sus4', root:2,  frets:[3,3,2,0,-1,-1]}, // Dsus4: xx0233
+  {suf:'sus4', root:9,  frets:[0,3,2,2,0,-1]}, // Asus4: x02230
+  {suf:'maj7', root:5,  frets:[0,1,2,3,-1,-1]}, // Fmaj7: xx3210
+  {suf:'add9', root:0,  frets:[0,3,0,2,3,-1]}, // Cadd9: x32030
+];
+
 function setEq(a,b){if(a.size!==b.length)return false;for(const x of b)if(!a.has(x))return false;return true}
 
 function identify(midis){
@@ -1419,6 +1433,23 @@ function findVoicings(rootPc,ivs){
       return true;
     });
     if(alt&&alt.score>=v.score-1.5)picked[bi]=alt;
+  }
+  // Swap in a catalogued familiar grip if this exact chord (root + quality)
+  // has one, it's actually reachable by the search above, and there's a
+  // picked voicing in the same position bucket to replace. Never inserts a
+  // new bucket, never transposes a template, never touches scoring — this
+  // can only override what a bucket already contains.
+  const familiarFormula=FORMULAS.find(f=>setEq(new Set(ivs),f.iv));
+  if(familiarFormula){
+    const template=FAMILIAR_VOICING_TEMPLATES.find(t=>t.root===rootPc&&t.suf===familiarFormula.suf);
+    if(template){
+      const match=out.find(o=>o.frets.join(',')===template.frets.join(','));
+      if(match){
+        const bucket=Math.floor(match.minF/2);
+        const idx=picked.findIndex(p=>Math.floor(p.minF/2)===bucket);
+        if(idx>=0)picked[idx]=match;
+      }
+    }
   }
   picked.sort((a,b)=>a.minF-b.minF);
   return picked;

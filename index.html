@@ -741,9 +741,11 @@
     .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}
     .panel[data-win]::before{left:16px;font-size:.68rem;padding:5px 11px}
     #tabPanel{margin-top:38px}
+    .btn{padding:9px 13px;font-size:.85rem}
     .switch-toggle{height:33px}
-    .sound-toggle{width:34px;height:33px}
+    .sound-toggle{width:34px;height:33px;padding:0}
     .sound-toggle .sound-icon{width:21px;height:21px}
+    .sound-toggle .sound-icon svg{width:21px;height:21px}
     .strum-btn{height:33px;min-width:104px;padding:0 11px 0 9px}
     .strum-icon{width:24px;height:24px}
     .strum-label{font-size:.72rem}
@@ -758,7 +760,6 @@
     .scale-panel-header.has-active-scale .key-line{flex:1 1 calc(100% - 32px)}
     .scale-panel-header.has-active-scale .scale-overlay-status{order:3;max-width:100%}
     .scale-panel-body{padding-left:15px;padding-right:15px}
-    .btn{padding:9px 13px;font-size:.85rem}
     .btn-row{gap:9px}
     .scale-chip{min-width:140px}
     .board-outer{min-width:720px}
@@ -2280,10 +2281,12 @@ function playLeadEventPreview(event){
   if(!soundOn||!event||!event.notes||!event.notes.length)return;
   const t0=audioCtx().currentTime+0.02;
   // Solo/arpeggio notes are picked one at a time, never hit together like a
-  // chord strum — even a multi-note event (e.g. a double-stop) gets a short
-  // per-note stagger instead of firing every string at the same instant.
+  // chord strum — even a multi-note event (e.g. a double-stop) gets a
+  // per-note stagger. Deliberately slower than the chord strum's 75ms: a
+  // strum is one continuous sweep across strings, but picked notes need to
+  // read as distinct events, not a fast blur.
   event.notes.forEach(({s,f},i)=>{
-    const when=t0+i*0.045;
+    const when=t0+i*0.12;
     const midi=OPEN[s]+f;
     if(event.t==='b')pluck(s,midi,{when,detuneFromCents:0,detuneToCents:200,rampMs:140});
     else if(event.t==='r')pluck(s,midi,{when,detuneFromCents:200,detuneToCents:0,rampMs:140});

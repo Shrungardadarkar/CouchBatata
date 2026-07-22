@@ -4020,6 +4020,16 @@ function buildExportText(){
       ?pcName(keyInfo.tonic)+' dominant blues'
       :pcName(keyInfo.tonic)+' major / '+pcName((keyInfo.tonic+9)%12)+' minor';
     L.push('Key: '+keyLabel);
+    // Same two facts as the on-screen Key & Scales panel — the chord list and
+    // scale names only, not the position-box/note-degree breakdown, which is
+    // a fretboard visual aid with no place in a plain-text chart.
+    if(!keyInfo.dominantContext){
+      const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
+      const unused=tris.filter(t=>!chords.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)));
+      if(unused.length)L.push('Unused chords in this key: '+unused.map(t=>pcName(t.root)+t.suf+' '+t.rn).join(', '));
+    }
+    const scaleSugs=suggestScales(keyInfo.tonic);
+    if(scaleSugs.length)L.push('Scales for soloing: '+scaleSugs.map(s=>pcName(s.root)+' '+SCALES[s.scale].name).join(', '));
   }
   L.push('Tuning: EADGBE   ·   frets read low E → high e   ·   x = muted');
   L.push('');

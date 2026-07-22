@@ -8,3 +8,6 @@ coverage/
 # Scratch output from running .claude/skills/*/evals/ test cases — not
 # permanent repo content, safe to delete and regenerate.
 *-workspace/
+
+# Ephemeral git worktrees created for isolated background agent runs.
+.claude/worktrees/

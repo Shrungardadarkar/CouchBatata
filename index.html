@@ -4026,10 +4026,10 @@ function buildExportText(){
     if(!keyInfo.dominantContext){
       const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
       const unused=tris.filter(t=>!chords.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)));
-      if(unused.length)L.push('Unused chords in this key: '+unused.map(t=>pcName(t.root)+t.suf+' '+t.rn).join(', '));
+      if(unused.length)L.push('Unused: '+unused.map(t=>pcName(t.root)+t.suf+' '+t.rn).join(', '));
     }
     const scaleSugs=suggestScales(keyInfo.tonic);
-    if(scaleSugs.length)L.push('Scales for soloing: '+scaleSugs.map(s=>pcName(s.root)+' '+SCALES[s.scale].name).join(', '));
+    if(scaleSugs.length)L.push('Scales: '+scaleSugs.map(s=>pcName(s.root)+' '+SCALES[s.scale].name).join(', '));
   }
   L.push('Tuning: EADGBE   ·   frets read low E → high e   ·   x = muted');
   L.push('');

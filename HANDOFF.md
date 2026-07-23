@@ -30,14 +30,15 @@ commit, not just read as code. All pushed directly to `main`:
 6. `e560eb4` + `76f0c54` — First-load nudge explaining the open-string
    default, copy later corrected to also mention the Suggestions row below it.
 7. `ac2ca8a` — The autosave-restored toast now names the actual last-built
-   section instead of a generic "restored your song" message.
+   section instead of a generic "restored your song" message. The 2026-07-23
+   calm-guidance follow-up keeps this orientation notice visible for 5.6 seconds.
 8. `3ea837c` — "Save & start fresh": backed up the current song, then
    cleared it with no confirm. It was superseded by the later My songs picker,
    which keeps prior ideas available in-app instead of relying on Downloads.
-9. `0dab1ce` — After adding a chord, an optional "Try `<chord>`?" action
-   surfaces the next unused diatonic triad, reusing the exact same
-   `diatonicTriadsFor`/`startsLike` computation the Key & Scales panel and
-   the plain-text export already use.
+9. `0dab1ce` — This earlier optional post-add "Try `<chord>`?" nudge was
+   superseded on 2026-07-23. Routine chord adds now stay quiet; the same
+   diatonic logic lives where it belongs, in interactive **Key & Scales**
+   chips after a stable key is established.
 10. `84c1443` — Redesigned all three board-contextual messages (the
     first-load hint, "Added X / Try Y?", "Loaded X — edit any note...") to
     render through a new `.board-sticker` component anchored to the

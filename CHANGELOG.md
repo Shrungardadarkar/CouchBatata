@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-07-23 — Calm returning and in-key guidance
+
+- Kept the named “Last time” restoration notice visible long enough to orient a
+  returning player.
+- Removed routine “Added chord / Try next” board stickers. The saved Song chip
+  is now the visible confirmation, with a polite non-visual announcement for
+  assistive technology.
+- Moved next-chord guidance into **Key & Scales**: after a stable clean key,
+  the panel gently introduces clickable primary I / IV / V (or i / iv / V)
+  shapes, while other unused diatonic chords stay behind an explicit reveal.
+  Suggestions only load a fretboard shape; they never add a chord by themselves.
+- Moved **My songs** into a compact top-level working-context bar and refined
+  the picker’s focus and whole-card hover behaviour.
+- Made the opening promise shorter and action-led, and aligned the Help quick
+  start with it.
+
 ## 2026-07-20 — Fresh social previews
 
 - Versioned the social-card image URL so WhatsApp, LinkedIn, and other preview

@@ -17,6 +17,20 @@ they knew its name. The primary loop is:
 6. Review key and scale guidance.
 7. Export a readable chart or an editable project backup.
 
+The return and guidance moments are deliberately calm. A restored session names
+the last section long enough to orient the player; a routine chord addition is
+confirmed by the new chip in the Song rather than a toast. Once two or more
+saved chords establish a clean key, **Key & Scales** offers clickable primary
+I / IV / V (or i / iv / V) shapes first, with the remaining unused diatonic
+chords behind an explicit reveal. It never auto-adds a suggestion or repeatedly
+asks the player to try one.
+
+The compact **Working on / My songs** bar sits above the capture flow so a
+returning player can switch ideas without turning the app into a dashboard.
+The picker opens with its dialog focused for orientation; song rows have a
+whole-card hover/focus state and only reveal backup/delete through their
+secondary menu.
+
 Chord suggestions use complete-chip pages with persistent previous/next controls
 when there is more than one page. Each control change uses a small directional
 slide, while a reserved navigation slot keeps chips, arrows, borders, and

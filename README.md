@@ -70,7 +70,9 @@ Users do not need an app-store download.
   **Edit solo** for further changes; the action becomes **Save solo** while
   editing. A new solo joins an active chord section, or creates a Solo section
   when no chord section is active.
-- Key and scale direction appears before the fretboard; an active scale overlay
+- Key and scale direction appears before the fretboard; after a clear key is
+  established, clickable I / IV / V (or i / iv / V) shapes appear first, with
+  other unused in-key chords available on request. An active scale overlay
   remains visible while recording a solo.
 - Standard tuning with sharps/flats spelling.
 - Chord recognition, inversions, alternate interpretations, and a smoothly
@@ -84,9 +86,9 @@ Users do not need an app-store download.
   Core diatonic chords appear before richer in-scale variants; a full selected
   mode such as harmonic minor also changes the harmonic suggestion pool.
 - Plain-text chord and lead-tab preview and export.
-- A small **My songs** picker: start a fresh local song, switch between ideas,
-  back up one song, or delete one deliberately. The current song remains
-  prominent in the builder.
+- A compact **Working on / My songs** bar: start a fresh local song, switch
+  between ideas, back up one song, or delete one deliberately. The current
+  idea stays immediately reachable without interrupting the fretboard flow.
 - Editable JSON project backup and import. Importing creates a separate local
   song when the browser supports the song picker, so it never replaces the
   current idea by accident.

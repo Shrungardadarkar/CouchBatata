@@ -72,6 +72,7 @@
     --ease-out-back:cubic-bezier(.18,.89,.32,1.28);  /* gentle back-out for slides */
   }
   *{box-sizing:border-box;margin:0;padding:0}
+  .sr-status{position:fixed;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   html,body{background:var(--cream);color:var(--ink);
     font-family:"Helvetica Neue",Arial,system-ui,sans-serif;
     -webkit-font-smoothing:antialiased}
@@ -112,8 +113,13 @@
   h1 .dot{color:var(--sun);-webkit-text-stroke:2px var(--ink)}
   .header-subtitle{font-family:"Arial Black",Arial,sans-serif;font-weight:800;
     color:#2b1520;font-size:clamp(.78rem,2.2vw,.92rem);letter-spacing:0;margin-top:2px}
+  .song-context{display:flex;align-items:center;gap:10px;margin:16px 4px 0;padding:8px 10px 8px 12px;
+    border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:var(--shadow-sm)}
+  .song-context-kicker{color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+  .song-context-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-size:.88rem;font-weight:850}
   .tagline{color:var(--ink-soft);font-size:.9rem;font-weight:600;line-height:1.55;
-    padding:20px 4px 4px;margin:0;text-align:left}
+    padding:14px 4px 4px;margin:0;text-align:left}
+  .tagline strong{display:block;color:var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1rem;line-height:1.25}
 
   /* All fretboard controls live together above the instrument. */
   #tabPanel{position:relative}
@@ -665,7 +671,7 @@
   .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
   .song-title-label-row{display:flex;align-items:center;gap:8px;min-height:24px}
   .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
-  .song-shelf-trigger{display:inline-flex;align-items:center;gap:7px;padding:3px 8px 3px 9px;border:2px solid var(--ink);border-radius:999px;
+  .song-shelf-trigger{display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
     background:var(--mint);color:var(--ink);box-shadow:2px 2px 0 var(--ink);font:800 .72rem/1 "Courier New",monospace;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
   .song-shelf-trigger[hidden]{display:none}
@@ -730,12 +736,15 @@
   .song-shelf-close{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-size:1.3rem;font-weight:900;cursor:pointer;
     transition:transform .18s var(--ease-spring),background .12s}
   @media (hover:hover){.song-shelf-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}}
-  .song-shelf-close:focus-visible,.song-shelf-more:focus-visible,.song-shelf-open:focus-visible,.song-shelf-action:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-shelf-close:focus-visible,.song-shelf-more:focus-visible,.song-shelf-action:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .song-shelf-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto;padding:1px 4px 4px 1px}
-  .song-shelf-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:9px;background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);overflow:hidden}
-  .song-shelf-item.active{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}
+  .song-shelf-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:9px;background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);overflow:hidden;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .song-shelf-item.active{background:var(--sun-soft);box-shadow:2px 2px 0 var(--ink)}
+  @media (hover:hover){.song-shelf-item:hover{background:var(--cream-2);transform:translate(-2px,-2px) rotate(-.35deg);box-shadow:4px 4px 0 var(--ink)}.song-shelf-item.active:hover{background:var(--sun)}}
+  .song-shelf-item:focus-within{outline:3px solid var(--tomato);outline-offset:2px}
   .song-shelf-open{min-width:0;border:0;background:transparent;color:var(--ink);padding:10px 3px 10px 11px;text-align:left;font-family:inherit;cursor:pointer}
-  @media (hover:hover){.song-shelf-open:hover{background:rgba(255,244,233,.6)}}
+  .song-shelf-open:focus-visible{outline:none}
   .song-shelf-copy{display:block;min-width:0}
   .song-shelf-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Arial Black",Arial,sans-serif;font-size:.96rem;line-height:1.15}
   .song-shelf-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;color:var(--ink-dim);font-size:.76rem;font-weight:750;line-height:1.3}
@@ -745,6 +754,7 @@
   .song-shelf-more{width:30px;height:30px;margin-right:4px;border:0;border-radius:6px;background:transparent;color:var(--ink-faint);font:900 1.1rem/1 Arial,sans-serif;cursor:pointer;transition:color .12s,background .12s,transform .18s var(--ease-spring)}
   @media (hover:hover){.song-shelf-more:hover{background:var(--cream);color:var(--ink);transform:scale(1.1)}}
   .song-shelf-actions{grid-column:1/-1;display:flex;gap:7px;flex-wrap:wrap;padding:0 10px 10px}
+  .song-shelf-actions[hidden]{display:none}
   .song-shelf-action{border:2px solid var(--ink);border-radius:7px;background:var(--cream);color:var(--ink);padding:5px 9px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.75rem;line-height:1.1;font-weight:800;cursor:pointer}
   .song-shelf-action.danger{background:var(--tomato);color:var(--cream)}
   .song-shelf-foot{margin:10px 1px 0;color:var(--ink-dim);font-size:.76rem;line-height:1.4;font-weight:650}
@@ -757,9 +767,19 @@
     border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
   .key-line{font-size:1rem;flex:1;min-width:0;text-align:left;font-weight:700;color:var(--ink)}
   .key-line strong{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.2rem;font-weight:900}
-  .suggest{margin-top:10px;color:var(--ink-dim);font-size:.9rem;line-height:1.9;font-weight:600}
-  .suggest .sug{display:inline-block;border:2px solid var(--ink);border-radius:7px;
-    padding:3px 10px;margin:2px 5px 2px 0;color:var(--ink);background:var(--cream);font-weight:800;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .suggest{margin-top:10px;color:var(--ink-dim);font-size:.9rem;line-height:1.55;font-weight:600}
+  .key-chord-intro{margin:0 0 7px;color:var(--ink);font-weight:850}
+  .key-chord-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .key-chord-chip{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:7px;
+    padding:4px 10px;color:var(--ink);background:var(--cream);font-family:inherit;font-size:.86rem;font-weight:800;line-height:1.2;box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  @media (hover:hover){.key-chord-chip:hover{background:var(--mint);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
+  .key-chord-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .key-chord-chip:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .key-chord-rn{color:var(--amber);font-size:.75rem}
+  .key-more-chords{margin-top:8px}
+  .key-more-chords summary{display:inline-flex;cursor:pointer;color:var(--ink-dim);font-size:.8rem;font-weight:850}
+  .key-more-chords[open] summary{margin-bottom:6px;color:var(--ink)}
   .hint{color:var(--ink-dim);font-size:.84rem;margin-top:12px;line-height:1.6;font-weight:600}
 
   /* Collapsible key/scale panel — key always visible, rest expands on demand */
@@ -771,6 +791,10 @@
   @media (hover:hover){.scale-panel-header:hover{background:var(--cream-2)}}
   .scale-panel-chevron{color:var(--ink);font-size:1rem;font-weight:900;transition:transform .3s var(--ease-out-back);flex-shrink:0}
   .scale-panel-header[aria-expanded="true"] .scale-panel-chevron{transform:rotate(180deg)}
+  .scale-panel-header.key-coach-ready{background:linear-gradient(90deg,rgba(142,207,168,.28),transparent 68%)}
+  .key-coach-cue{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;padding:4px 8px;border:2px solid var(--ink);border-radius:999px;
+    background:var(--mint);color:var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);font-size:.72rem;font-weight:900;line-height:1.15;white-space:nowrap}
+  @media (prefers-reduced-motion:no-preference){.key-coach-cue{animation:keyCoachPulse 1.5s var(--ease-spring) 3}.scale-panel-header.key-coach-ready{animation:keyPanelGlow 1.5s ease-in-out 3}@keyframes keyCoachPulse{50%{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}@keyframes keyPanelGlow{50%{background:linear-gradient(90deg,rgba(142,207,168,.52),transparent 75%)}}}
   .scale-overlay-status{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;max-width:320px;
     padding:5px 9px;border:2px solid var(--ink);border-radius:999px;background:var(--mint);color:var(--ink);
     box-shadow:1.5px 1.5px 0 var(--ink);font-size:.73rem;font-weight:900;line-height:1.1;white-space:nowrap}
@@ -877,7 +901,11 @@
     .header-left{gap:16px}
     .mascot{width:70px;height:70px;margin:0}
     .wrap{padding:0 12px 16px}
-    .tagline{padding:16px 4px 0;font-size:.86rem}
+    .song-context{margin:12px 4px 0;padding:7px 8px 7px 10px;gap:8px}
+    .song-context-kicker{display:none}
+    .song-context-title{font-size:.82rem}
+    .song-shelf-trigger{padding:6px 8px}
+    .tagline{padding:14px 4px 0;font-size:.86rem}
     .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}
     .panel[data-win]::before{left:16px;font-size:.68rem;padding:5px 11px}
     #tabPanel{margin-top:38px}
@@ -983,7 +1011,12 @@
 </aside>
 
 <div class="wrap" inert>
-<p class="tagline"><strong>Catch the chord. Keep the song.</strong> Tap the notes you played, find the chord, and save the idea before it slips away. Then build it into a song.</p>
+<div class="song-context" aria-label="Current song">
+  <span class="song-context-kicker">Working on</span>
+  <span class="song-context-title" id="songContextTitle">Untitled song</span>
+  <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
+</div>
+<p class="tagline"><strong>Catch the chord. Keep the song.</strong> Tap the notes you played, find the chord, and save the idea before it slips away.</p>
 
 <div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
   <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
@@ -1110,7 +1143,6 @@
   <div class="song-title-block">
     <div class="song-title-label-row">
       <label class="song-title-label" for="songTitleInput">Song</label>
-      <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
     </div>
     <div class="song-name-row" id="songNameRow">
       <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
@@ -1127,7 +1159,7 @@
   <div id="song"></div>
 
   <div class="song-shelf-overlay" id="songShelfOverlay" hidden aria-hidden="true">
-    <section class="song-shelf-dialog" id="songShelfDialog" role="dialog" aria-modal="true" aria-labelledby="songShelfTitle">
+    <section class="song-shelf-dialog" id="songShelfDialog" role="dialog" aria-modal="true" aria-labelledby="songShelfTitle" tabindex="-1">
       <div class="song-shelf-head">
         <div class="song-shelf-head-copy"><span class="song-shelf-kicker">Your songs</span><h3 class="song-shelf-title" id="songShelfTitle">Pick up an idea</h3></div>
         <button class="btn primary song-shelf-new" id="btnNewSong" type="button">+ New song</button>
@@ -1166,16 +1198,18 @@
 </div>
 </div>
 
+<div class="sr-status" id="activityStatus" aria-live="polite" aria-atomic="true"></div>
+
 <button class="help-fab" id="btnHelp" type="button" aria-label="Open help" aria-expanded="false" aria-controls="helpPanel" title="How to use Couch Batata">?</button>
 <aside class="help-panel" id="helpPanel" role="dialog" aria-modal="false" aria-labelledby="helpTitle" aria-hidden="true">
   <div class="help-head">
     <h2 id="helpTitle">Need a hand?</h2>
     <button class="help-close" id="btnHelpClose" type="button" aria-label="Close help">×</button>
   </div>
-  <p class="help-intro">A quick guide to turn an idea on the couch into a shareable chord chart or tab.</p>
+  <p class="help-intro">A quick guide to catch an idea before it slips away, then turn it into a shareable chord chart or tab.</p>
   <ol class="help-quick">
-    <li>Choose <b>Chord</b> or <b>Solo / arpeggio</b> on the fretboard.</li>
-    <li>Tap notes, then add the chord or create the solo.</li>
+    <li>Tap the notes you are holding to start.</li>
+    <li>Choose <b>Chord</b> or <b>Solo / arpeggio</b>, then save what you played.</li>
     <li>Arrange sections and export when the idea feels right.</li>
   </ol>
   <details open>
@@ -1196,7 +1230,7 @@
   </details>
   <details>
     <summary>Key, scales &amp; notes</summary>
-    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. When a scale is on the fretboard, its name appears in the collapsed header. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
+    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. Once the key is clear, the panel offers the primary chords in that key first; tap one to load a shape on the fretboard, then edit or add it when ready. Other unused in-key chords are available behind <b>More chords in this key</b>. When a scale is on the fretboard, its name appears in the collapsed header. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
   </details>
   <details>
     <summary>Chord suggestions</summary>
@@ -2141,6 +2175,8 @@ let keyContextIncludesBoard=false;
 let scalePanelExpanded=false;    // manual open/closed state, persisted
 let _hadOutliers=false;          // tracks outlier presence to auto-open once on appearance
 let _popChip=null;               // {sectionId,chordIdx} of a chip to pop-in animate once
+const KEY_COACH_SEEN_KEY='couch-batata.key-coach.v1.seen';
+let keyCoachNudgeActive=false;
 
 const SECTION_PRESETS=['Intro','Verse','Pre-Chorus','Chorus','Bridge','Solo','Instrumental','Outro'];
 const findSection = id => sections.find(s=>s.id===id) || null;
@@ -3486,19 +3522,6 @@ function exitShapes(){
   document.getElementById('shapeNav').hidden=!current;
 }
 
-// The Key & Scales panel already lists diatonic chords the song hasn't used
-// yet, but that list is only visible once someone opens the panel. Surfacing
-// the first one as an optional toast action turns a hidden nudge into a
-// visible one, right when momentum to keep building is highest, without
-// adding a decision to the critical capture path (it's just as easy to
-// ignore as any other toast).
-function nextUnusedDiatonicChord(){
-  const keyInfo=currentKeyInfo;
-  if(!keyInfo||keyInfo.dominantContext)return null;
-  const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
-  const cs=allChords();
-  return tris.find(t=>!cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)))||null;
-}
 /* ---------- add chord to progression ---------- */
 document.getElementById('btnAdd').addEventListener('click',()=>{
   if(!current)return;
@@ -3515,11 +3538,12 @@ document.getElementById('btnAdd').addEventListener('click',()=>{
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;
   render();
   renderSong();
-  const nudge=nextUnusedDiatonicChord();
-  showBoardSticker('Added '+label+' to '+sec.name,{
-    timeout:nudge?4200:1600,
-    action:nudge?{text:'Try '+pcName(nudge.root)+nudge.suf+'?',onClick:()=>loadSuggestedChord({root:nudge.root,suf:nudge.suf})}:null
-  });
+  // Any board notice has done its job once someone saves a chord. The saved
+  // Song chip is now the feedback, so it should never compete with a lingering
+  // first-load hint or a just-loaded-shape message.
+  if(openStringsHintShown){openStringsHintShown=false;markOpenStringsHintSeen();}
+  hideBoardSticker();
+  announce('Added '+label+' to '+sec.name);
 });
 
 function flash(msg,opts){
@@ -3538,7 +3562,14 @@ function flash(msg,opts){
   }
   t.classList.add('show');
   clearTimeout(flash._t);
-  flash._t=setTimeout(()=>t.classList.remove('show'),opts&&opts.actionText?4200:1600);
+  const duration=opts&&Number.isFinite(opts.duration)?opts.duration:(opts&&opts.actionText?4200:1600);
+  flash._t=setTimeout(()=>t.classList.remove('show'),duration);
+}
+function announce(msg){
+  const status=document.getElementById('activityStatus');
+  if(!status)return;
+  status.textContent='';
+  requestAnimationFrame(()=>{status.textContent=msg;});
 }
 
 /* In-app confirmation dialog.
@@ -4710,6 +4741,33 @@ function startsLike(diatonicSuf,playedSuf){
   if(diatonicSuf==='dim')return ['dim','m7♭5','dim7'].includes(playedSuf);
   return diatonicSuf===playedSuf;
 }
+function keyCoachHasBeenSeen(){
+  try{return localStorage.getItem(KEY_COACH_SEEN_KEY)==='1';}catch{return true;}
+}
+function markKeyCoachSeen(){
+  if(!keyCoachNudgeActive)return;
+  try{localStorage.setItem(KEY_COACH_SEEN_KEY,'1');}catch{}
+  keyCoachNudgeActive=false;
+  const header=document.getElementById('scalePanelHeader');
+  header?.classList.remove('key-coach-ready');
+  header?.querySelector('.key-coach-cue')?.remove();
+}
+function syncKeyCoachCue(eligible){
+  const header=document.getElementById('scalePanelHeader');
+  if(!header)return;
+  keyCoachNudgeActive=!!eligible&&!keyCoachHasBeenSeen();
+  let cue=header.querySelector('.key-coach-cue');
+  if(keyCoachNudgeActive){
+    header.classList.add('key-coach-ready');
+    if(!cue){
+      cue=document.createElement('span');cue.className='key-coach-cue';cue.textContent='Chords in your key ↓';
+      header.insertBefore(cue,document.getElementById('scalePanelChevron'));
+    }
+  }else{
+    header.classList.remove('key-coach-ready');
+    cue?.remove();
+  }
+}
 function renderKey(){
   const panel=document.getElementById('scalePanel'),
         kl=document.getElementById('keyLine'),
@@ -4721,6 +4779,7 @@ function renderKey(){
   if(keyContextCount<1||!keyInfo){
     panel.hidden=true;
     _hadOutliers=false;
+    syncKeyCoachCue(false);
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
   panel.hidden=false;
@@ -4744,16 +4803,32 @@ function renderKey(){
       '<span class="fit-badge">'+inChords+' of '+totalChords+' fit · '+outIdxs.size+' borrowed</span>';
   }
 
-  // Diatonic suggestions — only meaningful for major-key context
-  if(dominantContext){
+  // Contextual guidance belongs here rather than in a repeated toast after
+  // every added chord. We wait for a stable, perfect-fit key; then surface the
+  // familiar I / IV / V (or i / iv / V) movement before the wider palette.
+  const hasStableKey=keyContextCount>=2&&isPerfectFit&&!dominantContext;
+  syncKeyCoachCue(hasStableKey);
+  if(!hasStableKey){
     sg.hidden=true;
   } else {
     const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
     const unused=tris.filter(t=>!cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)));
+    const primary=unused.filter(t=>['I','IV','V','i','iv'].includes(t.rn));
+    const other=unused.filter(t=>!primary.includes(t));
+    const chip=t=>'<button class="key-chord-chip" type="button" data-key-root="'+t.root+'" data-key-suf="'+t.suf+'" title="Load '+pcName(t.root)+t.suf+' onto the fretboard">'+pcName(t.root)+t.suf+' <span class="key-chord-rn">'+t.rn+'</span></button>';
     sg.hidden=false;
-    sg.innerHTML=unused.length
-      ?'Other chords in this key you haven\u2019t used: '+unused.map(t=>'<span class="sug">'+pcName(t.root)+t.suf+' <span style="color:var(--amber);font-size:.75rem">'+t.rn+'</span></span>').join('')
-      :'You\u2019ve used every diatonic chord in this key. Nice.';
+    if(!unused.length){
+      sg.textContent='You\u2019ve used every diatonic chord in this key. Nice.';
+    }else{
+      sg.innerHTML=(primary.length
+        ?'<p class="key-chord-intro">Try these in your key:</p><div class="key-chord-row">'+primary.map(chip).join('')+'</div>'
+        :'<p class="key-chord-intro">You\u2019ve used the primary chords in this key.</p>')
+        +(other.length?'<details class="key-more-chords"><summary>More chords in this key</summary><div class="key-chord-row">'+other.map(chip).join('')+'</div></details>':'');
+      sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',()=>{
+        markKeyCoachSeen();
+        loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});
+      }));
+    }
   }
 
   // Guidance panel — only when we have outliers (not for dominant context)
@@ -4800,6 +4875,7 @@ function syncScalePanelUI(hasOutliers){
   }
 }
 document.getElementById('scalePanelHeader').addEventListener('click',()=>{
+  markKeyCoachSeen();
   scalePanelExpanded=!scalePanelExpanded;
   const hasOutliers=currentKeyInfo&&!currentKeyInfo.isPerfectFit;
   syncScalePanelUI(!!hasOutliers);
@@ -4943,6 +5019,7 @@ function isScaleActive(sug){
    checkmark (save) once editing. Explicit save, not autosave-as-you-type. */
 const songNameRow=document.getElementById('songNameRow');
 const songNameDisplay=document.getElementById('songNameDisplay');
+const songContextTitle=document.getElementById('songContextTitle');
 const songNameInputWrap=document.getElementById('songNameInputWrap');
 const songTitleInput=document.getElementById('songTitleInput');
 const songNameBtn=document.getElementById('songNameBtn');
@@ -4952,7 +5029,9 @@ function updateDocumentTitle(){
 }
 function renderSongNameDisplay(){
   const trimmed=songName.trim();
-  songNameDisplay.textContent=trimmed||'Untitled song';
+  const label=trimmed||'Untitled song';
+  songNameDisplay.textContent=label;
+  songContextTitle.textContent=label;
   songNameDisplay.classList.toggle('placeholder',!trimmed);
 }
 function setSongNameArmed(armed){
@@ -5016,6 +5095,7 @@ songTitleInput.addEventListener('keydown',e=>{
 const btnSongShelf=document.getElementById('btnSongShelf');
 const songShelfCount=document.getElementById('songShelfCount');
 const songShelfOverlay=document.getElementById('songShelfOverlay');
+const songShelfDialog=document.getElementById('songShelfDialog');
 const songShelfList=document.getElementById('songShelfList');
 const btnSongShelfClose=document.getElementById('btnSongShelfClose');
 const btnNewSong=document.getElementById('btnNewSong');
@@ -5039,8 +5119,8 @@ function renderSongShelfTrigger(){
   btnSongShelf.hidden=_songDbFailed;
 }
 function shelfFocusable(){
-  return [...songShelfOverlay.querySelectorAll('button:not([disabled])')]
-    .filter(button=>!button.closest('[hidden]'));
+  return [songShelfDialog,...songShelfOverlay.querySelectorAll('button:not([disabled])')]
+    .filter(element=>!element.closest('[hidden]'));
 }
 function setSongShelfOpen(open){
   if(open){
@@ -5048,7 +5128,7 @@ function setSongShelfOpen(open){
     renderSongShelf();
     songShelfOverlay.hidden=false;songShelfOverlay.setAttribute('aria-hidden','false');
     btnSongShelf.setAttribute('aria-expanded','true');
-    requestAnimationFrame(()=>{songShelfOverlay.classList.add('show');btnSongShelfClose.focus();});
+    requestAnimationFrame(()=>{songShelfOverlay.classList.add('show');songShelfDialog.focus({preventScroll:true});});
   }else{
     songShelfOverlay.classList.remove('show');songShelfOverlay.setAttribute('aria-hidden','true');
     btnSongShelf.setAttribute('aria-expanded','false');
@@ -5107,7 +5187,7 @@ function renderSongShelf(){
     const details=document.createElement('span');details.textContent=songSummaryLine(record);
     const date=document.createElement('span');date.className='song-shelf-date';date.textContent=formatSongDate(record.updatedAt);
     meta.append(details,date);copy.append(name,meta);open.append(copy);
-    if(record.id===activeProjectId){const active=document.createElement('span');active.className='song-shelf-active';active.textContent='Open';open.append(active);}
+    if(record.id===activeProjectId){const active=document.createElement('span');active.className='song-shelf-active';active.textContent='Current';open.append(active);}
     open.addEventListener('click',async()=>{
       if(record.id===activeProjectId){setSongShelfOpen(false);return;}
       hideSongShelfForModal();
@@ -5236,13 +5316,14 @@ function hideBoardSticker(){
 }
 // opts: {timeout: ms to auto-hide (omit to persist), closable: show a close
 // "x", onDismiss: called only when closable's "x" is actually clicked,
-// action: {text, onClick} for a single tappable follow-up}
+// action: {text, onClick} for a single tappable follow-up, openStringsHint:
+// true only for the first-load hint itself}
 function showBoardSticker(html,opts){
   opts=opts||{};
   // Any other board message means the user has moved past needing the
   // first-load hint, even if they never fretted a real note -- keep this
   // check generic rather than importing hint-specific logic here.
-  if(openStringsHintShown){openStringsHintShown=false;markOpenStringsHintSeen();}
+  if(openStringsHintShown&&!opts.openStringsHint){openStringsHintShown=false;markOpenStringsHintSeen();}
   clearTimeout(boardStickerTimer);
   boardSticker.hidden=false;
   boardSticker.innerHTML=html;
@@ -5277,7 +5358,7 @@ function dismissOpenStringsHint(){
 try{
   if(!localStorage.getItem('couch-batata.openstrings.v1.seen')&&selection.every(v=>v===0)){
     openStringsHintShown=true;
-    showBoardSticker('Mute or fret a string — or tap a suggestion below',{closable:true,onDismiss:dismissOpenStringsHint});
+    showBoardSticker('Mute or fret a string — or tap a suggestion below',{openStringsHint:true,closable:true,onDismiss:dismissOpenStringsHint});
   }
 }catch{}
 
@@ -5292,12 +5373,11 @@ async function boot(){
     setTimeout(placeInlays,50);
     if(_songDbFailed)notifySongStoreUnavailable();
     if(wasRestored&&sections.length){
-      // Naming the specific section left open gives the Zeigarnik pull something
-      // concrete to grab onto, instead of a generic "restored" toast that reads
-      // the same whether one chord or a whole song came back.
+      // Returning is an orientation moment, not a transient success state. Keep
+      // this one calm notice visible long enough to read, without adding a CTA.
       const lastSec=findSection(activeSectionId);
-      const restoreMsg=lastSec?'Last time you were building "'+lastSec.name+'" — pick up here':'Restored your song from last session';
-      setTimeout(()=>flash(restoreMsg),300);
+      const restoreMsg=lastSec?'Last time: building "'+lastSec.name+'". Pick up here.':'Restored your song from last session';
+      setTimeout(()=>flash(restoreMsg,{duration:5600}),300);
     }
     if(_recoveredSongNotice)setTimeout(()=>flash(_recoveredSongNotice),700);
   }finally{

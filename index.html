@@ -1058,6 +1058,7 @@
     <span class="add-sect-label">New section</span>
     <div id="sectionPicker"></div>
     <button class="btn" id="btnAddSection" title="Add a new section (Intro, Verse, Chorus…)">+ Add section</button>
+    <button class="btn ghost" id="btnSaveFresh" title="Back up this song as a .json file, then start a brand new one">Save &amp; start fresh</button>
     <button class="btn ghost" id="btnClearSong" title="Delete every section and every chord — starts a completely fresh song">Clear song</button>
   </div>
 
@@ -4555,12 +4556,7 @@ songTitleInput.addEventListener('keydown',e=>{
 });
 
 /* clear entire song */
-document.getElementById('btnClearSong').addEventListener('click',async ()=>{
-  if(!sections.length){flash('Nothing to clear');return;}
-  const total=allChords().length;
-  const msg='Delete the entire song? This removes '+sections.length+' section'+(sections.length===1?'':'s')+' and '+total+' chord'+(total===1?'':'s')+', and can\'t be undone.';
-  const ok=await confirmModal(msg,{confirmText:'Clear song',cancelText:'Keep song'});
-  if(!ok)return;
+function clearSongState(){
   sections=[];
   activeSectionId=null;
   activeChip=null;
@@ -4571,7 +4567,26 @@ document.getElementById('btnClearSong').addEventListener('click',async ()=>{
   exitShapes();
   analyze();
   renderSong();
+}
+document.getElementById('btnClearSong').addEventListener('click',async ()=>{
+  if(!sections.length){flash('Nothing to clear');return;}
+  const total=allChords().length;
+  const msg='Delete the entire song? This removes '+sections.length+' section'+(sections.length===1?'':'s')+' and '+total+' chord'+(total===1?'':'s')+', and can\'t be undone.';
+  const ok=await confirmModal(msg,{confirmText:'Clear song',cancelText:'Keep song'});
+  if(!ok)return;
+  clearSongState();
   flash('Song cleared');
+});
+// A low-stakes way to chase a new idea without the dread currently baked
+// into Clear Song: back the current song up first, so nothing is at risk,
+// then start fresh with no confirm needed -- the backup already removed
+// the loss.
+document.getElementById('btnSaveFresh').addEventListener('click',()=>{
+  if(!sections.length){flash('Nothing to save yet');return;}
+  save(true);
+  downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
+  clearSongState();
+  flash('Backed up your song — started a fresh one');
 });
 
 /* ---------- help ---------- */

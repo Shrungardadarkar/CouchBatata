@@ -4626,7 +4626,14 @@ syncSongTitleUI();
 setFlats(useFlats);
 analyze();renderSong();placeInlays();
 setTimeout(placeInlays,50);
-if(_wasRestored)setTimeout(()=>flash('Restored your song from last session'),300);
+if(_wasRestored){
+  // Naming the specific section left open gives the Zeigarnik pull something
+  // concrete to grab onto, instead of a generic "restored" toast that reads
+  // the same whether one chord or a whole song came back.
+  const lastSec=findSection(activeSectionId);
+  const restoreMsg=lastSec?'Last time you were building "'+lastSec.name+'" — pick up here':'Restored your song from last session';
+  setTimeout(()=>flash(restoreMsg),300);
+}
 
 /* ---------- installable offline web app ---------- */
 let deferredInstallPrompt=null;

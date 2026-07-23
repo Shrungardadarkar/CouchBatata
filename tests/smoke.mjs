@@ -165,7 +165,7 @@ assert.match(html, /Save project \(\.json\)/);
 assert.match(html, /Last time: building/);
 assert.match(html, /flash\(restoreMsg,\{duration:5600\}\)/);
 assert.match(html, /const KEY_COACH_SEEN_KEY='couch-batata\.key-coach\.v1\.seen'/);
-assert.match(html, /Core chords in this key/);
+assert.match(html, /Start here/);
 assert.match(html, /data-key-root/);
 assert.match(html, /function markKeyCoachSeen\(\)/);
 assert.doesNotMatch(html, /function nextUnusedDiatonicChord\(/);

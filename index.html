@@ -783,6 +783,8 @@
   .key-line strong{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.2rem;font-weight:900}
   .suggest{margin-top:10px;color:var(--ink-dim);font-size:.9rem;line-height:1.55;font-weight:600}
   .key-chord-intro{margin:0 0 7px;color:var(--ink);font-weight:850}
+  .key-chord-group+.key-chord-group{margin-top:10px}
+  .key-chord-degrees{color:var(--ink-faint);font-size:.78em;font-weight:750}
   .key-chord-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
   .key-chord-chip{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:7px;
     padding:4px 10px;color:var(--ink);background:var(--cream);font-family:inherit;font-size:.86rem;font-weight:800;line-height:1.2;box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;
@@ -793,7 +795,7 @@
   .key-chord-chip.is-used{background:var(--mint-soft);box-shadow:none}
   .key-chord-chip.is-used::before{content:'✓';font-weight:950;color:var(--mint-dk)}
   .key-chord-rn{color:var(--amber);font-size:.75rem}
-  .key-more-chords{margin-top:8px}
+  .key-more-chords{margin-top:10px}
   .key-more-chords summary{display:inline-flex;cursor:pointer;color:var(--ink-dim);font-size:.8rem;font-weight:850}
   .key-more-chords[open] summary{margin-bottom:6px;color:var(--ink)}
   .hint{color:var(--ink-dim);font-size:.84rem;margin-top:12px;line-height:1.6;font-weight:600}
@@ -1247,7 +1249,7 @@
   </details>
   <details>
     <summary>Key, scales &amp; notes</summary>
-    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. Once the key is clear, its core chords stay visible as a reference; a ✓ marks any already in your song, and every chip can still load a shape on the fretboard. Other in-key chords sit behind <b>Other chords in this key</b>. When a scale is on the fretboard, its name appears in the collapsed header. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
+    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. Once the key is clear, the panel groups its diatonic triads into <b>Start here</b> (1, 4, 5), <b>Common moves</b> (2, 6), and a small drawer for the remaining in-key options (3, 7). A ✓ marks any already in your song, and every chip can still load a shape on the fretboard. When a scale is on the fretboard, its name appears in the collapsed header; it is a soloing overlay, not a replacement for the song’s harmonic key. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
   </details>
   <details>
     <summary>Chord suggestions</summary>
@@ -1622,18 +1624,27 @@ function findVoicings(rootPc,ivs){
 /* ============ key detection ============ */
 const MAJ_SCALE=[0,2,4,5,7,9,11];
 const DEG_RN=['I','ii','iii','IV','V','vi','vii°'];
+const ROMAN_DEGREES=['I','II','III','IV','V','VI','VII'];
 function scaleSet(tonic){return new Set(MAJ_SCALE.map(i=>(tonic+i)%12))}
 function diatonicTriads(tonic){
   return diatonicTriadsFor(tonic,MAJ_SCALE,DEG_RN);
 }
-function diatonicTriadsFor(tonic,intervals,labels=DEG_RN){
+function romanForTriad(index,suf){
+  const degree=ROMAN_DEGREES[index]||String(index+1);
+  if(suf==='m')return degree.toLowerCase();
+  if(suf==='dim')return degree.toLowerCase()+'°';
+  if(suf==='aug')return degree+'+';
+  return degree;
+}
+function diatonicTriadsFor(tonic,intervals,labels=null){
   return intervals.map((deg,i)=>{
     const r=(tonic+deg)%12;
     const third=(tonic+intervals[(i+2)%7]+(i+2>=7?12:0))%12;
     const fifth=(tonic+intervals[(i+4)%7]+(i+4>=7?12:0))%12;
     const iv3=((third-r)+12)%12, iv5=((fifth-r)+12)%12;
     const formula=FORMULAS.find(f=>f.iv.length===3&&f.iv.includes(0)&&f.iv.includes(iv3)&&f.iv.includes(iv5));
-    return {root:r,suf:formula?formula.suf:'',rn:labels[i]||String(i+1)};
+    const suf=formula?formula.suf:'';
+    return {root:r,suf,rn:labels?.[i]||romanForTriad(i,suf)};
   });
 }
 /* ============ scale library for soloing ============ */
@@ -1658,7 +1669,6 @@ function scaleNoteName(root,scaleKey,index){
   return scale?pcName(root+scale.intervals[index]):pcName(root);
 }
 const HARMONIC_SCALE_KEYS=new Set(['major','minor','melMin','harmMin','dorian','mixo','lydian','phrygian','locrian']);
-const MINOR_ROMAN=['i','ii°','III','iv','V','VI','vii°'];
 function keyIntervals(info){
   return info&&info.keyScale&&SCALES[info.keyScale]
     ?SCALES[info.keyScale].intervals:MAJ_SCALE;
@@ -1944,7 +1954,7 @@ function chordSuggestionCandidates(){
   const order=suggestionDegreeOrder(context.intervals,context.mode,
     scaleActive&& !HARMONIC_SCALE_KEYS.has(scaleActive.scale)?scaleActive.root:context.root,
     context.root);
-  const triads=diatonicTriadsFor(context.root,context.intervals,context.mode==='minor'?MINOR_ROMAN:DEG_RN);
+  const triads=diatonicTriadsFor(context.root,context.intervals);
   const items=[];
   // Tier 1: core diatonic triads always arrive before any extension or colour.
   order.forEach(degree=>items.push({root:triads[degree].root,suf:triads[degree].suf,rank:items.length}));
@@ -4596,7 +4606,7 @@ function buildExportText(){
     // scale names only, not the position-box/note-degree breakdown, which is
     // a fretboard visual aid with no place in a plain-text chart.
     if(!keyInfo.dominantContext){
-      const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
+      const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo));
       const unused=tris.filter(t=>!chords.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)));
       if(unused.length)L.push('Unused: '+unused.map(t=>pcName(t.root)+t.suf+' '+t.rn).join(', '));
     }
@@ -4844,17 +4854,24 @@ function renderKey(){
   if(!hasStableKey){
     sg.hidden=true;
   } else {
-    const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
+    const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo));
     const isUsed=t=>cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf));
-    const primary=tris.filter(t=>['I','IV','V','i','iv'].includes(t.rn));
-    const other=tris.filter(t=>!primary.includes(t));
+    // Keep the panel deliberately small: tonic/subdominant/dominant are a
+    // useful starting point, ii and vi are common songwriting partners, and
+    // the remaining diatonic triads stay available without being presented as
+    // equally central in every style.
+    const startHere=tris.filter((_,index)=>[0,3,4].includes(index));
+    const commonMoves=tris.filter((_,index)=>[1,5].includes(index));
+    const colourAndTension=tris.filter((_,index)=>[2,6].includes(index));
     const chip=t=>{
       const used=isUsed(t),label=pcName(t.root)+t.suf;
       return '<button class="key-chord-chip'+(used?' is-used':'')+'" type="button" data-key-root="'+t.root+'" data-key-suf="'+t.suf+'" aria-label="'+label+' '+t.rn+(used?' — already in your song':'')+'" title="'+(used?'Already in your song — load '+label+' again':'Load '+label+' onto the fretboard')+'">'+label+' <span class="key-chord-rn">'+t.rn+'</span></button>';
     };
     sg.hidden=false;
-    sg.innerHTML='<p class="key-chord-intro">Core chords in this key <span style="color:var(--ink-faint);font-size:.78em">(✓ already in your song)</span></p><div class="key-chord-row">'+primary.map(chip).join('')+'</div>'
-      +(other.length?'<details class="key-more-chords"><summary>Other chords in this key</summary><div class="key-chord-row">'+other.map(chip).join('')+'</div></details>':'');
+    const group=(title,items)=>'<div class="key-chord-group"><p class="key-chord-intro">'+title+' <span class="key-chord-degrees">'+items.map(item=>item.rn).join(' · ')+'</span></p><div class="key-chord-row">'+items.map(chip).join('')+'</div></div>';
+    sg.innerHTML=group('Start here',startHere)+group('Common moves',commonMoves)
+      +(colourAndTension.length?'<details class="key-more-chords"><summary>More in-key options</summary><div class="key-chord-row">'+colourAndTension.map(chip).join('')+'</div></details>':'')
+      +'<p class="key-chord-degrees" style="margin-top:9px">✓ already in your song — every chord stays reusable.</p>';
     sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',()=>{
       markKeyCoachSeen();
       loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});

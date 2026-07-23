@@ -139,9 +139,6 @@
   .song-name-btn.editing{color:var(--ink-faint);cursor:not-allowed}.song-name-btn.editing.armed{color:var(--mint-dk);cursor:pointer}
   @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--mint);transform:scale(1.12)}}
   .song-name-btn.editing.armed:active{transform:scale(.94);transition-duration:.05s}.song-name-btn.editing:not(.armed):active{transform:none}
-  .tagline{color:var(--ink-soft);font-size:.9rem;font-weight:600;line-height:1.55;
-    padding:14px 4px 4px;margin:0;text-align:left}
-  .tagline strong{display:block;color:var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1rem;line-height:1.25}
 
   /* All fretboard controls live together above the instrument. */
   #tabPanel{position:relative}
@@ -758,7 +755,9 @@
      keep it. Backup/import remain available without competing with Export. */
   .song-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;padding-top:14px;border-top:2px dashed rgba(90,47,62,.45)}
   .song-action-group{display:flex;align-items:center;align-content:flex-start;gap:9px;flex-wrap:wrap;min-width:0}
+  .song-action-group.share-actions{justify-content:flex-end}
   .song-action-kicker{flex:0 0 100%;color:var(--ink-dim);font:900 .68rem/1 "Courier New",monospace;letter-spacing:.09em;text-transform:uppercase}
+  .share-actions .song-action-kicker{text-align:right}
   .section-add-control{display:inline-flex;align-items:center;position:relative}
   .section-add-control .picker{z-index:2}.section-add-control .picker.open{z-index:45}
   .section-add-control .picker-trigger{min-width:185px;background:var(--sun);padding:10px 14px;font-size:1rem;box-shadow:4px 4px 0 var(--ink)}
@@ -770,12 +769,12 @@
   .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
   /* Project files are useful but secondary. Keep them in a small upward menu
      so opening it never rearranges the builder below someone’s song. */
-  .song-tools{position:relative}.song-tools summary{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:8px;background:var(--mint);color:var(--ink);padding:8px 10px;box-shadow:1.5px 1.5px 0 var(--ink);font-size:.8rem;font-weight:850;cursor:pointer;list-style:none}
+  .song-tools{position:relative;margin-left:auto}.song-tools summary{display:inline-flex;align-items:center;gap:7px;min-height:44px;border:2.5px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:10px 17px;box-shadow:var(--shadow-sm);font-size:.9rem;font-weight:850;cursor:pointer;list-style:none}
   @media (hover:hover){.song-tools:not([open]) summary:hover{background:var(--mint-soft);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .song-tools summary::-webkit-details-marker{display:none}.song-tools summary::after{content:'▾';font-size:.72rem;transition:transform .16s var(--ease-spring)}
   .song-tools[open] summary{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}.song-tools[open] summary::after{transform:rotate(180deg)}
   .song-tools summary:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
-  .song-tools-menu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:50;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:224px;padding:9px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
+  .song-tools-menu{position:absolute;bottom:calc(100% + 8px);right:0;z-index:50;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:224px;padding:9px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
   .song-tools-menu .btn{text-align:left}
   #exportPre{white-space:pre;overflow-x:auto;font-family:"Courier New",monospace;
     font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--cream);
@@ -791,6 +790,8 @@
   @media (hover:hover){.key-chord-chip:hover{background:var(--mint);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .key-chord-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .key-chord-chip:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .key-chord-chip.is-used{background:var(--mint-soft);box-shadow:none}
+  .key-chord-chip.is-used::before{content:'✓';font-weight:950;color:var(--mint-dk)}
   .key-chord-rn{color:var(--amber);font-size:.75rem}
   .key-more-chords{margin-top:8px}
   .key-more-chords summary{display:inline-flex;cursor:pointer;color:var(--ink-dim);font-size:.8rem;font-weight:850}
@@ -921,7 +922,6 @@
     .song-name-row{gap:3px;min-width:0}.song-name-display{font-size:.9rem;padding:3px 1px}.song-name-btn{width:24px;height:24px}
     .song-title-input{font-size:.86rem;padding:4px 6px}
     .song-shelf-trigger{padding:6px 8px}
-    .tagline{padding:14px 4px 0;font-size:.86rem}
     .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}
     .panel[data-win]::before{left:16px;font-size:.68rem;padding:5px 11px}
     #tabPanel{margin-top:38px}
@@ -962,6 +962,8 @@
     .song-shelf-meta{display:block}
     .song-shelf-date{display:block;margin-top:2px}
     .song-actions{grid-template-columns:1fr;gap:16px}
+    .song-action-group.share-actions{justify-content:flex-start}
+    .share-actions .song-action-kicker{text-align:left}
     .song-tools-menu{width:auto;min-width:min(224px,calc(100vw - 56px))}
     .help-fab{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:46px;height:46px}
     .help-panel{right:12px;bottom:70px;width:calc(100% - 24px);max-height:calc(100vh - 94px)}
@@ -1045,7 +1047,6 @@
   </div>
   <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
 </div>
-<p class="tagline"><strong>Catch the chord. Keep the song.</strong> Tap the notes you played, find the chord, and save the idea before it slips away.</p>
 
 <div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
   <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
@@ -1191,12 +1192,12 @@
       </div>
       <button class="song-clear-btn" id="btnClearSong" title="Delete every section and every chord in this song">Clear song</button>
     </div>
-    <div class="song-action-group">
+    <div class="song-action-group share-actions">
       <span class="song-action-kicker">Share &amp; keep</span>
       <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
       <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
       <details class="song-tools">
-        <summary>Save project</summary>
+        <summary>Save / Import</summary>
         <div class="song-tools-menu">
           <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Save project (.json)</button>
           <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
@@ -1246,7 +1247,7 @@
   </details>
   <details>
     <summary>Key, scales &amp; notes</summary>
-    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. Once the key is clear, the panel offers the primary chords in that key first; tap one to load a shape on the fretboard, then edit or add it when ready. Other unused in-key chords are available behind <b>More chords in this key</b>. When a scale is on the fretboard, its name appears in the collapsed header. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
+    <p>Key &amp; Scales suggests a musical home for your song. One chord is marked <b>Tentative</b>; more chords give stronger direction. Once the key is clear, its core chords stay visible as a reference; a ✓ marks any already in your song, and every chip can still load a shape on the fretboard. Other in-key chords sit behind <b>Other chords in this key</b>. When a scale is on the fretboard, its name appears in the collapsed header. Click the active scale card again to turn it off. Use ♯ / ♭ to change note spelling.</p>
   </details>
   <details>
     <summary>Chord suggestions</summary>
@@ -4844,23 +4845,20 @@ function renderKey(){
     sg.hidden=true;
   } else {
     const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
-    const unused=tris.filter(t=>!cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)));
-    const primary=unused.filter(t=>['I','IV','V','i','iv'].includes(t.rn));
-    const other=unused.filter(t=>!primary.includes(t));
-    const chip=t=>'<button class="key-chord-chip" type="button" data-key-root="'+t.root+'" data-key-suf="'+t.suf+'" title="Load '+pcName(t.root)+t.suf+' onto the fretboard">'+pcName(t.root)+t.suf+' <span class="key-chord-rn">'+t.rn+'</span></button>';
+    const isUsed=t=>cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf));
+    const primary=tris.filter(t=>['I','IV','V','i','iv'].includes(t.rn));
+    const other=tris.filter(t=>!primary.includes(t));
+    const chip=t=>{
+      const used=isUsed(t),label=pcName(t.root)+t.suf;
+      return '<button class="key-chord-chip'+(used?' is-used':'')+'" type="button" data-key-root="'+t.root+'" data-key-suf="'+t.suf+'" aria-label="'+label+' '+t.rn+(used?' — already in your song':'')+'" title="'+(used?'Already in your song — load '+label+' again':'Load '+label+' onto the fretboard')+'">'+label+' <span class="key-chord-rn">'+t.rn+'</span></button>';
+    };
     sg.hidden=false;
-    if(!unused.length){
-      sg.textContent='You\u2019ve used every diatonic chord in this key. Nice.';
-    }else{
-      sg.innerHTML=(primary.length
-        ?'<p class="key-chord-intro">Try these in your key:</p><div class="key-chord-row">'+primary.map(chip).join('')+'</div>'
-        :'<p class="key-chord-intro">You\u2019ve used the primary chords in this key.</p>')
-        +(other.length?'<details class="key-more-chords"><summary>More chords in this key</summary><div class="key-chord-row">'+other.map(chip).join('')+'</div></details>':'');
-      sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',()=>{
-        markKeyCoachSeen();
-        loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});
-      }));
-    }
+    sg.innerHTML='<p class="key-chord-intro">Core chords in this key <span style="color:var(--ink-faint);font-size:.78em">(✓ already in your song)</span></p><div class="key-chord-row">'+primary.map(chip).join('')+'</div>'
+      +(other.length?'<details class="key-more-chords"><summary>Other chords in this key</summary><div class="key-chord-row">'+other.map(chip).join('')+'</div></details>':'');
+    sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',()=>{
+      markKeyCoachSeen();
+      loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});
+    }));
   }
 
   // Guidance panel — only when we have outliers (not for dominant context)

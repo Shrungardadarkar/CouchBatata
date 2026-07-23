@@ -113,10 +113,32 @@
   h1 .dot{color:var(--sun);-webkit-text-stroke:2px var(--ink)}
   .header-subtitle{font-family:"Arial Black",Arial,sans-serif;font-weight:800;
     color:#2b1520;font-size:clamp(.78rem,2.2vw,.92rem);letter-spacing:0;margin-top:2px}
-  .song-context{display:flex;align-items:center;gap:10px;margin:16px 4px 0;padding:8px 10px 8px 12px;
+  .song-context{display:flex;align-items:center;gap:9px;margin:16px 4px 0;padding:8px 10px 8px 12px;
     border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:var(--shadow-sm)}
   .song-context-kicker{color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-  .song-context-title{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);font-size:.88rem;font-weight:850}
+  /* The current idea is named where it is chosen, not again inside Tab builder.
+     Keeping the kicker, title, pencil and My songs control on one baseline makes
+     this a compact working context instead of a second title treatment. */
+  .song-name-row{display:flex;align-items:center;gap:5px;min-width:0;flex:1;min-height:28px}
+  .song-name-display{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);
+    font-family:"Arial Black",Arial,sans-serif;font-size:1rem;font-weight:900;line-height:1.25;padding:3px 2px}
+  .song-name-display.placeholder{color:var(--ink-faint);font-weight:700}
+  .song-name-row.editing .song-name-display{display:none}
+  .song-name-input-wrap{flex:1;min-width:0;display:none}
+  .song-name-input-wrap.active{display:block}
+  .song-title-input{width:100%;background:var(--cream);color:var(--ink);border:2px solid var(--tomato);border-radius:7px;padding:4px 7px;
+    font-family:"Arial Black",Arial,sans-serif;font-size:.95rem;font-weight:900;line-height:1.25;box-shadow:inset 1.5px 1.5px 0 rgba(26,24,21,.08)}
+  .song-title-input:focus{outline:none;box-shadow:inset 1.5px 1.5px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
+  .song-title-input::placeholder{color:var(--ink-faint);font-weight:700}
+  .song-name-btn{flex:0 0 auto;width:26px;height:26px;display:grid;place-items:center;background:none;border:0;border-radius:6px;color:var(--ink-faint);cursor:pointer;padding:0;
+    transition:color .12s,background .12s,transform .18s var(--ease-spring)}
+  .song-name-btn svg{width:15px;height:15px;grid-area:1/1}.song-name-btn .icon-pencil{stroke-width:2.4}.song-name-btn .icon-check{display:none;stroke-width:3.2}
+  .song-name-btn.editing .icon-pencil{display:none}.song-name-btn.editing .icon-check{display:block}
+  @media (hover:hover){.song-name-btn:not(.editing):hover{color:var(--ink);background:var(--sun);transform:scale(1.12) rotate(-4deg)}}
+  .song-name-btn:not(.editing):active{transform:scale(.94);transition-duration:.05s}
+  .song-name-btn.editing{color:var(--ink-faint);cursor:not-allowed}.song-name-btn.editing.armed{color:var(--mint-dk);cursor:pointer}
+  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--mint);transform:scale(1.12)}}
+  .song-name-btn.editing.armed:active{transform:scale(.94);transition-duration:.05s}.song-name-btn.editing:not(.armed):active{transform:none}
   .tagline{color:var(--ink-soft);font-size:.9rem;font-weight:600;line-height:1.55;
     padding:14px 4px 4px;margin:0;text-align:left}
   .tagline strong{display:block;color:var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1rem;line-height:1.25}
@@ -267,8 +289,6 @@
     border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink);z-index:4}
   .dot-note.sel.root{background:var(--tomato);border:3px solid var(--ink);
     box-shadow:0 0 0 2px var(--cream),2px 2px 0 var(--ink)}
-  .dot-note.chord-reference{width:28px;height:28px;background:var(--tomato);color:var(--cream);
-    border:2.5px solid var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);z-index:3;opacity:.72}
   .dot-note.technique-source{width:28px;height:28px;background:rgba(246,241,230,.88);color:var(--ink);
     border:2.5px dashed var(--tomato);box-shadow:none;z-index:3;opacity:.95}
   .dot-note.scale{width:25px;height:25px;background:var(--cream);border:2.5px solid;
@@ -537,7 +557,9 @@
   .picker.open{z-index:45}
   .picker-trigger{display:flex;align-items:center;justify-content:space-between;gap:9px;width:100%;min-width:0;background:var(--cream);color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:5px 8px;font:inherit;font-size:.76rem;font-weight:900;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .picker-trigger::after{content:'▾';font-size:.75rem;line-height:1;transition:transform .16s var(--ease-spring)}
-  .picker.open .picker-trigger{background:var(--sun);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}
+  /* An open menu is pressed into the page, not merely highlighted. That makes
+     every standalone selector feel like it was deliberately clicked. */
+  .picker.open .picker-trigger{background:var(--sun);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
   .picker.open .picker-trigger::after{transform:rotate(180deg)}
   @media (hover:hover){.picker:not(.open) .picker-trigger:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .picker-trigger:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
@@ -556,6 +578,7 @@
   /* Nested inside a chip/lead-event, already tight on space — keep the hover
      cue to a color tint, skip the lift+shadow the standalone pickers get. */
   @media (hover:hover){.repeat-picker:not(.open) .picker-trigger:hover{background:var(--sun);transform:none;box-shadow:none}}
+  .repeat-picker.open .picker-trigger{transform:none;box-shadow:none}
   .repeat-picker .picker-menu{min-width:72px;max-height:240px}
 
   /* song = stack of section cards */
@@ -578,7 +601,7 @@
     border:2.5px solid var(--ink);border-radius:9px;padding:6px 34px 6px 13px;cursor:pointer;
     font-family:"Arial Black",Arial,sans-serif;font-style:normal;font-size:.95rem;
     line-height:1.25;text-align:left;
-    letter-spacing:0;font-weight:900;box-shadow:2px 2px 0 var(--ink);
+    letter-spacing:0;font-weight:900;box-shadow:2px 2px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background-color .12s;
     background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
   @media (hover:hover){.sect-name:hover{background-color:var(--mint-dk)}}
@@ -587,7 +610,7 @@
   .song-sect.active .sect-name{background-color:var(--tomato);color:var(--cream);
     background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23f3eee3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-  .sect-name-wrap.open .sect-name{background-color:var(--tomato);color:var(--cream);
+  .sect-name-wrap.open .sect-name{background-color:var(--tomato);color:var(--cream);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23f3eee3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
   /* The active/open states above win on specificity over the plain
      `.sect-name:hover` rule, which silently ate the hover feedback for a
@@ -597,6 +620,7 @@
     .song-sect.active .sect-name:hover{background-color:var(--tomato-dk)}
     .sect-name-wrap.open .sect-name:hover{background-color:var(--tomato-dk)}
   }
+  .sect-name:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink);transition-duration:.05s}
   .sect-name-menu{position:absolute;top:calc(100% + 8px);left:0;z-index:50;
     width:max-content;min-width:220px;max-width:min(310px,calc(100vw - 48px));
     max-height:min(420px,65vh);overflow-y:auto;padding:7px;
@@ -672,56 +696,15 @@
   .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
-  .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
-  .song-title-label-row{display:flex;align-items:center;gap:8px;min-height:24px}
-  .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
   .song-shelf-trigger{display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
     background:var(--mint);color:var(--ink);box-shadow:2px 2px 0 var(--ink);font:800 .72rem/1 "Courier New",monospace;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
-    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .song-shelf-trigger[hidden]{display:none}
   .song-shelf-trigger:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .song-shelf-trigger[aria-expanded="true"]{background:var(--sun);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
   .song-shelf-trigger:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
-  @media (hover:hover){.song-shelf-trigger:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
+  @media (hover:hover){.song-shelf-trigger:not([aria-expanded="true"]):hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .song-shelf-count{display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);font:900 .67rem/1 Arial,sans-serif}
-  .song-name-row{display:flex;align-items:center;gap:10px;min-height:44px}
-  /* Same weight/size as .chord-name — the song title is the headline of this
-     panel the way the chord name is the headline of the chord board. Line-height
-     is looser than .chord-name's since this sits in a shorter row where a
-     descender (g, j, y) getting clipped by overflow:hidden would be obvious. */
-  .song-name-display{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:2rem;
-    line-height:1.3;padding:2px 0;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .song-name-display.placeholder{color:var(--ink-faint);font-weight:700}
-  .song-name-row.editing .song-name-display{display:none}
-  .song-name-input-wrap{flex:0 1 50%;min-width:150px;max-width:50%;display:none}
-  .song-name-input-wrap.active{display:block}
-  .song-title-input{width:100%;background:var(--cream);color:var(--ink);
-    border:2.5px solid var(--tomato);border-radius:8px;padding:5px 10px;
-    font-family:"Arial Black",Arial,sans-serif;font-size:1.5rem;font-weight:900;
-    box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
-  .song-title-input:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
-  .song-title-input::placeholder{color:var(--ink-faint);font-weight:700}
-  /* Same ghost icon-button treatment as .sect-dup / .sect-transfer — no
-     border, transparent until hovered. One button, not two: it IS the edit
-     control, then IS the save control once editing starts. */
-  .song-name-btn{flex:0 0 auto;width:28px;height:28px;display:grid;place-items:center;
-    background:none;border:0;border-radius:6px;color:var(--ink-faint);cursor:pointer;padding:0;
-    transition:color .12s,background .12s,transform .18s var(--ease-spring)}
-  .song-name-btn svg{width:16px;height:16px;grid-area:1/1}
-  .song-name-btn .icon-pencil{stroke-width:2.4}
-  .song-name-btn .icon-check{display:none;stroke-width:3.2}
-  .song-name-btn.editing .icon-pencil{display:none}
-  .song-name-btn.editing .icon-check{display:block}
-  @media (hover:hover){.song-name-btn:not(.editing):hover{color:var(--ink);background:var(--sun);transform:scale(1.15) rotate(-4deg)}}
-  .song-name-btn:not(.editing):active{transform:scale(.95);transition-duration:.05s}
-  /* Editing but nothing changed yet — grey/faded, same as any other inactive
-     control. Only once armed does it turn green (save = affirmative, never
-     red — red is reserved for destructive actions elsewhere in the app). */
-  .song-name-btn.editing{color:var(--ink-faint);cursor:not-allowed}
-  .song-name-btn.editing.armed{color:var(--mint-dk);cursor:pointer}
-  @media (hover:hover){.song-name-btn.editing.armed:hover{color:var(--ink);background:var(--mint);transform:scale(1.15)}}
-  .song-name-btn.editing.armed:active{transform:scale(.95);transition-duration:.05s}
-  .song-name-btn.editing:not(.armed):active{transform:none}
-  .song-name-btn.editing:not(.armed):active{transform:none}
 
   /* A calm local song picker: the current title stays prominent in the builder,
      while this surface appears only when someone chooses to switch ideas. */
@@ -764,15 +747,33 @@
   .song-shelf-active::before{content:"";width:8px;height:8px;border:1.5px solid var(--ink);border-radius:50%;background:var(--mint)}
   .song-shelf-more{width:30px;height:30px;margin-right:4px;border:0;border-radius:6px;background:transparent;color:var(--ink-faint);font:900 1.1rem/1 Arial,sans-serif;cursor:pointer;transition:color .12s,background .12s,transform .18s var(--ease-spring)}
   @media (hover:hover){.song-shelf-more:hover{background:var(--cream);color:var(--ink);transform:scale(1.1)}}
+  .song-shelf-more[aria-expanded="true"]{background:var(--sun);color:var(--ink);transform:scale(.94)}
   .song-shelf-actions{grid-column:1/-1;display:flex;gap:7px;flex-wrap:wrap;padding:0 10px 10px}
   .song-shelf-actions[hidden]{display:none}
   .song-shelf-action{border:2px solid var(--ink);border-radius:7px;background:var(--cream);color:var(--ink);padding:5px 9px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.75rem;line-height:1.1;font-weight:800;cursor:pointer}
   .song-shelf-action.danger{background:var(--tomato);color:var(--cream)}
   .song-shelf-foot{margin:10px 1px 0;color:var(--ink-dim);font-size:.76rem;line-height:1.4;font-weight:650}
 
-  .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
-  .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
-  .export-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+  /* Tab builder ends with two calm decisions: shape the song, then share or
+     keep it. Backup/import remain available without competing with Export. */
+  .song-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;padding-top:14px;border-top:2px dashed rgba(90,47,62,.45)}
+  .song-action-group{display:flex;align-items:center;align-content:flex-start;gap:9px;flex-wrap:wrap;min-width:0}
+  .song-action-kicker{flex:0 0 100%;color:var(--ink-dim);font:900 .68rem/1 "Courier New",monospace;letter-spacing:.09em;text-transform:uppercase}
+  .section-add-control{display:inline-flex;align-items:stretch;position:relative}
+  .section-add-control .btn{border-radius:9px 0 0 9px;padding-right:10px}
+  .section-add-control .picker{z-index:2}.section-add-control .picker.open{z-index:45}
+  .section-add-control .picker-trigger{height:100%;min-width:0;border-left:0;border-radius:0 9px 9px 0;background:var(--sun);padding:8px 10px;font-size:.83rem;box-shadow:2px 2px 0 var(--ink)}
+  /* These two halves are one control. Press the whole joined pair, rather than
+     moving only its right half and opening a seam beside + Add. */
+  .section-add-control:has(.picker.open){transform:translate(2px,2px)}
+  .section-add-control:has(.picker.open) .btn,.section-add-control .picker.open .picker-trigger{transform:none;box-shadow:0 0 0 var(--ink)}
+  .song-clear-btn{border:0;background:transparent;color:var(--tomato);padding:8px 3px;font:850 .78rem/1 inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:5px}
+  .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
+  .song-tools{position:relative}.song-tools[open]{flex-basis:100%}.song-tools summary{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:8px;background:var(--mint);color:var(--ink);padding:8px 10px;box-shadow:1.5px 1.5px 0 var(--ink);font-size:.8rem;font-weight:850;cursor:pointer;list-style:none}
+  .song-tools summary::-webkit-details-marker{display:none}.song-tools summary::after{content:'▾';font-size:.72rem;transition:transform .16s var(--ease-spring)}
+  .song-tools[open] summary{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}.song-tools[open] summary::after{transform:rotate(180deg)}
+  .song-tools summary:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-tools-menu{display:flex;gap:9px;flex-wrap:wrap;width:100%;margin-top:10px;padding-top:10px;border-top:2px dashed rgba(90,47,62,.35);flex-basis:100%}
   #exportPre{white-space:pre;overflow-x:auto;font-family:"Courier New",monospace;
     font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--cream);
     border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
@@ -912,9 +913,10 @@
     .header-left{gap:16px}
     .mascot{width:70px;height:70px;margin:0}
     .wrap{padding:0 12px 16px}
-    .song-context{margin:12px 4px 0;padding:7px 8px 7px 10px;gap:8px}
-    .song-context-kicker{display:none}
-    .song-context-title{font-size:.82rem}
+    .song-context{margin:12px 4px 0;padding:7px 8px 7px 10px;gap:6px}
+    .song-context-kicker{font-size:.6rem;letter-spacing:.06em}
+    .song-name-row{gap:3px;min-width:0}.song-name-display{font-size:.9rem;padding:3px 1px}.song-name-btn{width:24px;height:24px}
+    .song-title-input{font-size:.86rem;padding:4px 6px}
     .song-shelf-trigger{padding:6px 8px}
     .tagline{padding:14px 4px 0;font-size:.86rem}
     .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}
@@ -956,6 +958,8 @@
     .song-shelf-open{padding:10px}
     .song-shelf-meta{display:block}
     .song-shelf-date{display:block;margin-top:2px}
+    .song-actions{grid-template-columns:1fr;gap:16px}
+    .song-tools-menu{width:100%}
     .help-fab{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:46px;height:46px}
     .help-panel{right:12px;bottom:70px;width:calc(100% - 24px);max-height:calc(100vh - 94px)}
   }
@@ -1025,7 +1029,17 @@
 <div class="wrap" inert>
 <div class="song-context" aria-label="Current song">
   <span class="song-context-kicker">Working on</span>
-  <span class="song-context-title" id="songContextTitle">Untitled song</span>
+  <div class="song-name-row" id="songNameRow">
+    <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
+    <div class="song-name-input-wrap" id="songNameInputWrap">
+      <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
+        placeholder="Untitled song" autocomplete="off" aria-label="Song name">
+    </div>
+    <button type="button" class="song-name-btn" id="songNameBtn" title="Edit song name" aria-label="Edit song name">
+      <svg class="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
+    </button>
+  </div>
   <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
 </div>
 <p class="tagline"><strong>Catch the chord. Keep the song.</strong> Tap the notes you played, find the chord, and save the idea before it slips away.</p>
@@ -1152,22 +1166,6 @@
 
 <div class="panel win-tomato" data-win="Tab builder">
   <h2>Tab builder</h2>
-  <div class="song-title-block">
-    <div class="song-title-label-row">
-      <label class="song-title-label" for="songTitleInput">Song</label>
-    </div>
-    <div class="song-name-row" id="songNameRow">
-      <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
-      <div class="song-name-input-wrap" id="songNameInputWrap">
-        <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
-          placeholder="Untitled song" autocomplete="off" aria-label="Song name">
-      </div>
-      <button type="button" class="song-name-btn" id="songNameBtn" title="Edit song name" aria-label="Edit song name">
-        <svg class="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-        <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
-      </button>
-    </div>
-  </div>
   <div id="song"></div>
 
   <div class="song-shelf-overlay" id="songShelfOverlay" hidden aria-hidden="true">
@@ -1182,26 +1180,30 @@
     </section>
   </div>
 
-  <div class="add-sect-row">
-    <span class="add-sect-label">New section</span>
-    <div id="sectionPicker"></div>
-    <button class="btn" id="btnAddSection" title="Add a new section (Intro, Verse, Chorus…)">+ Add section</button>
-    <button class="btn ghost" id="btnClearSong" title="Delete every section and every chord in this song">Clear this song</button>
+  <div class="song-actions" aria-label="Song actions">
+    <div class="song-action-group">
+      <span class="song-action-kicker">Structure</span>
+      <div class="section-add-control">
+        <button class="btn primary" id="btnAddSection" title="Add the selected section type">+ Add</button>
+        <div id="sectionPicker"></div>
+      </div>
+      <button class="song-clear-btn" id="btnClearSong" title="Delete every section and every chord in this song">Clear song</button>
+    </div>
+    <div class="song-action-group">
+      <span class="song-action-kicker">Share &amp; keep</span>
+      <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
+      <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
+      <details class="song-tools">
+        <summary>More tools</summary>
+        <div class="song-tools-menu">
+          <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Back up project (.json)</button>
+          <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
+        </div>
+      </details>
+      <input id="projectFile" type="file" accept="application/json,.json" hidden>
+    </div>
   </div>
-
-  <div class="export-row">
-    <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
-    <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
-    <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Back up project (.json)</button>
-    <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
-    <input id="projectFile" type="file" accept="application/json,.json" hidden>
-  </div>
-  <p class="hint">
-    Click a section card (or its badge) to <b>activate</b> it — new chords land there.
-    <b>Drag chords</b> to reorder or move them across sections. Grab the <b>⋮⋮</b> handle on a section header to reorder whole sections. Use <b>⇢</b> to copy or move a section’s contents into another section; Copy keeps both sections, while Move + merge appends its contents and removes the source after confirmation.
-    Chips with a <b style="color:var(--tomato)">●</b> dot are outside the current key — see <b>Musical guidance</b> for replacements.
-    Click <b>⧉</b> to duplicate a section. Tap an <b>open note on the nut</b> to mute (×) its string. Your song <b>auto-saves</b>.
-  </p>
+  <p class="hint">Your song auto-saves. Drag chords or section handles to rearrange; open Help for the rest.</p>
 </div>
 
 <div class="panel win-sky" data-win="Tab preview" id="exportPanel" hidden>
@@ -2032,7 +2034,6 @@ function loadSuggestedChord(item){
   activeChip=null;exitShapes();
   analyze();
   autoStrumSelection(selection);
-  showBoardSticker('Loaded '+pcName(item.root)+item.suf+' — edit any note, then add it when ready',{timeout:1600});
 }
 
 // Map global outlier indices to per-section {sectionId → Set of local chord idx}
@@ -2158,9 +2159,9 @@ let activeChip=null;     // {sectionId, chordIdx} | null
 let _nextId=1;
 let _nextLeadId=1;
 let sectionTransferSourceId=null;
-// A deliberately chosen chord can stay visible while recording a solo. It is
-// separate from the chord editor's open-string default, so a committed chord
-// never leaves six accidental open-string markers behind in Solo mode.
+// A deliberately chosen chord can seed the next Solo selection. It is separate
+// from the chord editor's open-string default, so the default never becomes an
+// accidental six-note Solo event.
 let soloChordReference=null;
 let leadSelection=new Array(6).fill(null); // one selected fret per string before saving
 let leadSelectionSectionId=null;
@@ -2196,8 +2197,8 @@ const activeSection = () => findSection(activeSectionId);
 const allChords = () => sections.flatMap(s=>s.chords);
 function resetChordSelection(){selection=new Array(6).fill(0);chordBoardTouched=false;soloChordReference=null;}
 // A chord carried into Solo mode is a one-shot starting point. Once it is
-// cleared or used, do not recreate translucent reference markers when the
-// musician returns to Solo mode unless they choose or edit a chord again.
+// cleared or used, do not recreate that preselected chord unless the musician
+// deliberately chooses or edits a chord again.
 function consumeSoloChordReference(){
   soloChordReference=null;
   chordBoardTouched=false;
@@ -2881,7 +2882,7 @@ function toggleLeadNote(s,f){
   const deselecting=leadSelection[s]===f;
   leadSelection[s]=deselecting?null:f;
   // A deselected note must actually disappear, not fall back to the faint
-  // chord-reference ghost still sitting underneath it on that string.
+  // carried chord state no longer needs to reserve this string once it changes.
   if(deselecting&&soloChordReference&&soloChordReference[s]===f)soloChordReference[s]=null;
   if(leadSelection[s]===f)pluck(s,OPEN[s]+f);
   render();renderLead();
@@ -3167,14 +3168,9 @@ function render(){
     }
   }
   if(soloMode){
-    // Keep only a deliberately selected chord visible while recording lead
-    // notes. Solo taps use leadSelection, so this never changes the chord.
-    (soloChordReference||[]).forEach((f,s)=>{
-      if(!Number.isInteger(f))return;
-      const d=document.createElement('div');d.className='dot-note chord-reference';
-      d.textContent=pcName((OPEN[s]+f)%12);
-      cells[s][f].appendChild(d);
-    });
+    // A chord carried from Chord mode is already copied into leadSelection as
+    // solid, actionable notes. Do not leave a pale second copy behind when a
+    // musician changes one string: it reads as a stale note, not a guide.
     (leadTechniquePending?.notes||[]).forEach(note=>{
       const d=document.createElement('div');d.className='dot-note technique-source';
       d.textContent=leadDisplay==='notes'?pcName((OPEN[note.s]+note.f)%12):String(note.f);
@@ -5031,7 +5027,6 @@ function isScaleActive(sug){
    checkmark (save) once editing. Explicit save, not autosave-as-you-type. */
 const songNameRow=document.getElementById('songNameRow');
 const songNameDisplay=document.getElementById('songNameDisplay');
-const songContextTitle=document.getElementById('songContextTitle');
 const songNameInputWrap=document.getElementById('songNameInputWrap');
 const songTitleInput=document.getElementById('songTitleInput');
 const songNameBtn=document.getElementById('songNameBtn');
@@ -5043,7 +5038,6 @@ function renderSongNameDisplay(){
   const trimmed=songName.trim();
   const label=trimmed||'Untitled song';
   songNameDisplay.textContent=label;
-  songContextTitle.textContent=label;
   songNameDisplay.classList.toggle('placeholder',!trimmed);
 }
 function setSongNameArmed(armed){

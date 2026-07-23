@@ -147,7 +147,7 @@ assert.match(html, /async function switchToSong\(id\)/);
 assert.match(html, /async function createNewSong\(\)/);
 assert.match(html, /async function boot\(\)/);
 assert.match(html, /id="btnSongShelf"/);
-assert.match(html, /id="songContextTitle"/);
+assert.match(html, /id="songNameDisplay"/);
 assert.match(html, /id="songShelfDialog"/);
 assert.match(html, /id="songShelfDialog"[^>]*tabindex="-1"/);
 assert.match(html, /songShelfDialog\.focus\(\{preventScroll:true\}\)/);

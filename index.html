@@ -2199,6 +2199,10 @@ let currentCoveringMode=null;    // {root, scale} that covers all chords incl. o
 let keyContextCount=0;
 let keyContextIncludesBoard=false;
 let scalePanelExpanded=false;    // manual open/closed state, persisted
+// The optional last pair of diatonic chords is a small drawer within the
+// already-open key panel. Keep its state while loading one of its chords so a
+// click does not feel like it has collapsed the options the player was using.
+let keyMoreChordsOpen=false;
 let _hadOutliers=false;          // tracks outlier presence to auto-open once on appearance
 let _popChip=null;               // {sectionId,chordIdx} of a chip to pop-in animate once
 const KEY_COACH_SEEN_KEY='couch-batata.key-coach.v1.seen';
@@ -4853,6 +4857,7 @@ function renderKey(){
   syncKeyCoachCue(hasStableKey);
   if(!hasStableKey){
     sg.hidden=true;
+    keyMoreChordsOpen=false;
   } else {
     const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo));
     const isUsed=t=>cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf));
@@ -4870,9 +4875,15 @@ function renderKey(){
     sg.hidden=false;
     const group=(title,items)=>'<div class="key-chord-group"><p class="key-chord-intro">'+title+' <span class="key-chord-degrees">'+items.map(item=>item.rn).join(' · ')+'</span></p><div class="key-chord-row">'+items.map(chip).join('')+'</div></div>';
     sg.innerHTML=group('Start here',startHere)+group('Common moves',commonMoves)
-      +(colourAndTension.length?'<details class="key-more-chords"><summary>More in-key options</summary><div class="key-chord-row">'+colourAndTension.map(chip).join('')+'</div></details>':'')
+      +(colourAndTension.length?'<details class="key-more-chords"'+(keyMoreChordsOpen?' open':'')+'><summary>More in-key options</summary><div class="key-chord-row">'+colourAndTension.map(chip).join('')+'</div></details>':'')
       +'<p class="key-chord-degrees" style="margin-top:9px">✓ already in your song — every chord stays reusable.</p>';
-    sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',()=>{
+    sg.querySelector('.key-more-chords')?.addEventListener('toggle',event=>{
+      keyMoreChordsOpen=event.currentTarget.open;
+    });
+    sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',event=>{
+      // The key-panel header has its own collapse control. This is a chord
+      // action inside its body, so keep the panel and this drawer open.
+      event.stopPropagation();
       markKeyCoachSeen();
       loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});
     }));

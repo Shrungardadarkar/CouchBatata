@@ -3909,6 +3909,10 @@ function secDelBtn(sec,idx){
 function nextSectionName(baseName){
   const m=baseName.match(/^(.*?)(?:\s+(\d+))?$/);
   const stem=(m[1]||baseName).trim();
+  // Only number on an actual collision -- a bare "Solo" with no digit and no
+  // existing "Solo" section should stay "Solo", not jump straight to "Solo 2"
+  // (that misled users into thinking a first "Solo" had gone missing).
+  if(!m[2]&&!sections.some(s=>s.name===stem))return stem;
   let n=m[2]?parseInt(m[2])+1:2;
   while(sections.some(s=>s.name===stem+' '+n))n++;
   return stem+' '+n;

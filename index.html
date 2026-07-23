@@ -157,15 +157,32 @@
 
   /* ---------- fretboard — sunflower yellow, black grid ---------- */
   .board-wrap{overflow-x:auto;padding:14px 0 6px;-webkit-overflow-scrolling:touch}
-  .open-strings-hint{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:8px 10px 8px 12px;
-    background:var(--paper);border:2px solid var(--ink);border-radius:9px;box-shadow:var(--shadow-sm);
-    color:var(--ink-soft);font-size:.8rem;font-weight:700;line-height:1.3}
-  .open-strings-hint[hidden]{display:none}
-  .open-strings-hint button{flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;
-    border:none;border-radius:6px;background:transparent;color:var(--ink-faint);font-size:1rem;
-    line-height:1;cursor:pointer;transition:transform .14s var(--ease-spring),background .14s,color .14s}
-  @media (hover:hover){.open-strings-hint button:hover{background:var(--sun);color:var(--ink);transform:scale(1.12) rotate(-6deg)}}
-  .open-strings-hint button:active{transform:scale(.92);transition-duration:.05s}
+  /* Board-contextual messages (first-load hint, "added + try next" suggestion,
+     "loaded X, edit it" confirmation) share the exact size/color/shape/shadow
+     of #toast below -- same sticker language, just anchored to the fretboard
+     instead of the viewport top. position:fixed with JS-computed left/top
+     (see positionBoardSticker()) rather than position:absolute, because an
+     absolutely-positioned child of the horizontally-scrolling .board-wrap
+     would be centered against the full scrollable content width and could
+     scroll off-screen with the board instead of staying put. */
+  .board-sticker{position:fixed;z-index:60;
+    background:var(--sun);color:var(--ink);font-weight:900;font-size:.88rem;
+    padding:11px 20px;border:2.5px solid var(--ink);border-radius:10px;box-shadow:var(--shadow);
+    max-width:min(88vw,380px);text-align:center;line-height:1.35;
+    opacity:0;pointer-events:none;transform:translate(-50%,-50%) rotate(-1.5deg) scale(.9);
+    transition:opacity .22s,transform .32s var(--ease-out-back)}
+  .board-sticker[hidden]{display:none}
+  .board-sticker.show{opacity:1;transform:translate(-50%,-50%) rotate(-1.5deg) scale(1);pointer-events:auto}
+  .board-sticker .bs-action{pointer-events:auto;display:inline-block;margin-left:8px;margin-top:2px;
+    padding:2px 10px;border:2px solid var(--ink);border-radius:7px;background:var(--paper);color:var(--ink);
+    font:inherit;font-weight:900;font-size:.82rem;cursor:pointer;vertical-align:middle}
+  @media (hover:hover){.board-sticker .bs-action:hover{background:var(--mint)}}
+  .board-sticker .bs-close{pointer-events:auto;position:absolute;top:-10px;right:-10px;width:24px;height:24px;
+    display:grid;place-items:center;border:2px solid var(--ink);border-radius:999px;background:var(--paper);
+    color:var(--ink);font-size:.85rem;line-height:1;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);
+    transition:transform .14s var(--ease-spring)}
+  @media (hover:hover){.board-sticker .bs-close:hover{background:var(--sun);transform:scale(1.12) rotate(-6deg)}}
+  .board-sticker .bs-close:active{transform:scale(.92);transition-duration:.05s}
   .board-outer{min-width:820px;position:relative;user-select:none}
   .string-labels{position:absolute;left:0;top:0;bottom:26px;width:26px;
     display:flex;flex-direction:column;justify-content:space-around;align-items:center;
@@ -863,13 +880,16 @@
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
     .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,.scale-panel-chevron,.mascot,
-    #toast,.modal-dialog,.help-fab,.help-panel,.help-close,
+    #toast,.board-sticker,.modal-dialog,.help-fab,.help-panel,.help-close,
     .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
     .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover{transform:none !important}
     .mascot:hover{animation:none !important}
     #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
+    /* .board-sticker's translate(-50%,-50%) is load-bearing centering, not
+       decoration -- only the rotate/scale bounce is stripped here. */
+    .board-sticker,.board-sticker.show{transform:translate(-50%,-50%) !important}
     .modal-dialog{transform:none !important}
     .help-fab:hover,.help-close:hover{transform:none !important}
     .sound-icon .note-off-mark{transform:none !important}
@@ -977,10 +997,7 @@
       <div class="fret-nums" id="fretNums"></div>
     </div>
   </div>
-  <div class="open-strings-hint" id="openStringsHint" hidden>
-    <span>These are your open strings — mute or fret one, or tap a suggestion below, to start.</span>
-    <button type="button" id="openStringsHintClose" aria-label="Dismiss">×</button>
-  </div>
+  <div class="board-sticker" id="boardSticker" hidden aria-live="polite"></div>
   <div class="board-tech-drawer" id="boardTechDrawer" aria-label="Solo techniques" aria-hidden="true">
     <div class="board-tech-inner">
       <span class="board-tech-label" id="leadTechLabel">Apply to selected notes</span>
@@ -1897,13 +1914,13 @@ chordScrollPrevBtn.addEventListener('click',()=>scrollChordSuggestions(-1));
 chordScrollNextBtn.addEventListener('click',()=>scrollChordSuggestions(1));
 function loadSuggestedChord(item){
   const shape=Array.isArray(item.frets)?{frets:item.frets}:playableSuggestion(item.root,item.suf);
-  if(!shape){flash('No playable shape found for '+pcName(item.root)+item.suf);return;}
+  if(!shape){showBoardSticker('No playable shape found for '+pcName(item.root)+item.suf,{timeout:1600});return;}
   selection=shape.frets.map(f=>f<0?'x':f);
   chordBoardTouched=true;
   activeChip=null;exitShapes();
   analyze();
   autoStrumSelection(selection);
-  flash('Loaded '+pcName(item.root)+item.suf+' — edit any note, then add it when ready');
+  showBoardSticker('Loaded '+pcName(item.root)+item.suf+' — edit any note, then add it when ready',{timeout:1600});
 }
 
 // Map global outlier indices to per-section {sectionId → Set of local chord idx}
@@ -3105,10 +3122,10 @@ document.getElementById('btnAdd').addEventListener('click',()=>{
   render();
   renderSong();
   const nudge=nextUnusedDiatonicChord();
-  flash('Added '+label+' to '+sec.name,nudge?{
-    actionText:'Try '+pcName(nudge.root)+nudge.suf+'?',
-    onAction:()=>loadSuggestedChord({root:nudge.root,suf:nudge.suf})
-  }:undefined);
+  showBoardSticker('Added '+label+' to '+sec.name,{
+    timeout:nudge?4200:1600,
+    action:nudge?{text:'Try '+pcName(nudge.root)+nudge.suf+'?',onClick:()=>loadSuggestedChord({root:nudge.root,suf:nudge.suf})}:null
+  });
 });
 
 function flash(msg,opts){
@@ -4638,16 +4655,81 @@ try{
   }
 }catch{}
 
-const openStringsHint=document.getElementById('openStringsHint');
-function dismissOpenStringsHint(){
-  if(openStringsHint.hidden)return;
-  openStringsHint.hidden=true;
+/* ---------- board sticker (contextual messages anchored to the fretboard) ---------- */
+const boardSticker=document.getElementById('boardSticker');
+// left/top are computed against .board-wrap's own rect, not .board-outer's --
+// .board-wrap is the visible, non-scrolling viewport; .board-outer is the
+// full 820px+ scrollable content. Centering against .board-outer while it's
+// a position:relative ancestor would center against the *scrollable* content
+// box, so the sticker could scroll off-screen with the board on a phone
+// instead of staying anchored to what's actually visible.
+function positionBoardSticker(){
+  if(!boardSticker.classList.contains('show'))return;
+  const rect=document.querySelector('.board-wrap').getBoundingClientRect();
+  // Clamp inside the viewport: if the board itself has scrolled out of view
+  // (a short phone screen, or after scrolling down to reach "Add to
+  // progression"), centering purely on the board's rect would place the
+  // sticker off-screen and invisible -- worse than the old always-visible
+  // top toast. When the board IS in view this clamp is a no-op.
+  const margin=70;
+  const left=Math.min(Math.max(rect.left+rect.width/2,margin),window.innerWidth-margin);
+  const top=Math.min(Math.max(rect.top+rect.height/2,margin),window.innerHeight-margin);
+  boardSticker.style.left=left+'px';
+  boardSticker.style.top=top+'px';
+}
+window.addEventListener('resize',positionBoardSticker);
+window.addEventListener('scroll',positionBoardSticker,{passive:true});
+document.querySelector('.board-wrap').addEventListener('scroll',positionBoardSticker,{passive:true});
+
+let boardStickerTimer=null;
+function hideBoardSticker(){
+  clearTimeout(boardStickerTimer);
+  boardSticker.classList.remove('show');
+}
+// opts: {timeout: ms to auto-hide (omit to persist), closable: show a close
+// "x", onDismiss: called only when closable's "x" is actually clicked,
+// action: {text, onClick} for a single tappable follow-up}
+function showBoardSticker(html,opts){
+  opts=opts||{};
+  // Any other board message means the user has moved past needing the
+  // first-load hint, even if they never fretted a real note -- keep this
+  // check generic rather than importing hint-specific logic here.
+  if(openStringsHintShown){openStringsHintShown=false;markOpenStringsHintSeen();}
+  clearTimeout(boardStickerTimer);
+  boardSticker.hidden=false;
+  boardSticker.innerHTML=html;
+  if(opts.action){
+    const btn=document.createElement('button');
+    btn.type='button';btn.className='bs-action';btn.textContent=opts.action.text;
+    btn.addEventListener('click',e=>{e.stopPropagation();hideBoardSticker();opts.action.onClick();});
+    boardSticker.appendChild(btn);
+  }
+  if(opts.closable){
+    const closeBtn=document.createElement('button');
+    closeBtn.type='button';closeBtn.className='bs-close';closeBtn.textContent='×';
+    closeBtn.setAttribute('aria-label','Dismiss');
+    closeBtn.addEventListener('click',e=>{e.stopPropagation();hideBoardSticker();if(opts.onDismiss)opts.onDismiss();});
+    boardSticker.appendChild(closeBtn);
+  }
+  boardSticker.classList.add('show');
+  positionBoardSticker();
+  if(opts.timeout)boardStickerTimer=setTimeout(hideBoardSticker,opts.timeout);
+}
+
+function markOpenStringsHintSeen(){
   try{localStorage.setItem('couch-batata.openstrings.v1.seen','1');}catch{}
 }
-document.getElementById('openStringsHintClose').addEventListener('click',dismissOpenStringsHint);
+let openStringsHintShown=false;
+function dismissOpenStringsHint(){
+  if(!openStringsHintShown)return;
+  openStringsHintShown=false;
+  hideBoardSticker();
+  markOpenStringsHintSeen();
+}
 try{
   if(!localStorage.getItem('couch-batata.openstrings.v1.seen')&&selection.every(v=>v===0)){
-    openStringsHint.hidden=false;
+    openStringsHintShown=true;
+    showBoardSticker('Mute or fret a string — or tap a suggestion below',{closable:true,onDismiss:dismissOpenStringsHint});
   }
 }catch{}
 

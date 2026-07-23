@@ -3075,6 +3075,19 @@ function exitShapes(){
   document.getElementById('shapeNav').hidden=!current;
 }
 
+// The Key & Scales panel already lists diatonic chords the song hasn't used
+// yet, but that list is only visible once someone opens the panel. Surfacing
+// the first one as an optional toast action turns a hidden nudge into a
+// visible one, right when momentum to keep building is highest, without
+// adding a decision to the critical capture path (it's just as easy to
+// ignore as any other toast).
+function nextUnusedDiatonicChord(){
+  const keyInfo=currentKeyInfo;
+  if(!keyInfo||keyInfo.dominantContext)return null;
+  const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo),keyInfo.keyMode==='minor'?MINOR_ROMAN:DEG_RN);
+  const cs=allChords();
+  return tris.find(t=>!cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf)))||null;
+}
 /* ---------- add chord to progression ---------- */
 document.getElementById('btnAdd').addEventListener('click',()=>{
   if(!current)return;
@@ -3091,7 +3104,11 @@ document.getElementById('btnAdd').addEventListener('click',()=>{
   leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;
   render();
   renderSong();
-  flash('Added '+label+' to '+sec.name);
+  const nudge=nextUnusedDiatonicChord();
+  flash('Added '+label+' to '+sec.name,nudge?{
+    actionText:'Try '+pcName(nudge.root)+nudge.suf+'?',
+    onAction:()=>loadSuggestedChord({root:nudge.root,suf:nudge.suf})
+  }:undefined);
 });
 
 function flash(msg,opts){

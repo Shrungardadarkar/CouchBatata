@@ -84,6 +84,7 @@
       radial-gradient(circle at 12% 82%, rgba(240,180,0,.09) 0 8px, transparent 9px),
       radial-gradient(circle at 88% 86%, rgba(176,155,217,.08) 0 7px, transparent 8px);
     background-repeat:no-repeat}
+  body.booting .wrap{pointer-events:none;cursor:wait}
   .wrap{max-width:1080px;margin:0 auto;padding:0 20px 20px}
 
   /* ===== HEADER BANNER — tomato bar with fat outlined title ===== */
@@ -662,7 +663,16 @@
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
   .song-title-block{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+  .song-title-label-row{display:flex;align-items:center;gap:8px;min-height:24px}
   .song-title-label{color:var(--ink);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
+  .song-shelf-trigger{display:inline-flex;align-items:center;gap:7px;padding:3px 8px 3px 9px;border:2px solid var(--ink);border-radius:999px;
+    background:var(--mint);color:var(--ink);box-shadow:2px 2px 0 var(--ink);font:800 .72rem/1 "Courier New",monospace;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+  .song-shelf-trigger[hidden]{display:none}
+  .song-shelf-trigger:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .song-shelf-trigger:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  @media (hover:hover){.song-shelf-trigger:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
+  .song-shelf-count{display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);font:900 .67rem/1 Arial,sans-serif}
   .song-name-row{display:flex;align-items:center;gap:10px;min-height:44px}
   /* Same weight/size as .chord-name — the song title is the headline of this
      panel the way the chord name is the headline of the chord board. Line-height
@@ -702,6 +712,42 @@
   .song-name-btn.editing.armed:active{transform:scale(.95);transition-duration:.05s}
   .song-name-btn.editing:not(.armed):active{transform:none}
   .song-name-btn.editing:not(.armed):active{transform:none}
+
+  /* A calm local song picker: the current title stays prominent in the builder,
+     while this surface appears only when someone chooses to switch ideas. */
+  .song-shelf-overlay{position:fixed;inset:0;z-index:101;display:flex;align-items:center;justify-content:center;
+    background:rgba(90,47,62,.42);padding:20px;opacity:0;transition:opacity .18s ease}
+  .song-shelf-overlay[hidden]{display:none}
+  .song-shelf-overlay.show{opacity:1}
+  .song-shelf-dialog{background:var(--paper);border:var(--outline);border-radius:16px;box-shadow:6px 6px 0 var(--ink);
+    width:min(500px,100%);padding:18px 18px 16px;transform:translateY(16px) scale(.9) rotate(-1.5deg);transition:transform .3s var(--ease-out-back)}
+  .song-shelf-overlay.show .song-shelf-dialog{transform:translateY(0) scale(1) rotate(0)}
+  .song-shelf-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
+  .song-shelf-head-copy{flex:1;min-width:0}
+  .song-shelf-kicker{display:block;color:var(--ink-dim);font:900 .68rem/1 "Courier New",monospace;letter-spacing:.09em;text-transform:uppercase;margin-bottom:4px}
+  .song-shelf-title{font-family:"Arial Black",Arial,sans-serif;font-size:1.22rem;line-height:1.05;color:var(--ink)}
+  .song-shelf-new{flex:0 0 auto;min-height:34px;padding:5px 10px;font-size:.78rem}
+  .song-shelf-close{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-size:1.3rem;font-weight:900;cursor:pointer;
+    transition:transform .18s var(--ease-spring),background .12s}
+  @media (hover:hover){.song-shelf-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}}
+  .song-shelf-close:focus-visible,.song-shelf-more:focus-visible,.song-shelf-open:focus-visible,.song-shelf-action:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-shelf-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto;padding:1px 4px 4px 1px}
+  .song-shelf-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:9px;background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);overflow:hidden}
+  .song-shelf-item.active{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}
+  .song-shelf-open{min-width:0;border:0;background:transparent;color:var(--ink);padding:10px 3px 10px 11px;text-align:left;font-family:inherit;cursor:pointer}
+  @media (hover:hover){.song-shelf-open:hover{background:rgba(255,244,233,.6)}}
+  .song-shelf-copy{display:block;min-width:0}
+  .song-shelf-name{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:"Arial Black",Arial,sans-serif;font-size:.96rem;line-height:1.15}
+  .song-shelf-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;color:var(--ink-dim);font-size:.76rem;font-weight:750;line-height:1.3}
+  .song-shelf-date{white-space:nowrap;color:var(--ink-faint)}
+  .song-shelf-active{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font:900 .66rem/1 "Courier New",monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim)}
+  .song-shelf-active::before{content:"";width:8px;height:8px;border:1.5px solid var(--ink);border-radius:50%;background:var(--mint)}
+  .song-shelf-more{width:30px;height:30px;margin-right:4px;border:0;border-radius:6px;background:transparent;color:var(--ink-faint);font:900 1.1rem/1 Arial,sans-serif;cursor:pointer;transition:color .12s,background .12s,transform .18s var(--ease-spring)}
+  @media (hover:hover){.song-shelf-more:hover{background:var(--cream);color:var(--ink);transform:scale(1.1)}}
+  .song-shelf-actions{grid-column:1/-1;display:flex;gap:7px;flex-wrap:wrap;padding:0 10px 10px}
+  .song-shelf-action{border:2px solid var(--ink);border-radius:7px;background:var(--cream);color:var(--ink);padding:5px 9px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.75rem;line-height:1.1;font-weight:800;cursor:pointer}
+  .song-shelf-action.danger{background:var(--tomato);color:var(--cream)}
+  .song-shelf-foot{margin:10px 1px 0;color:var(--ink-dim);font-size:.76rem;line-height:1.4;font-weight:650}
 
   .add-sect-row{display:flex;align-items:center;gap:10px;margin-top:16px;flex-wrap:wrap}
   .add-sect-label{color:var(--ink);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;font-weight:900;font-family:"Courier New",monospace}
@@ -864,6 +910,12 @@
     .board-tech-drawer .lead-techniques{flex-wrap:nowrap;overflow-x:auto;padding:1px 3px 6px;margin:0 -3px;-webkit-overflow-scrolling:touch}
     .install-card{align-items:flex-start;flex-wrap:wrap}
     .install-card-copy{flex-basis:calc(100% - 44px)}
+    .song-shelf-overlay{align-items:flex-end;padding:12px 12px max(12px,env(safe-area-inset-bottom))}
+    .song-shelf-dialog{width:100%;max-height:calc(100dvh - 24px);padding:17px 14px 14px;border-radius:16px 16px 12px 12px}
+    .song-shelf-list{max-height:min(340px,calc(100dvh - 210px))}
+    .song-shelf-open{padding:10px}
+    .song-shelf-meta{display:block}
+    .song-shelf-date{display:block;margin-top:2px}
     .help-fab{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:46px;height:46px}
     .help-panel{right:12px;bottom:70px;width:calc(100% - 24px);max-height:calc(100vh - 94px)}
   }
@@ -880,7 +932,7 @@
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
     .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,.scale-panel-chevron,.mascot,
-    #toast,.board-sticker,.modal-dialog,.help-fab,.help-panel,.help-close,
+    #toast,.board-sticker,.modal-dialog,.song-shelf-dialog,.help-fab,.help-panel,.help-close,
     .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
     .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover{transform:none !important}
@@ -900,7 +952,7 @@
 </style>
 
 </head>
-<body>
+<body class="booting" aria-busy="true">
 
 <header>
   <div class="header-left">
@@ -930,7 +982,7 @@
   <button class="install-dismiss" id="btnUpdateDismiss" type="button" aria-label="Dismiss update message">×</button>
 </aside>
 
-<div class="wrap">
+<div class="wrap" inert>
 <p class="tagline"><strong>Catch the chord. Keep the song.</strong> Tap the notes you played, find the chord, and save the idea before it slips away. Then build it into a song.</p>
 
 <div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
@@ -1056,7 +1108,10 @@
 <div class="panel win-tomato" data-win="Tab builder">
   <h2>Tab builder</h2>
   <div class="song-title-block">
-    <label class="song-title-label" for="songTitleInput">Song name</label>
+    <div class="song-title-label-row">
+      <label class="song-title-label" for="songTitleInput">Song</label>
+      <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
+    </div>
     <div class="song-name-row" id="songNameRow">
       <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
       <div class="song-name-input-wrap" id="songNameInputWrap">
@@ -1071,19 +1126,30 @@
   </div>
   <div id="song"></div>
 
+  <div class="song-shelf-overlay" id="songShelfOverlay" hidden aria-hidden="true">
+    <section class="song-shelf-dialog" id="songShelfDialog" role="dialog" aria-modal="true" aria-labelledby="songShelfTitle">
+      <div class="song-shelf-head">
+        <div class="song-shelf-head-copy"><span class="song-shelf-kicker">Your songs</span><h3 class="song-shelf-title" id="songShelfTitle">Pick up an idea</h3></div>
+        <button class="btn primary song-shelf-new" id="btnNewSong" type="button">+ New song</button>
+        <button class="song-shelf-close" id="btnSongShelfClose" type="button" aria-label="Close songs">×</button>
+      </div>
+      <div class="song-shelf-list" id="songShelfList" role="list"></div>
+      <p class="song-shelf-foot">Everything stays on this device. Switching saves the song you are leaving.</p>
+    </section>
+  </div>
+
   <div class="add-sect-row">
     <span class="add-sect-label">New section</span>
     <div id="sectionPicker"></div>
     <button class="btn" id="btnAddSection" title="Add a new section (Intro, Verse, Chorus…)">+ Add section</button>
-    <button class="btn ghost" id="btnSaveFresh" title="Back up this song as a .json file, then start a brand new one">Save &amp; start fresh</button>
-    <button class="btn ghost" id="btnClearSong" title="Delete every section and every chord — starts a completely fresh song">Clear song</button>
+    <button class="btn ghost" id="btnClearSong" title="Delete every section and every chord in this song">Clear this song</button>
   </div>
 
   <div class="export-row">
     <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
     <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
     <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Back up project (.json)</button>
-    <button class="btn ghost" id="btnImport" title="Open an editable Couch Batata project backup">Open project</button>
+    <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
     <input id="projectFile" type="file" accept="application/json,.json" hidden>
   </div>
   <p class="hint">
@@ -2090,10 +2156,244 @@ function consumeSoloChordReference(){
   activeChip=null;
 }
 
-/* ---------- persistence (localStorage) ---------- */
+/* ---------- persistence: local active mirror + IndexedDB song shelf ---------- */
+// The active project's localStorage mirror keeps quick-close recovery and older
+// cached app tabs safe. IndexedDB is the canonical store for the song shelf.
 const _SAVE_KEY='fretwork.song.v1';
+const _SONG_DB_NAME='couch-batata.projects';
+const _SONG_DB_VERSION=1;
+const _SONG_STORE='projects';
+const _SONG_META_STORE='meta';
+const _SONG_MIGRATION_KEY='legacy-migration.v1';
+const _SONG_ACTIVE_KEY='active-project-id';
+let _songDb=null;
+let _songDbOpening=null;
+let _songDbFailed=false;
+let activeProjectId=null;
+let activeProjectRevision=0;
+let songIndex=[];
+const projectRevisions=new Map();
+let _projectWriteChain=Promise.resolve();
 let _saveTimer=null;
 let _saveFailedNotified=false;
+let _songStoreNoticeShown=false;
+let _recoveredSongNotice='';
+
+function idbRequest(request){
+  return new Promise((resolve,reject)=>{
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error||new Error('IndexedDB request failed'));
+  });
+}
+function idbTransactionDone(transaction){
+  return new Promise((resolve,reject)=>{
+    transaction.oncomplete=()=>resolve();
+    transaction.onerror=()=>reject(transaction.error||new Error('IndexedDB transaction failed'));
+    transaction.onabort=()=>reject(transaction.error||new Error('IndexedDB transaction aborted'));
+  });
+}
+function openSongDatabase(){
+  if(_songDb)return Promise.resolve(_songDb);
+  if(_songDbFailed)return Promise.reject(new Error('Song shelf storage is unavailable'));
+  if(_songDbOpening)return _songDbOpening;
+  const opening=new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)){_songDbFailed=true;reject(new Error('IndexedDB is unavailable'));return;}
+    let request;
+    try{request=indexedDB.open(_SONG_DB_NAME,_SONG_DB_VERSION);}catch(error){_songDbFailed=true;reject(error);return;}
+    request.onupgradeneeded=()=>{
+      const db=request.result;
+      if(!db.objectStoreNames.contains(_SONG_STORE)){
+        const songs=db.createObjectStore(_SONG_STORE,{keyPath:'id'});
+        songs.createIndex('updatedAt','updatedAt');
+      }
+      if(!db.objectStoreNames.contains(_SONG_META_STORE))db.createObjectStore(_SONG_META_STORE,{keyPath:'key'});
+    };
+    request.onsuccess=()=>{
+      _songDb=request.result;
+      _songDb.onversionchange=()=>{_songDb.close();_songDb=null;};
+      resolve(_songDb);
+    };
+    request.onerror=()=>{_songDbFailed=true;reject(request.error||new Error('IndexedDB is unavailable'));};
+  });
+  _songDbOpening=opening.then(
+    db=>{_songDbOpening=null;return db;},
+    error=>{_songDbOpening=null;throw error;}
+  );
+  return _songDbOpening;
+}
+function readLegacySnapshot(){
+  try{
+    const raw=localStorage.getItem(_SAVE_KEY);
+    if(!raw)return null;
+    const snapshot=JSON.parse(raw);
+    return snapshot&&snapshot.version===1&&Array.isArray(snapshot.sections)?{raw,snapshot}:null;
+  }catch(error){return null;}
+}
+function writeLegacySnapshot(snapshot){
+  try{localStorage.setItem(_SAVE_KEY,JSON.stringify(snapshot));return true;}catch(error){return false;}
+}
+function snapshotFingerprint(snapshot){return JSON.stringify(snapshot);}
+function snapshotTitle(snapshot){
+  const title=typeof snapshot?.songName==='string'?snapshot.songName.trim().slice(0,120):'';
+  return title||'Untitled song';
+}
+function snapshotSummary(snapshot){
+  const songSections=Array.isArray(snapshot?.sections)?snapshot.sections:[];
+  return {
+    sectionCount:songSections.length,
+    chordCount:songSections.reduce((total,section)=>total+(Array.isArray(section.chords)?section.chords.length:0),0),
+    leadEventCount:songSections.reduce((total,section)=>total+(Array.isArray(section.lead)?section.lead.length:0),0)
+  };
+}
+function hasMeaningfulSong(snapshot){
+  return !!((snapshot?.songName&&snapshot.songName.trim())||snapshotSummary(snapshot).sectionCount);
+}
+function newSongId(){
+  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+  return 'song-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);
+}
+function recoveredSongTitle(snapshot){
+  const base=snapshotTitle(snapshot);
+  return (base.length>106?base.slice(0,106):base)+' (recovered)';
+}
+function makeSongRecord(snapshot,options){
+  const opts=options||{},time=Date.now();
+  return {
+    id:opts.id||newSongId(),
+    revision:opts.revision||1,
+    createdAt:opts.createdAt||time,
+    updatedAt:opts.updatedAt||time,
+    title:opts.title||snapshotTitle(snapshot),
+    summary:snapshotSummary(snapshot),
+    snapshot
+  };
+}
+async function songMetaValue(key){
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_META_STORE,'readonly');
+  const record=await idbRequest(transaction.objectStore(_SONG_META_STORE).get(key));
+  return record?record.value:null;
+}
+async function songRecord(id){
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_STORE,'readonly');
+  return idbRequest(transaction.objectStore(_SONG_STORE).get(id));
+}
+async function refreshSongIndex(){
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_STORE,'readonly');
+  const records=await idbRequest(transaction.objectStore(_SONG_STORE).getAll());
+  songIndex=records.sort((a,b)=>b.updatedAt-a.updatedAt);
+  records.forEach(record=>projectRevisions.set(record.id,record.revision));
+  return songIndex;
+}
+async function initialiseSongStore(){
+  const db=await openSongDatabase();
+  const migration=await songMetaValue(_SONG_MIGRATION_KEY);
+  if(!migration){
+    const legacy=readLegacySnapshot();
+    const transaction=db.transaction([_SONG_STORE,_SONG_META_STORE],'readwrite');
+    const songs=transaction.objectStore(_SONG_STORE);
+    const meta=transaction.objectStore(_SONG_META_STORE);
+    if(legacy){
+      // A fixed id makes an interrupted first run safe to retry without a
+      // second copy of the same single-slot project.
+      const record=makeSongRecord(legacy.snapshot,{id:'legacy-v1'});
+      songs.put(record);
+      meta.put({key:_SONG_ACTIVE_KEY,value:record.id});
+    }
+    meta.put({key:_SONG_MIGRATION_KEY,value:{complete:true}});
+    await idbTransactionDone(transaction);
+  }
+  await refreshSongIndex();
+  return db;
+}
+async function addSongRecord(snapshot,options){
+  const opts=options||{},db=await openSongDatabase();
+  const record=makeSongRecord(snapshot,opts);
+  const transaction=db.transaction([_SONG_STORE,_SONG_META_STORE],'readwrite');
+  transaction.objectStore(_SONG_STORE).put(record);
+  if(opts.activate!==false)transaction.objectStore(_SONG_META_STORE).put({key:_SONG_ACTIVE_KEY,value:record.id});
+  await idbTransactionDone(transaction);
+  await refreshSongIndex();
+  projectRevisions.set(record.id,record.revision);
+  return record;
+}
+async function deleteSongRecord(id){
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_STORE,'readwrite');
+  transaction.objectStore(_SONG_STORE).delete(id);
+  await idbTransactionDone(transaction);
+  projectRevisions.delete(id);
+  await refreshSongIndex();
+}
+async function setActiveSongId(id){
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_META_STORE,'readwrite');
+  transaction.objectStore(_SONG_META_STORE).put({key:_SONG_ACTIVE_KEY,value:id||null});
+  await idbTransactionDone(transaction);
+}
+function notifySongStoreUnavailable(){
+  if(_songStoreNoticeShown||document.visibilityState==='hidden')return;
+  _songStoreNoticeShown=true;
+  flash('Multiple songs are unavailable in this browser — back up important work');
+}
+async function persistProjectSnapshot(snapshot,targetId,targetRevision){
+  if(!targetId){
+    if(!hasMeaningfulSong(snapshot))return false;
+    const created=await addSongRecord(snapshot,{activate:true});
+    activeProjectId=created.id;activeProjectRevision=created.revision;
+    return true;
+  }
+  const db=await openSongDatabase();
+  const result=await new Promise((resolve,reject)=>{
+    let outcome=null;
+    const transaction=db.transaction([_SONG_STORE,_SONG_META_STORE],'readwrite');
+    const songs=transaction.objectStore(_SONG_STORE);
+    const meta=transaction.objectStore(_SONG_META_STORE);
+    const lookup=songs.get(targetId);
+    lookup.onerror=()=>reject(lookup.error||new Error('Could not read the current song'));
+    lookup.onsuccess=()=>{
+      const currentRecord=lookup.result;
+      if(!currentRecord){
+        const replacement=makeSongRecord(snapshot,{id:targetId,revision:1});
+        songs.put(replacement);meta.put({key:_SONG_ACTIVE_KEY,value:replacement.id});outcome={record:replacement};
+      }else if(currentRecord.revision!==targetRevision&&snapshotFingerprint(currentRecord.snapshot)!==snapshotFingerprint(snapshot)){
+        // Another tab changed this project first. Keep the musician's current
+        // work as a separate local recovery instead of silently overwriting.
+        const recovered=makeSongRecord(snapshot,{title:recoveredSongTitle(snapshot)});
+        songs.put(recovered);meta.put({key:_SONG_ACTIVE_KEY,value:recovered.id});outcome={record:recovered,recovered:true};
+      }else{
+        const updated={...currentRecord,revision:currentRecord.revision+1,updatedAt:Date.now(),title:snapshotTitle(snapshot),summary:snapshotSummary(snapshot),snapshot};
+        songs.put(updated);meta.put({key:_SONG_ACTIVE_KEY,value:updated.id});outcome={record:updated};
+      }
+    };
+    transaction.oncomplete=()=>resolve(outcome);
+    transaction.onerror=()=>reject(transaction.error||new Error('Could not save the current song'));
+    transaction.onabort=()=>reject(transaction.error||new Error('Could not save the current song'));
+  });
+  if(result?.record&&activeProjectId===targetId){
+    activeProjectId=result.record.id;activeProjectRevision=result.record.revision;
+    if(result.recovered)_recoveredSongNotice='Saved this tab as "'+result.record.title+'" to avoid overwriting another copy';
+  }
+  if(result?.record)projectRevisions.set(result.record.id,result.record.revision);
+  await refreshSongIndex();
+  return !!result;
+}
+function queueProjectWrite(snapshot){
+  if(!_songDb)return Promise.resolve(false);
+  const targetId=activeProjectId,targetRevision=activeProjectRevision;
+  // Resolve the revision only once this write reaches the front of the local
+  // queue. Otherwise two ordinary edits in one tab could both carry the same
+  // old revision and look like a cross-tab conflict to the second write.
+  _projectWriteChain=_projectWriteChain.catch(()=>false).then(()=>{
+    const latestRevision=targetId?(projectRevisions.get(targetId)??targetRevision):targetRevision;
+    return persistProjectSnapshot(snapshot,targetId,latestRevision);
+  }).catch(error=>{
+    _songDbFailed=true;notifySongStoreUnavailable();return false;
+  });
+  return _projectWriteChain;
+}
 function projectSnapshot(){
   return {
     app:'Couch Batata',version:1,
@@ -2118,18 +2418,18 @@ function projectSnapshot(){
   };
 }
 function save(immediate){
+  if(immediate)commitPendingSongName();
   const doSave=()=>{
-    try{
-      localStorage.setItem(_SAVE_KEY, JSON.stringify(projectSnapshot()));
-      _saveFailedNotified=false;
-      return true;
-    }catch(e){
-      if(!_saveFailedNotified && document.visibilityState!=='hidden'){
-        _saveFailedNotified=true;
-        flash('Autosave is unavailable — back up your project to avoid losing work');
-      }
-      return false;
+    const snapshot=projectSnapshot();
+    const mirrored=writeLegacySnapshot(snapshot);
+    if(_songDb)queueProjectWrite(snapshot);
+    else if(_songDbFailed)notifySongStoreUnavailable();
+    if(mirrored){_saveFailedNotified=false;return true;}
+    if(!_saveFailedNotified&&document.visibilityState!=='hidden'){
+      _saveFailedNotified=true;
+      flash('Autosave is unavailable — back up your project to avoid losing work');
     }
+    return false;
   };
   if(_saveTimer){clearTimeout(_saveTimer);_saveTimer=null;}
   if(immediate)doSave();
@@ -2145,6 +2445,9 @@ document.addEventListener('visibilitychange',()=>{
 function restoreProject(d){
   if(!d||d.version!==1||!Array.isArray(d.sections))return false;
   let maxId=0;
+  // Lead-event ids are local to a song. Resetting the counter here prevents
+  // switching songs from carrying an unrelated draft's id sequence forward.
+  _nextLeadId=1;
   const normSections=d.sections.map(sec=>{
     const id=Number.isInteger(sec.id)&&sec.id>0?sec.id:++maxId;
     if(id>maxId)maxId=id;
@@ -2201,13 +2504,104 @@ function restoreProject(d){
   _nextLeadId=Math.max(_nextLeadId,Number.isInteger(d.nextLeadId)&&d.nextLeadId>0?d.nextLeadId:1);
   return true;
 }
-function load(){
+async function load(){
+  let legacy=readLegacySnapshot();
   try{
-    const raw=localStorage.getItem(_SAVE_KEY);
-    if(!raw)return false;
-    const d=JSON.parse(raw);
-    return restoreProject(d);
-  }catch(e){return false;}
+    await initialiseSongStore();
+    const storedActiveId=await songMetaValue(_SONG_ACTIVE_KEY);
+    let activeRecord=storedActiveId?await songRecord(storedActiveId):null;
+    // A very fast first interaction can write the legacy mirror while the
+    // database is still opening. Re-read it here so that interaction becomes
+    // a real song rather than an orphaned recovery value after a reload.
+    legacy=readLegacySnapshot();
+    if(!activeRecord&&legacy&&hasMeaningfulSong(legacy.snapshot)){
+      const legacyFingerprint=snapshotFingerprint(legacy.snapshot);
+      const existing=songIndex.find(record=>snapshotFingerprint(record.snapshot)===legacyFingerprint);
+      activeRecord=existing||await addSongRecord(legacy.snapshot,{activate:true});
+      if(existing)await setActiveSongId(existing.id);
+    }
+    if(!activeRecord)return false;
+    // A stale cached tab can still write the old active-song mirror. Preserve
+    // that newer-looking local copy rather than letting it erase a different
+    // song from the shelf on the next visit.
+    if(legacy&&snapshotFingerprint(legacy.snapshot)!==snapshotFingerprint(activeRecord.snapshot)){
+      const legacyFingerprint=snapshotFingerprint(legacy.snapshot);
+      const alreadyRecovered=songIndex.some(record=>snapshotFingerprint(record.snapshot)===legacyFingerprint);
+      if(!alreadyRecovered){
+        const recovered=await addSongRecord(legacy.snapshot,{activate:false,title:recoveredSongTitle(legacy.snapshot)});
+        _recoveredSongNotice='Recovered a separate local copy as "'+recovered.title+'"';
+      }
+    }
+    activeProjectId=activeRecord.id;
+    activeProjectRevision=activeRecord.revision;
+    if(!restoreProject(activeRecord.snapshot))return false;
+    writeLegacySnapshot(activeRecord.snapshot);
+    return true;
+  }catch(error){
+    _songDbFailed=true;
+    if(legacy&&restoreProject(legacy.snapshot))return true;
+    return false;
+  }
+}
+async function flushCurrentProject(){
+  if(_saveTimer){clearTimeout(_saveTimer);_saveTimer=null;}
+  commitPendingSongName();
+  const snapshot=projectSnapshot();
+  const mirrored=writeLegacySnapshot(snapshot);
+  if(_songDb){
+    await queueProjectWrite(snapshot);
+    await _projectWriteChain;
+  }else if(_songDbFailed){
+    notifySongStoreUnavailable();
+  }
+  return mirrored;
+}
+function blankProjectSnapshot(){
+  return {
+    app:'Couch Batata',version:1,songName:'',sections:[],activeSectionId:null,
+    useFlats,scaleActive:null,scaleBoxIdx:null,scalePanelExpanded:false,nextId:1,nextLeadId:1
+  };
+}
+function resetProjectEditingState(){
+  activeChip=null;resetChordSelection();exitShapes();
+  leadDraft=[];leadDraftSourceSectionId=null;leadDraftEditIndex=null;
+  leadTechniquePending=null;leadSelection=new Array(6).fill(null);leadSelectionSectionId=null;
+}
+function applySongRecord(record){
+  if(!record||!restoreProject(record.snapshot))return false;
+  activeProjectId=record.id;activeProjectRevision=record.revision;
+  projectRevisions.set(record.id,record.revision);
+  writeLegacySnapshot(record.snapshot);
+  resetProjectEditingState();
+  syncSongTitleUI();setFlats(useFlats);analyze();renderSong();renderLead();
+  return true;
+}
+async function switchToSong(id){
+  if(id===activeProjectId)return true;
+  if(leadDraft.length){
+    const discard=await confirmModal('You have a solo draft in progress. Discard it and switch songs?',{confirmText:'Discard draft and switch',cancelText:'Keep editing'});
+    if(!discard)return false;
+  }
+  await flushCurrentProject();
+  const record=await songRecord(id);
+  if(!record)return false;
+  if(!applySongRecord(record))return false;
+  flash('Opened "'+record.title+'"');
+  return true;
+}
+async function createNewSong(){
+  if(leadDraft.length){
+    const discard=await confirmModal('You have a solo draft in progress. Discard it and start a new song?',{confirmText:'Discard draft and start new',cancelText:'Keep editing'});
+    if(!discard)return false;
+  }
+  await flushCurrentProject();
+  if(!_songDb){notifySongStoreUnavailable();return false;}
+  const record=await addSongRecord(blankProjectSnapshot(),{activate:true});
+  activeProjectId=record.id;activeProjectRevision=record.revision;
+  restoreProject(record.snapshot);writeLegacySnapshot(record.snapshot);
+  resetProjectEditingState();syncSongTitleUI();setFlats(useFlats);analyze();renderSong();renderLead();
+  flash('New song ready');
+  return true;
 }
 function ensureActiveSection(fallbackName='Intro'){
   const cur = activeSection();
@@ -4223,8 +4617,9 @@ function showExport(){
 // A user accumulating several half-finished song ideas over time needs the
 // filename itself to carry which song it is -- a generic name pushes
 // "which download was which song" back onto their memory.
-function songFileSlug(){
-  const slug=songName.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+function songFileSlug(title){
+  const source=typeof title==='string'?title:songName;
+  const slug=source.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
   return slug||'untitled-song';
 }
 document.getElementById('btnExport').addEventListener('click',()=>{
@@ -4265,24 +4660,44 @@ document.getElementById('projectFile').addEventListener('change',async e=>{
   e.target.value='';
   if(!file)return;
   try{
+    await _bootPromise;
     const data=JSON.parse(await file.text());
     if(!data||data.version!==1||!Array.isArray(data.sections))throw new Error('Unsupported project format');
-    // Importing replaces the whole in-memory song and writes straight over the
-    // single autosave slot, so an unsaved current song isn't recoverable
-    // afterward either — confirm first, same as Clear Song does.
-    if(sections.length){
-      const total=allChords().length;
-      const incomingLabel=(data.songName&&data.songName.trim())?'"'+data.songName.trim()+'"':file.name;
-      const msg='Replace your current song ('+sections.length+' section'+(sections.length===1?'':'s')+', '+total+' chord'+(total===1?'':'s')+') with '+incomingLabel+'? This can\'t be undone.';
-      const ok=await confirmModal(msg,{confirmText:'Replace song',cancelText:'Keep current song'});
-      if(!ok)return;
+    if(leadDraft.length){
+      const discard=await confirmModal('You have a solo draft in progress. Discard it and import this project?',{confirmText:'Discard draft and import',cancelText:'Keep editing'});
+      if(!discard)return;
     }
-    if(!restoreProject(data))throw new Error('Unsupported project format');
-    activeChip=null;resetChordSelection();exitShapes();
-    syncSongTitleUI();
-    setFlats(useFlats);
-    analyze();renderSong();save(true);
-    flash('Opened project "'+file.name+'"');
+    if(_songDb){
+      await flushCurrentProject();
+      // Use the existing normaliser without letting a failed import replace the
+      // song currently on screen. The imported record is created first, then
+      // applied as the active song only after that succeeds.
+      const previous=projectSnapshot();
+      if(!restoreProject(data))throw new Error('Unsupported project format');
+      const importedSnapshot=projectSnapshot();
+      restoreProject(previous);
+      const originalTitle=snapshotTitle(importedSnapshot);
+      const titles=new Set(songIndex.map(record=>record.title.toLowerCase()));
+      let importedTitle=originalTitle;
+      if(titles.has(importedTitle.toLowerCase())){
+        const base=(originalTitle.length>108?originalTitle.slice(0,108):originalTitle)+' (imported)';
+        importedTitle=base;let count=2;
+        while(titles.has(importedTitle.toLowerCase()))importedTitle=base+' '+count++;
+      }
+      importedSnapshot.songName=importedTitle==='Untitled song'?'':importedTitle;
+      const record=await addSongRecord(importedSnapshot,{activate:true,title:importedTitle});
+      if(!applySongRecord(record))throw new Error('Could not open imported project');
+      flash('Imported "'+importedTitle+'" as a new song');
+    }else{
+      if(sections.length){
+        const replace=await confirmModal('Open this backup in place of the current song? Back up the current song first if you want to keep both.',{confirmText:'Open backup',cancelText:'Keep current song'});
+        if(!replace)return;
+      }
+      if(!restoreProject(data))throw new Error('Unsupported project format');
+      resetProjectEditingState();
+      syncSongTitleUI();setFlats(useFlats);analyze();renderSong();renderLead();save(true);
+      flash('Opened project "'+file.name+'"');
+    }
   }catch(err){
     flash('Could not open that project file');
   }
@@ -4563,19 +4978,27 @@ function exitSongNameEdit(){
 }
 function saveSongName(){
   if(!songNameBtn.classList.contains('armed'))return; // nothing changed — no-op
-  songName=songTitleInput.value.trim().slice(0,120);
+  commitPendingSongName();
+  save(true);
+}
+function commitPendingSongName(){
+  if(!songNameRow.classList.contains('editing'))return false;
+  const nextName=songTitleInput.value.trim().slice(0,120);
+  const changed=nextName!==songName;
+  songName=nextName;
   updateDocumentTitle();
   renderSongNameDisplay();
-  save(true);
   // Refresh an already-open preview instead of leaving it showing the old name.
   const exportPanel=document.getElementById('exportPanel');
   if(exportPanel&&!exportPanel.hidden)document.getElementById('exportPre').textContent=buildExportText();
   exitSongNameEdit();
+  return changed;
 }
 function syncSongTitleUI(){
   updateDocumentTitle();
   renderSongNameDisplay();
   exitSongNameEdit();
+  renderSongShelfTrigger();
 }
 songNameBtn.addEventListener('click',()=>{
   if(!songNameRow.classList.contains('editing'))enterSongNameEdit();
@@ -4589,38 +5012,163 @@ songTitleInput.addEventListener('keydown',e=>{
   if(e.key==='Escape'){e.preventDefault();exitSongNameEdit();}
 });
 
+/* ---------- local song shelf ---------- */
+const btnSongShelf=document.getElementById('btnSongShelf');
+const songShelfCount=document.getElementById('songShelfCount');
+const songShelfOverlay=document.getElementById('songShelfOverlay');
+const songShelfList=document.getElementById('songShelfList');
+const btnSongShelfClose=document.getElementById('btnSongShelfClose');
+const btnNewSong=document.getElementById('btnNewSong');
+function formatSongDate(time){
+  if(!Number.isFinite(time))return '';
+  try{return 'Edited '+new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short'}).format(new Date(time));}
+  catch(error){return '';}
+}
+function songSummaryLine(record){
+  const summary=record.summary||{};
+  const sectionsCount=Number(summary.sectionCount)||0;
+  const chordsCount=Number(summary.chordCount)||0;
+  const leadCount=Number(summary.leadEventCount)||0;
+  const first=sectionsCount+' section'+(sectionsCount===1?'':'s');
+  if(chordsCount)return first+' · '+chordsCount+' chord'+(chordsCount===1?'':'s');
+  if(leadCount)return first+' · solo idea';
+  return first+' · no chords yet';
+}
+function renderSongShelfTrigger(){
+  songShelfCount.textContent=String(songIndex.length);
+  btnSongShelf.hidden=_songDbFailed;
+}
+function shelfFocusable(){
+  return [...songShelfOverlay.querySelectorAll('button:not([disabled])')]
+    .filter(button=>!button.closest('[hidden]'));
+}
+function setSongShelfOpen(open){
+  if(open){
+    if(_songDbFailed){notifySongStoreUnavailable();return;}
+    renderSongShelf();
+    songShelfOverlay.hidden=false;songShelfOverlay.setAttribute('aria-hidden','false');
+    btnSongShelf.setAttribute('aria-expanded','true');
+    requestAnimationFrame(()=>{songShelfOverlay.classList.add('show');btnSongShelfClose.focus();});
+  }else{
+    songShelfOverlay.classList.remove('show');songShelfOverlay.setAttribute('aria-hidden','true');
+    btnSongShelf.setAttribute('aria-expanded','false');
+    setTimeout(()=>{if(!songShelfOverlay.classList.contains('show'))songShelfOverlay.hidden=true;},180);
+    requestAnimationFrame(()=>btnSongShelf.focus());
+  }
+}
+function hideSongShelfForModal(){
+  songShelfOverlay.classList.remove('show');
+  songShelfOverlay.hidden=true;
+  songShelfOverlay.setAttribute('aria-hidden','true');
+  btnSongShelf.setAttribute('aria-expanded','false');
+}
+async function deleteSongFromShelf(record){
+  // The confirmation layer deliberately sits above the app but below the song
+  // shelf. Hide the shelf first so its own backdrop never covers the choice.
+  hideSongShelfForModal();
+  if(record.id===activeProjectId)await flushCurrentProject();
+  const ok=await confirmModal('Delete "'+record.title+'" from this device? Its sections, lyrics, chords and solos will be removed. This can\'t be undone.',{confirmText:'Delete song',cancelText:'Keep song'});
+  if(!ok){setSongShelfOpen(true);return;}
+  const wasActive=record.id===activeProjectId;
+  await deleteSongRecord(record.id);
+  if(wasActive){
+    const next=songIndex[0]&&await songRecord(songIndex[0].id);
+    if(next){
+      await setActiveSongId(next.id);
+      applySongRecord(next);
+    }else{
+      await setActiveSongId(null);
+      activeProjectId=null;activeProjectRevision=0;
+      restoreProject(blankProjectSnapshot());
+      try{localStorage.removeItem(_SAVE_KEY);}catch(error){}
+      resetProjectEditingState();syncSongTitleUI();setFlats(useFlats);analyze();renderSong();renderLead();
+    }
+  }
+  setSongShelfOpen(true);
+  flash('Deleted "'+record.title+'"');
+}
+function backupSongFromShelf(record){
+  hideSongShelfForModal();
+  downloadText('couch-batata-'+songFileSlug(record.title)+'-project.json',JSON.stringify(record.snapshot,null,2),'application/json');
+  flash('Downloaded backup for "'+record.title+'"');
+}
+function renderSongShelf(){
+  renderSongShelfTrigger();
+  songShelfList.textContent='';
+  if(!songIndex.length){
+    const empty=document.createElement('p');empty.className='song-shelf-foot';empty.textContent='Your next idea can start here.';songShelfList.append(empty);return;
+  }
+  for(const record of songIndex){
+    const item=document.createElement('div');item.className='song-shelf-item'+(record.id===activeProjectId?' active':'');item.setAttribute('role','listitem');
+    const open=document.createElement('button');open.type='button';open.className='song-shelf-open';open.title='Open '+record.title;
+    const copy=document.createElement('span');copy.className='song-shelf-copy';
+    const name=document.createElement('span');name.className='song-shelf-name';name.textContent=record.title;
+    const meta=document.createElement('span');meta.className='song-shelf-meta';
+    const details=document.createElement('span');details.textContent=songSummaryLine(record);
+    const date=document.createElement('span');date.className='song-shelf-date';date.textContent=formatSongDate(record.updatedAt);
+    meta.append(details,date);copy.append(name,meta);open.append(copy);
+    if(record.id===activeProjectId){const active=document.createElement('span');active.className='song-shelf-active';active.textContent='Open';open.append(active);}
+    open.addEventListener('click',async()=>{
+      if(record.id===activeProjectId){setSongShelfOpen(false);return;}
+      hideSongShelfForModal();
+      if(!(await switchToSong(record.id)))setSongShelfOpen(true);
+    });
+    const more=document.createElement('button');more.type='button';more.className='song-shelf-more';more.textContent='⋯';more.setAttribute('aria-label','More actions for '+record.title);more.setAttribute('aria-expanded','false');
+    const actions=document.createElement('div');actions.className='song-shelf-actions';actions.hidden=true;
+    const backup=document.createElement('button');backup.type='button';backup.className='song-shelf-action';backup.textContent='Back up';backup.addEventListener('click',()=>backupSongFromShelf(record));
+    const remove=document.createElement('button');remove.type='button';remove.className='song-shelf-action danger';remove.textContent='Delete…';remove.addEventListener('click',()=>deleteSongFromShelf(record));
+    actions.append(backup,remove);
+    more.addEventListener('click',()=>{
+      const isOpen=!actions.hidden;
+      songShelfList.querySelectorAll('.song-shelf-actions').forEach(other=>{if(other!==actions)other.hidden=true;});
+      songShelfList.querySelectorAll('.song-shelf-more').forEach(other=>{if(other!==more)other.setAttribute('aria-expanded','false');});
+      actions.hidden=isOpen;more.setAttribute('aria-expanded',String(!isOpen));
+    });
+    item.append(open,more,actions);songShelfList.append(item);
+  }
+}
+btnSongShelf.addEventListener('click',async()=>{
+  await _bootPromise;
+  if(_songDbFailed){notifySongStoreUnavailable();return;}
+  await flushCurrentProject();
+  await refreshSongIndex();setSongShelfOpen(true);
+});
+btnSongShelfClose.addEventListener('click',()=>setSongShelfOpen(false));
+btnNewSong.addEventListener('click',async()=>{
+  await _bootPromise;
+  hideSongShelfForModal();
+  if(!(await createNewSong()))setSongShelfOpen(true);
+});
+songShelfOverlay.addEventListener('click',event=>{if(event.target===songShelfOverlay)setSongShelfOpen(false);});
+document.addEventListener('keydown',event=>{
+  if(songShelfOverlay.hidden)return;
+  if(event.key==='Escape'){event.preventDefault();setSongShelfOpen(false);return;}
+  if(event.key!=='Tab')return;
+  const focusables=shelfFocusable();if(!focusables.length)return;
+  const first=focusables[0],last=focusables[focusables.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+});
+
 /* clear entire song */
 function clearSongState(){
   sections=[];
   activeSectionId=null;
-  activeChip=null;
-  songName='';
   syncSongTitleUI();
   scaleActive=null;scaleBoxIdx=null;
-  resetChordSelection();
-  exitShapes();
+  resetProjectEditingState();
   analyze();
   renderSong();
 }
 document.getElementById('btnClearSong').addEventListener('click',async ()=>{
   if(!sections.length){flash('Nothing to clear');return;}
   const total=allChords().length;
-  const msg='Delete the entire song? This removes '+sections.length+' section'+(sections.length===1?'':'s')+' and '+total+' chord'+(total===1?'':'s')+', and can\'t be undone.';
-  const ok=await confirmModal(msg,{confirmText:'Clear song',cancelText:'Keep song'});
+  const msg='Clear every section, chord, solo and lyric in this song? The song itself stays in Your songs, and this can\'t be undone.';
+  const ok=await confirmModal(msg,{confirmText:'Clear this song',cancelText:'Keep song'});
   if(!ok)return;
   clearSongState();
-  flash('Song cleared');
-});
-// A low-stakes way to chase a new idea without the dread currently baked
-// into Clear Song: back the current song up first, so nothing is at risk,
-// then start fresh with no confirm needed -- the backup already removed
-// the loss.
-document.getElementById('btnSaveFresh').addEventListener('click',()=>{
-  if(!sections.length){flash('Nothing to save yet');return;}
   save(true);
-  downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
-  clearSongState();
-  flash('Backed up your song — started a fresh one');
+  flash('This song is clear');
 });
 
 /* ---------- help ---------- */
@@ -4734,20 +5282,31 @@ try{
 }catch{}
 
 /* init */
-const _wasRestored = load() && sections.length>0;
-syncSongTitleUI();
-// Sync the accidental toggle's icon/state to the restored (or default) useFlats value
-setFlats(useFlats);
-analyze();renderSong();placeInlays();
-setTimeout(placeInlays,50);
-if(_wasRestored){
-  // Naming the specific section left open gives the Zeigarnik pull something
-  // concrete to grab onto, instead of a generic "restored" toast that reads
-  // the same whether one chord or a whole song came back.
-  const lastSec=findSection(activeSectionId);
-  const restoreMsg=lastSec?'Last time you were building "'+lastSec.name+'" — pick up here':'Restored your song from last session';
-  setTimeout(()=>flash(restoreMsg),300);
+async function boot(){
+  try{
+    const wasRestored=await load();
+    syncSongTitleUI();
+    // Sync the accidental toggle's icon/state to the restored (or default) useFlats value.
+    setFlats(useFlats);
+    analyze();renderSong();placeInlays();
+    setTimeout(placeInlays,50);
+    if(_songDbFailed)notifySongStoreUnavailable();
+    if(wasRestored&&sections.length){
+      // Naming the specific section left open gives the Zeigarnik pull something
+      // concrete to grab onto, instead of a generic "restored" toast that reads
+      // the same whether one chord or a whole song came back.
+      const lastSec=findSection(activeSectionId);
+      const restoreMsg=lastSec?'Last time you were building "'+lastSec.name+'" — pick up here':'Restored your song from last session';
+      setTimeout(()=>flash(restoreMsg),300);
+    }
+    if(_recoveredSongNotice)setTimeout(()=>flash(_recoveredSongNotice),700);
+  }finally{
+    document.body.classList.remove('booting');
+    document.body.removeAttribute('aria-busy');
+    document.querySelector('.wrap')?.removeAttribute('inert');
+  }
 }
+const _bootPromise=boot();
 
 /* ---------- installable offline web app ---------- */
 let deferredInstallPrompt=null;

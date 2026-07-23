@@ -57,15 +57,35 @@ activeChip            selected song chord
 scaleActive           selected scale overlay
 scaleBoxIdx           selected position box
 useFlats              note spelling preference
+activeProjectId       canonical local-song record currently open (or null for a blank canvas)
+songIndex[]           local song metadata for the My songs picker
 ```
 
 ### Persistence
 
-- Browser key: `fretwork.song.v1`
-- Format version: `1`
-- Local data: sections, lyrics, chord shapes, grouped lead events (including technique links and repeats), active section,
-  spelling, scale state, panel state, and next section ID.
-- Editable backups use the same normalized JSON model.
+- Canonical browser store: IndexedDB database `couch-batata.projects`, with
+  `projects` records and a small `meta` store for the active-project id and
+  one-time migration marker.
+- Project record: `{id, revision, createdAt, updatedAt, title, summary,
+  snapshot}`. `summary` is only a local section/chord/lead-event count for the
+  picker; no musical activity is sent anywhere.
+- Stable recovery mirror: `fretwork.song.v1`, format version `1`. It holds the
+  currently open normalized snapshot for fast close/reload recovery and for
+  older cached app tabs. First use migrates a valid legacy snapshot without
+  deleting it. A disagreement creates one recovered local song rather than
+  overwriting either version.
+- An untouched first-visit canvas is not saved as a permanent record until a
+  title or section gives it meaning. Choosing **+ New song** is an explicit
+  exception: it intentionally creates an empty local idea that can be returned
+  to after switching songs. **Clear this song** clears contents but keeps the
+  song record and title; **Delete** is the explicit irreversible picker action.
+- Import creates a new local record, adding an imported suffix if a title
+  collides. IndexedDB-unavailable browsers retain the original single-song
+  fallback and request confirmation before replacing it.
+- Local data includes sections, lyrics, chord shapes, grouped lead events
+  (including technique links and repeats), active section, spelling, scale
+  state, panel state, and next IDs. Editable backups use the same normalized
+  JSON model.
 - Imported chords are rebuilt from known formulas instead of trusting arbitrary
   pitch-class or suffix data.
 

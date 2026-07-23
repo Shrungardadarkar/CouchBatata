@@ -135,6 +135,27 @@ assert.match(html, /const chord=fromSec\.chords\.splice\(drag\.sourceIdx,1\)\[0\
 assert.match(html, /const \[moved\]=sections\.splice\(drag\.sourceIdx,1\);[\s\S]{0,500}const dropIdx=drag\.dropIdx;[\s\S]{0,250}sections\.splice\(dropIdx,0,moved\)/,
   "Forward section drags must use the post-removal insertion index");
 assert.match(html, /fretwork\.song\.v1/);
+assert.match(html, /const _SONG_DB_NAME='couch-batata\.projects'/);
+assert.match(html, /const _SONG_STORE='projects'/);
+assert.match(html, /const _SONG_META_STORE='meta'/);
+assert.match(html, /const _SONG_MIGRATION_KEY='legacy-migration\.v1'/);
+assert.match(html, /let _songDbOpening=null/);
+assert.match(html, /const projectRevisions=new Map\(\)/);
+assert.match(html, /indexedDB\.open\(_SONG_DB_NAME,_SONG_DB_VERSION\)/);
+assert.match(html, /async function initialiseSongStore\(\)/);
+assert.match(html, /async function switchToSong\(id\)/);
+assert.match(html, /async function createNewSong\(\)/);
+assert.match(html, /async function boot\(\)/);
+assert.match(html, /id="btnSongShelf"/);
+assert.match(html, /id="songShelfDialog"/);
+assert.match(html, /id="btnNewSong"/);
+assert.match(html, /function commitPendingSongName\(\)/);
+assert.match(html, /body class="booting" aria-busy="true"/);
+assert.match(html, /<div class="wrap" inert>/);
+assert.match(html, /button=>!button\.closest\('\[hidden\]'\)/);
+assert.match(html, /Import project/);
+assert.match(html, /Clear this song/);
+assert.doesNotMatch(html, /id="btnSaveFresh"/);
 assert.match(html, /Back up project \(\.json\)/);
 assert.match(html, /@media \(pointer:coarse\)/);
 assert.match(html, /id="btnSound"/);

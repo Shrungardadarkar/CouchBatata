@@ -31,10 +31,9 @@ commit, not just read as code. All pushed directly to `main`:
    default, copy later corrected to also mention the Suggestions row below it.
 7. `ac2ca8a` — The autosave-restored toast now names the actual last-built
    section instead of a generic "restored your song" message.
-8. `3ea837c` — "Save & start fresh": backs up the current song, then clears
-   with no confirm needed (the backup already removed the loss) — a
-   low-stakes way to chase a new idea without Clear Song's destructive
-   confirm.
+8. `3ea837c` — "Save & start fresh": backed up the current song, then
+   cleared it with no confirm. It was superseded by the later My songs picker,
+   which keeps prior ideas available in-app instead of relying on Downloads.
 9. `0dab1ce` — After adding a chord, an optional "Try `<chord>`?" action
    surfaces the next unused diatonic triad, reusing the exact same
    `diatonicTriadsFor`/`startsLike` computation the Key & Scales panel and
@@ -53,39 +52,29 @@ commit, not just read as code. All pushed directly to `main`:
 
 `#toast` (the original app-wide toast) still exists and is still correct for
 everything NOT about the fretboard specifically: Undo/Restored/Song
-cleared/Save & start fresh/Opened project/etc. Don't move those.
+cleared/Imported project/local-song actions/etc. Don't move those.
 
-## What's next: the "Later" tier
+11. **Multi-song architecture** — the app now uses an IndexedDB-backed,
+    device-local song shelf with a `fretwork.song.v1` active-song recovery
+    mirror. **My songs** opens a compact picker (desktop dialog, phone bottom
+    sheet), **+ New song** starts another local idea, switching flushes the
+    current song first, import adds a new song instead of replacing one, and
+    each song can be backed up or explicitly deleted. Existing single-song
+    saves migrate losslessly. The old **Save & start fresh** escape hatch was
+    removed because the picker is the safer, clearer version of that job.
+    `PROJECT.md` now specifies the record model, migration, recovery, and
+    IndexedDB-unavailable fallback. This implementation also has live-browser
+    coverage for migration, switching, deletion, draft protection, import,
+    keyboard focus, responsive layouts, service-worker offline reload, and
+    the fallback path.
 
-These four were explicitly **not** implemented this session because each
+## What's next: the remaining "Later" tier
+
+These three were explicitly **not** implemented because each
 needs a real scoping/design decision before code — don't build any of them
 from a cold read of this bullet alone.
 
-### 1. Multi-song architecture (biggest, do this first)
-
-**Problem:** persistence is a single fixed `localStorage` key
-(`fretwork.song.v1`) — no in-app list or switcher for multiple songs.
-"Save & start fresh" (#8 above) is a manual escape hatch, not a real fix:
-starting a second idea still means leaving the app's own state and relying
-on the OS Downloads folder to track old backups. The target user (per the
-app's own README origin story) accumulates multiple half-finished ideas
-over time — the single-slot model doesn't support "keep building
-yesterday's idea AND today's."
-
-**Open questions to resolve before writing code:**
-- Data model: multiple `localStorage` keys with an index, or move to
-  IndexedDB (localStorage's synchronous API and ~5-10MB ceiling become a
-  real constraint once several songs' worth of lyrics/solos accumulate)?
-- UI: where does a song list/switcher live? Does it replace "Song name," or
-  sit beside it? Should it show anything more than a name (chord count,
-  last-edited)?
-- Migration: existing users have one song under `fretwork.song.v1` — needs
-  a clean, lossless one-time migration into whatever the new scheme is.
-- Keep it calm: this app has no accounts, no dashboards, no heavy chrome —
-  a "song management" UI that feels like a file browser would be off-brand.
-  Mock it (see workflow note below) before building.
-
-### 2. A closure moment for a finished song
+### 1. A closure moment for a finished song
 
 **Problem:** every save/export currently feels identical regardless of how
 complete the song is. Behavioral basis: the Zeigarnik effect (open loops
@@ -105,7 +94,7 @@ sense of "I made something."
   this app has zero analytics/accounts by design and that's a real product
   value the owner has reinforced repeatedly, not just a nice-to-have.
 
-### 3. A lyric-capture prompt
+### 2. A lyric-capture prompt
 
 **Problem:** the app's whole promise is "catch the idea before it slips
 away," but today that only covers chords. A verbal fragment (a line, a
@@ -125,13 +114,13 @@ nudge.
 - Must stay dismissible and non-blocking — same non-nagging ethos as
   everything else shipped this session.
 
-### 4. PWA "continue" shortcut
+### 3. PWA "continue" shortcut
 
 **Problem:** no push notifications (by design), but a PWA home-screen
 shortcut that opens straight into the existing autosave-restore flow
 (rather than a blank load) would lower the effort of returning to zero.
 
-**Smallest of the four — probably doesn't need heavy scoping.** Static PWA
+**Smallest of the three — probably doesn't need heavy scoping.** Static PWA
 app shortcuts (the `shortcuts` array in `manifest.webmanifest`) can't
 dynamically say "continue Intro" — they're defined once, not per-session —
 so this is realistically just a generic "Continue" shortcut entry that
@@ -175,7 +164,7 @@ before assuming more work is needed.
   `findVoicings()`/`FORMULAS`/chord shapes (not directly relevant to the
   Later-tier items above, but load-bearing if you end up near that code).
 - `.claude/agents/behavioral-ux-reviewer.md` — the agent used to run the
-  original audit; good to re-run against any of the four items above once
+  original audit; good to re-run against any of the three items above once
   built, the same way this session did.
 - `tests/`, `scripts/validate-agents.mjs` — existing automated checks, all
   must stay green.

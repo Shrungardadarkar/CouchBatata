@@ -84,8 +84,14 @@ Users do not need an app-store download.
   Core diatonic chords appear before richer in-scale variants; a full selected
   mode such as harmonic minor also changes the harmonic suggestion pool.
 - Plain-text chord and lead-tab preview and export.
-- Editable JSON project backup and restore.
-- Local autosave with close/reload protection.
+- A small **My songs** picker: start a fresh local song, switch between ideas,
+  back up one song, or delete one deliberately. The current song remains
+  prominent in the builder.
+- Editable JSON project backup and import. Importing creates a separate local
+  song when the browser supports the song picker, so it never replaces the
+  current idea by accident.
+- Local autosave with close/reload protection and a one-time migration from
+  earlier single-song saves.
 - Responsive touch layout and accessible custom section menu.
 - Progressive Web App manifest, icons, and offline service worker.
 - A floating Help button with a quick start and in-app feature guide.
@@ -93,9 +99,20 @@ Users do not need an app-store download.
 ## Privacy and offline behavior
 
 - The app makes no analytics or tracking requests.
-- Songs are stored locally under the stable key `fretwork.song.v1`.
+- On supported browsers, the local song library is stored in IndexedDB under
+  `couch-batata.projects`. Each record contains one complete editable project,
+  its title, local timestamps, a small factual summary, and a revision number.
+- The active song is also mirrored to the stable legacy key
+  `fretwork.song.v1` for quick-close recovery and compatibility with earlier
+  offline tabs. Existing saves migrate automatically on first use; the raw
+  legacy entry is left intact.
+- If an old cached tab and the current app disagree about the active mirror,
+  Couch Batata preserves the conflicting copy as a separate recovered local
+  song instead of overwriting either idea.
+- If IndexedDB is unavailable, the app falls back to the original single-song
+  local save and gives a clear backup reminder.
 - Clearing browser/site data can erase local songs. Use **Back up project
-  (.json)** for important work.
+  (.json)** for every important song.
 - The service worker caches the app shell, not the user's songs or the social
   share image.
 

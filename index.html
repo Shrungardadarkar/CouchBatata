@@ -4192,6 +4192,17 @@ document.getElementById('projectFile').addEventListener('change',async e=>{
   if(!file)return;
   try{
     const data=JSON.parse(await file.text());
+    if(!data||data.version!==1||!Array.isArray(data.sections))throw new Error('Unsupported project format');
+    // Importing replaces the whole in-memory song and writes straight over the
+    // single autosave slot, so an unsaved current song isn't recoverable
+    // afterward either — confirm first, same as Clear Song does.
+    if(sections.length){
+      const total=allChords().length;
+      const incomingLabel=(data.songName&&data.songName.trim())?'"'+data.songName.trim()+'"':file.name;
+      const msg='Replace your current song ('+sections.length+' section'+(sections.length===1?'':'s')+', '+total+' chord'+(total===1?'':'s')+') with '+incomingLabel+'? This can\'t be undone.';
+      const ok=await confirmModal(msg,{confirmText:'Replace song',cancelText:'Keep current song'});
+      if(!ok)return;
+    }
     if(!restoreProject(data))throw new Error('Unsupported project format');
     activeChip=null;resetChordSelection();exitShapes();
     syncSongTitleUI();

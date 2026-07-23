@@ -759,21 +759,23 @@
   .song-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;padding-top:14px;border-top:2px dashed rgba(90,47,62,.45)}
   .song-action-group{display:flex;align-items:center;align-content:flex-start;gap:9px;flex-wrap:wrap;min-width:0}
   .song-action-kicker{flex:0 0 100%;color:var(--ink-dim);font:900 .68rem/1 "Courier New",monospace;letter-spacing:.09em;text-transform:uppercase}
-  .section-add-control{display:inline-flex;align-items:stretch;position:relative}
-  .section-add-control .btn{border-radius:9px 0 0 9px;padding-right:10px}
+  .section-add-control{display:inline-flex;align-items:center;gap:9px;position:relative}
   .section-add-control .picker{z-index:2}.section-add-control .picker.open{z-index:45}
-  .section-add-control .picker-trigger{height:100%;min-width:0;border-left:0;border-radius:0 9px 9px 0;background:var(--sun);padding:8px 10px;font-size:.83rem;box-shadow:2px 2px 0 var(--ink)}
-  /* These two halves are one control. Press the whole joined pair, rather than
-     moving only its right half and opening a seam beside + Add. */
-  .section-add-control:has(.picker.open){transform:translate(2px,2px)}
-  .section-add-control:has(.picker.open) .btn,.section-add-control .picker.open .picker-trigger{transform:none;box-shadow:0 0 0 var(--ink)}
+  .section-add-control .picker-trigger{min-width:132px;background:var(--sun);padding:8px 11px;font-size:.85rem;box-shadow:2px 2px 0 var(--ink)}
+  /* The section choice is a normal, independent control. Its menu floats up
+     over the builder instead of expanding the page and moving the song away. */
+  .section-add-control .picker-menu{top:auto;bottom:calc(100% + 8px)}
   .song-clear-btn{border:0;background:transparent;color:var(--tomato);padding:8px 3px;font:850 .78rem/1 inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:5px}
   .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
-  .song-tools{position:relative}.song-tools[open]{flex-basis:100%}.song-tools summary{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:8px;background:var(--mint);color:var(--ink);padding:8px 10px;box-shadow:1.5px 1.5px 0 var(--ink);font-size:.8rem;font-weight:850;cursor:pointer;list-style:none}
+  /* Project files are useful but secondary. Keep them in a small upward menu
+     so opening it never rearranges the builder below someone’s song. */
+  .song-tools{position:relative}.song-tools summary{display:inline-flex;align-items:center;gap:5px;border:2px solid var(--ink);border-radius:8px;background:var(--mint);color:var(--ink);padding:8px 10px;box-shadow:1.5px 1.5px 0 var(--ink);font-size:.8rem;font-weight:850;cursor:pointer;list-style:none}
+  @media (hover:hover){.song-tools:not([open]) summary:hover{background:var(--mint-soft);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .song-tools summary::-webkit-details-marker{display:none}.song-tools summary::after{content:'▾';font-size:.72rem;transition:transform .16s var(--ease-spring)}
   .song-tools[open] summary{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}.song-tools[open] summary::after{transform:rotate(180deg)}
   .song-tools summary:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
-  .song-tools-menu{display:flex;gap:9px;flex-wrap:wrap;width:100%;margin-top:10px;padding-top:10px;border-top:2px dashed rgba(90,47,62,.35);flex-basis:100%}
+  .song-tools-menu{position:absolute;bottom:calc(100% + 8px);left:0;z-index:50;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:224px;padding:9px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
+  .song-tools-menu .btn{text-align:left}
   #exportPre{white-space:pre;overflow-x:auto;font-family:"Courier New",monospace;
     font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--cream);
     border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
@@ -959,7 +961,7 @@
     .song-shelf-meta{display:block}
     .song-shelf-date{display:block;margin-top:2px}
     .song-actions{grid-template-columns:1fr;gap:16px}
-    .song-tools-menu{width:100%}
+    .song-tools-menu{width:auto;min-width:min(224px,calc(100vw - 56px))}
     .help-fab{right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:46px;height:46px}
     .help-panel{right:12px;bottom:70px;width:calc(100% - 24px);max-height:calc(100vh - 94px)}
   }
@@ -1184,8 +1186,8 @@
     <div class="song-action-group">
       <span class="song-action-kicker">Structure</span>
       <div class="section-add-control">
-        <button class="btn primary" id="btnAddSection" title="Add the selected section type">+ Add</button>
         <div id="sectionPicker"></div>
+        <button class="btn primary" id="btnAddSection" title="Add the selected section type">+ Add section</button>
       </div>
       <button class="song-clear-btn" id="btnClearSong" title="Delete every section and every chord in this song">Clear song</button>
     </div>
@@ -1194,9 +1196,9 @@
       <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
       <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
       <details class="song-tools">
-        <summary>More tools</summary>
+        <summary>Save project</summary>
         <div class="song-tools-menu">
-          <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Back up project (.json)</button>
+          <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Save project (.json)</button>
           <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
         </div>
       </details>
@@ -3931,6 +3933,24 @@ document.addEventListener('click',()=>{
   document.querySelectorAll('.picker.open').forEach(picker=>{
     picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');
   });
+});
+
+// The project choices are a compact upward overlay, not a page-expanding
+// disclosure. Give it the same calm escape routes as the custom pickers.
+function closeSongTools(restoreFocus=false){
+  const tools=document.querySelector('.song-tools[open]');
+  if(!tools)return;
+  tools.removeAttribute('open');
+  if(restoreFocus)tools.querySelector('summary')?.focus();
+}
+document.addEventListener('click',event=>{
+  const tools=document.querySelector('.song-tools[open]');
+  if(tools&&!tools.contains(event.target))closeSongTools(false);
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&document.querySelector('.song-tools[open]')){
+    event.preventDefault();closeSongTools(true);
+  }
 });
 
 function sectNameSelect(sec){

@@ -157,6 +157,15 @@
 
   /* ---------- fretboard — sunflower yellow, black grid ---------- */
   .board-wrap{overflow-x:auto;padding:14px 0 6px;-webkit-overflow-scrolling:touch}
+  .open-strings-hint{display:flex;align-items:center;gap:9px;margin:0 0 10px;padding:8px 10px 8px 12px;
+    background:var(--paper);border:2px solid var(--ink);border-radius:9px;box-shadow:var(--shadow-sm);
+    color:var(--ink-soft);font-size:.8rem;font-weight:700;line-height:1.3}
+  .open-strings-hint[hidden]{display:none}
+  .open-strings-hint button{flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;
+    border:none;border-radius:6px;background:transparent;color:var(--ink-faint);font-size:1rem;
+    line-height:1;cursor:pointer;transition:transform .14s var(--ease-spring),background .14s,color .14s}
+  @media (hover:hover){.open-strings-hint button:hover{background:var(--sun);color:var(--ink);transform:scale(1.12) rotate(-6deg)}}
+  .open-strings-hint button:active{transform:scale(.92);transition-duration:.05s}
   .board-outer{min-width:820px;position:relative;user-select:none}
   .string-labels{position:absolute;left:0;top:0;bottom:26px;width:26px;
     display:flex;flex-direction:column;justify-content:space-around;align-items:center;
@@ -967,6 +976,10 @@
       <div class="board" id="board"></div>
       <div class="fret-nums" id="fretNums"></div>
     </div>
+  </div>
+  <div class="open-strings-hint" id="openStringsHint" hidden>
+    <span>These are your open strings — mute or fret one to start.</span>
+    <button type="button" id="openStringsHintClose" aria-label="Dismiss">×</button>
   </div>
   <div class="board-tech-drawer" id="boardTechDrawer" aria-label="Solo techniques" aria-hidden="true">
     <div class="board-tech-inner">
@@ -2851,6 +2864,11 @@ function reconcileBoardState(){
   document.getElementById('btnClear').disabled=isOpenTuning;
   // Shape browser only makes sense when there's actually a chord on the board
   if(!hasNote&&inShapeMode)exitShapes();
+  // The untouched open-string default already resolves to a real chord
+  // (G6/9/E), so a curious first "Add to progression" could capture it
+  // without the user having chosen anything -- once any string is actually
+  // muted or fretted, the hint has done its job.
+  if(!isOpenTuning)dismissOpenStringsHint();
 }
 
 /* ================= interactions ================= */
@@ -4585,6 +4603,19 @@ document.addEventListener('click',event=>{
 try{
   if(!localStorage.getItem('couch-batata.help.v1.seen')){
     setTimeout(()=>{btnHelp.classList.add('help-nudge');setTimeout(()=>btnHelp.classList.remove('help-nudge'),1700);},1100);
+  }
+}catch{}
+
+const openStringsHint=document.getElementById('openStringsHint');
+function dismissOpenStringsHint(){
+  if(openStringsHint.hidden)return;
+  openStringsHint.hidden=true;
+  try{localStorage.setItem('couch-batata.openstrings.v1.seen','1');}catch{}
+}
+document.getElementById('openStringsHintClose').addEventListener('click',dismissOpenStringsHint);
+try{
+  if(!localStorage.getItem('couch-batata.openstrings.v1.seen')&&selection.every(v=>v===0)){
+    openStringsHint.hidden=false;
   }
 }catch{}
 

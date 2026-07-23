@@ -759,12 +759,13 @@
   .song-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:16px;padding-top:14px;border-top:2px dashed rgba(90,47,62,.45)}
   .song-action-group{display:flex;align-items:center;align-content:flex-start;gap:9px;flex-wrap:wrap;min-width:0}
   .song-action-kicker{flex:0 0 100%;color:var(--ink-dim);font:900 .68rem/1 "Courier New",monospace;letter-spacing:.09em;text-transform:uppercase}
-  .section-add-control{display:inline-flex;align-items:center;gap:9px;position:relative}
+  .section-add-control{display:inline-flex;align-items:center;position:relative}
   .section-add-control .picker{z-index:2}.section-add-control .picker.open{z-index:45}
-  .section-add-control .picker-trigger{min-width:132px;background:var(--sun);padding:8px 11px;font-size:.85rem;box-shadow:2px 2px 0 var(--ink)}
-  /* The section choice is a normal, independent control. Its menu floats up
-     over the builder instead of expanding the page and moving the song away. */
+  .section-add-control .picker-trigger{min-width:185px;background:var(--sun);padding:10px 14px;font-size:1rem;box-shadow:4px 4px 0 var(--ink)}
+  /* One clear action: choose the section from this upward menu and add it in
+     the same click. The menu overlays the builder, never moves the page. */
   .section-add-control .picker-menu{top:auto;bottom:calc(100% + 8px)}
+  .section-add-control .picker.menu-below .picker-menu{top:calc(100% + 8px);bottom:auto}
   .song-clear-btn{border:0;background:transparent;color:var(--tomato);padding:8px 3px;font:850 .78rem/1 inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:5px}
   .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
   /* Project files are useful but secondary. Keep them in a small upward menu
@@ -1187,7 +1188,6 @@
       <span class="song-action-kicker">Structure</span>
       <div class="section-add-control">
         <div id="sectionPicker"></div>
-        <button class="btn primary" id="btnAddSection" title="Add the selected section type">+ Add section</button>
       </div>
       <button class="song-clear-btn" id="btnClearSong" title="Delete every section and every chord in this song">Clear song</button>
     </div>
@@ -3881,7 +3881,7 @@ document.addEventListener('click',e=>{
 });
 
 let _pickerId=1;
-function makePicker({value,options,label,className='',onChange}){
+function makePicker({value,options,label,className='',onChange,triggerText=''}){
   let selected=String(value);
   const wrap=document.createElement('div');wrap.className='picker '+className.trim();
   const trigger=document.createElement('button');trigger.type='button';trigger.className='picker-trigger';
@@ -3890,18 +3890,24 @@ function makePicker({value,options,label,className='',onChange}){
   const menuId='picker-menu-'+_pickerId++;menu.id=menuId;trigger.setAttribute('aria-controls',menuId);
   const selectedOption=()=>options.find(option=>String(option.value)===selected)||options[0];
   const refresh=()=>{
-    const option=selectedOption();trigger.textContent=option?.label||'';
+    const option=selectedOption();trigger.textContent=triggerText||option?.label||'';
+    if(triggerText)trigger.title=(option?.label||'')+' — choose a section to add';
     menu.querySelectorAll('.picker-option').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.value===selected)));
   };
   const close=(restoreFocus=false)=>{
-    menu.hidden=true;wrap.classList.remove('open');trigger.setAttribute('aria-expanded','false');
+    menu.hidden=true;wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
     if(restoreFocus)trigger.focus();
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
   const open=focusMode=>{
-    document.querySelectorAll('.picker.open').forEach(picker=>{if(picker!==wrap){picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');}});
-    menu.hidden=false;wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
+    document.querySelectorAll('.picker.open').forEach(picker=>{if(picker!==wrap){picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open','menu-below');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');}});
+    menu.hidden=false;wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
     requestAnimationFrame(()=>{
+      // Section choices normally rise over the builder. On a short viewport
+      // near the top, flip below instead of letting the menu leave the screen.
+      if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
+        wrap.classList.add('menu-below');
+      }
       const items=buttons();const current=Math.max(0,items.findIndex(button=>button.dataset.value===selected));
       const next=focusMode==='last'?items.length-1:focusMode==='first'?0:current;items[next]?.focus();
     });
@@ -3931,7 +3937,7 @@ function makePicker({value,options,label,className='',onChange}){
 }
 document.addEventListener('click',()=>{
   document.querySelectorAll('.picker.open').forEach(picker=>{
-    picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');
+    picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open','menu-below');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');
   });
 });
 
@@ -4546,16 +4552,8 @@ function toggleChip(sec,cIdx){
 }
 function moodFor(suf){const f=FORMULAS.find(x=>x.suf===suf);return f?f.mood:''}
 
-/* ---------- add section button ---------- */
-let newSectionType='Intro';
-const sectionPicker=makePicker({
-  value:newSectionType,
-  options:[...SECTION_PRESETS,'__custom'].map(value=>({value,label:value==='__custom'?'Custom…':value})),
-  label:'Section type to add',className:'add-section-picker',onChange:value=>{newSectionType=value;}
-});
-document.getElementById('sectionPicker').appendChild(sectionPicker.element);
-document.getElementById('btnAddSection').addEventListener('click',()=>{
-  let name=newSectionType;
+/* ---------- add section menu ---------- */
+function addSection(name){
   if(name==='__custom'){
     name=(prompt('Section name:','Verse 2')||'').trim();
     if(!name)return;
@@ -4571,7 +4569,13 @@ document.getElementById('btnAddSection').addEventListener('click',()=>{
   activeSectionId=s.id;
   renderSong();
   flash('Added section "'+name+'" — now active');
+}
+const sectionPicker=makePicker({
+  value:'Intro',
+  options:[...SECTION_PRESETS,'__custom'].map(value=>({value,label:value==='__custom'?'Custom…':value})),
+  label:'Add a section',className:'add-section-picker',triggerText:'+ Add section',onChange:addSection
 });
+document.getElementById('sectionPicker').appendChild(sectionPicker.element);
 
 /* ---------- export ---------- */
 function buildExportText(){

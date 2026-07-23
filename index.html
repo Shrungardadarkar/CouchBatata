@@ -124,7 +124,11 @@
   /* All fretboard controls live together above the instrument. */
   #tabPanel{position:relative}
   #tabPanel .toggle{position:relative;z-index:1;flex:0 0 auto}
-  .fret-controls{display:flex;align-items:center;gap:9px;overflow-x:auto;padding:2px 4px 10px;margin:0 -4px;-webkit-overflow-scrolling:touch}
+  /* Horizontal control strips keep a small gutter on every edge. The controls
+     deliberately lift and cast a hard shadow on hover/focus; without this
+     space a scroll container cuts that feedback off at its own boundary. */
+  .fret-controls{display:flex;align-items:center;gap:9px;overflow-x:auto;padding:8px 8px 12px;margin:-6px -4px -2px;
+    scroll-padding-inline:8px;-webkit-overflow-scrolling:touch}
   .switch-toggle{position:relative;display:inline-flex;align-items:center;height:36px;padding:0;background:var(--paper);border:var(--outline);border-radius:999px;box-shadow:2.5px 2.5px 0 var(--ink);cursor:pointer;font-family:inherit;overflow:hidden;flex:0 0 auto;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
   @media (hover:hover){.switch-toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}}
   .switch-toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
@@ -218,19 +222,19 @@
   .row:nth-child(5) .cell{--str-h:3.4px}
   .row:nth-child(6) .cell{--str-h:4px}
   .board-tech-drawer{max-height:0;overflow:hidden;opacity:0;transform:translateY(-12px);margin:0;transition:max-height .34s var(--ease-out-back),opacity .18s ease,transform .3s var(--ease-out-back),margin .3s var(--ease-out-back)}
-  .board-tech-inner{padding:10px 0 2px;min-width:max-content}
+  .board-tech-inner{padding:10px 0 8px;min-width:max-content}
   .board-tech-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
-  body.solo-mode .board-tech-drawer{max-height:110px;opacity:1;transform:translateY(0);margin-top:2px}
+  body.solo-mode .board-tech-drawer{max-height:124px;opacity:1;transform:translateY(0);margin-top:2px}
   .chord-suggest-drawer{max-height:0;overflow:hidden;opacity:0;transform:translateY(-12px);margin:0;transition:max-height .34s var(--ease-out-back),opacity .18s ease,transform .3s var(--ease-out-back),margin .3s var(--ease-out-back)}
-  .chord-suggest-drawer.open{max-height:92px;opacity:1;transform:translateY(0);margin-top:2px}
-  .chord-suggest-inner{padding:10px 0 2px;min-width:0}
+  .chord-suggest-drawer.open{max-height:106px;opacity:1;transform:translateY(0);margin-top:2px}
+  .chord-suggest-inner{padding:10px 0 8px;min-width:0}
   .chord-suggest-label{display:block;margin:0 0 7px 2px;color:var(--ink-dim);font-family:"Courier New",monospace;font-size:.7rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
   .suggestion-spectrum{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
   .suggestion-spectrum-arrow{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.05rem;line-height:.55;letter-spacing:0;text-shadow:1px 1px 0 rgba(90,47,62,.18)}
   .chord-suggest-scroll{min-width:0;display:flex;align-items:center;gap:7px}
   .chord-suggest-row{display:flex;align-items:center;gap:7px;min-width:0;flex:1 1 auto;
     overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
-    touch-action:pan-x;padding:5px 3px;scrollbar-width:none;-ms-overflow-style:none}
+    touch-action:pan-x;padding:6px 8px 8px;scroll-padding-inline:8px;scrollbar-width:none;-ms-overflow-style:none}
   .chord-suggest-row::-webkit-scrollbar{display:none}
   .chord-suggest-row.can-scroll-left{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 100%)}
   .chord-suggest-row.can-scroll-right{-webkit-mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%)}
@@ -727,6 +731,10 @@
   .song-shelf-overlay.show{opacity:1}
   .song-shelf-dialog{background:var(--paper);border:var(--outline);border-radius:16px;box-shadow:6px 6px 0 var(--ink);
     width:min(500px,100%);padding:18px 18px 16px;transform:translateY(16px) scale(.9) rotate(-1.5deg);transition:transform .3s var(--ease-out-back)}
+  /* The dialog receives programmatic focus when opened so screen-reader and
+     keyboard users are oriented. It has its own visible child focus states;
+     suppress the browser's generic blue ring around the whole sheet. */
+  .song-shelf-dialog:focus{outline:none}
   .song-shelf-overlay.show .song-shelf-dialog{transform:translateY(0) scale(1) rotate(0)}
   .song-shelf-head{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
   .song-shelf-head-copy{flex:1;min-width:0}
@@ -737,8 +745,11 @@
     transition:transform .18s var(--ease-spring),background .12s}
   @media (hover:hover){.song-shelf-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}}
   .song-shelf-close:focus-visible,.song-shelf-more:focus-visible,.song-shelf-action:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
-  .song-shelf-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto;padding:1px 4px 4px 1px}
-  .song-shelf-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:9px;background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);overflow:hidden;
+  /* The list scrolls, but its rows and the secondary “more” control still
+     need room to lift. The generous gutter prevents cropped shadows/focus
+     rings at every edge; row overflow stays visible for its icon feedback. */
+  .song-shelf-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto;padding:6px 8px 10px 6px}
+  .song-shelf-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:9px;background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);overflow:visible;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .song-shelf-item.active{background:var(--sun-soft);box-shadow:2px 2px 0 var(--ink)}
   @media (hover:hover){.song-shelf-item:hover{background:var(--cream-2);transform:translate(-2px,-2px) rotate(-.35deg);box-shadow:4px 4px 0 var(--ink)}.song-shelf-item.active:hover{background:var(--sun)}}
@@ -932,10 +943,11 @@
     .scale-chip{min-width:140px}
     .board-outer{min-width:720px}
     .board{grid-template-rows:repeat(6,42px)}
-    body.solo-mode .board-tech-drawer{max-height:158px}
-    .chord-suggest-drawer.open{max-height:92px}
+    body.solo-mode .board-tech-drawer{max-height:168px}
+    .chord-suggest-drawer.open{max-height:106px}
     .board-tech-inner{min-width:0;padding-top:9px}
-    .board-tech-drawer .lead-techniques{flex-wrap:nowrap;overflow-x:auto;padding:1px 3px 6px;margin:0 -3px;-webkit-overflow-scrolling:touch}
+    .board-tech-drawer .lead-techniques{flex-wrap:nowrap;overflow-x:auto;padding:6px 7px 8px;margin:-5px -7px -2px;
+      scroll-padding-inline:7px;-webkit-overflow-scrolling:touch}
     .install-card{align-items:flex-start;flex-wrap:wrap}
     .install-card-copy{flex-basis:calc(100% - 44px)}
     .song-shelf-overlay{align-items:flex-end;padding:12px 12px max(12px,env(safe-area-inset-bottom))}

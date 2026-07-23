@@ -4154,14 +4154,22 @@ function showExport(){
   document.getElementById('exportPre').textContent=txt;
   return txt;
 }
+// A user accumulating several half-finished song ideas over time needs the
+// filename itself to carry which song it is -- a generic name pushes
+// "which download was which song" back onto their memory.
+function songFileSlug(){
+  const slug=songName.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  return slug||'untitled-song';
+}
 document.getElementById('btnExport').addEventListener('click',()=>{
   const txt=showExport();
   const blob=new Blob([txt],{type:'text/plain'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='couch-batata-chart.txt';
+  const filename='couch-batata-'+songFileSlug()+'-chart.txt';
+  const a=document.createElement('a');a.href=url;a.download=filename;
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
-  flash('Downloaded couch-batata-chart.txt');
+  flash('Downloaded '+filename);
 });
 document.getElementById('btnCopy').addEventListener('click',async()=>{
   showExport();
@@ -4180,7 +4188,7 @@ function downloadText(filename,text,type){
 }
 document.getElementById('btnBackup').addEventListener('click',()=>{
   save(true);
-  downloadText('couch-batata-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
+  downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
   flash('Downloaded editable project backup');
 });
 document.getElementById('btnImport').addEventListener('click',()=>{

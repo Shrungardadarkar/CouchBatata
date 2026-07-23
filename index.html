@@ -2794,6 +2794,19 @@ function showChord(){
   }));
   syncShapeNavigator();
 }
+// The full "Shape N of M · position · saved to X" sentence routinely
+// overflows this single-line pill even for a short section name -- the pill
+// centers its text, and CSS text-overflow:ellipsis doesn't truncate
+// centered flex content cleanly, it clips from both ends instead (losing
+// the leading and trailing characters with no ellipsis at all). Keep the
+// save confirmation reachable via hover/long-press instead of forcing it
+// into a string that doesn't reliably fit.
+function applyShapeLabel(el,v){
+  const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
+  el.textContent='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName;
+  const sec=activeChip&&findSection(activeChip.sectionId);
+  el.title=sec?'Saved to '+sec.name:'';
+}
 function syncShapeNavigator(){
   const nav=document.getElementById('shapeNav');
   nav.hidden=!current;
@@ -2806,9 +2819,7 @@ function syncShapeNavigator(){
     shapeIdx=0;inShapeMode=true;
   }
   const v=shapes[shapeIdx]||shapes[0];
-  const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
-  const savedIn=activeChip&&findSection(activeChip.sectionId)?' · saved to '+findSection(activeChip.sectionId).name:'';
-  document.getElementById('shapeLabel').textContent='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName+savedIn;
+  applyShapeLabel(document.getElementById('shapeLabel'),v);
 }
 function fullQuality(suf){
   const m={'':'major','m':'minor','7':'dominant 7','maj7':'major 7','m7':'minor 7',
@@ -2983,10 +2994,8 @@ function loadShape(direction=0){
     else if(typeof f==='number'&&f>=0)newSel[i]=f;
   }
   selection=newSel;
-  const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
-  const savedIn=activeChip&&findSection(activeChip.sectionId)?' · saved to '+findSection(activeChip.sectionId).name:'';
   const shapeLabel=document.getElementById('shapeLabel');
-  shapeLabel.textContent='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName+savedIn;
+  applyShapeLabel(shapeLabel,v);
   shapeLabel.classList.remove('shape-slide-forward','shape-slide-back');
   if(direction){
     // Match suggestion navigation: the label moves in the direction of the

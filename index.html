@@ -27,30 +27,44 @@
 <title>Couch Batata — For the songs that you almost wrote.</title>
 <style>
   :root{
-    /* Y2K retro-desktop palette — refined against reference sheets */
-    --cream:#f3eee3;          /* cleaner, lighter paper */
-    --cream-2:#eae2d2;
-    --paper:#fbf7ee;          /* window body — slightly brighter than desktop */
-    --ink:#5a2f3e;            /* warm plum-maroon — the signature retro outline/text color */
+    /* Visual roles: warm Couch Batata foundations with the reference palette's
+       contrast discipline.  These are roles, not a new interaction model. */
+    --cream:#f3eee3;          /* canvas */
+    --cream-2:#eae2d2;        /* quiet structural surface */
+    --paper:#fbf7ee;          /* raised panel */
+    --ink:#5a2f3e;            /* warm plum linework/text */
     --ink-soft:#7a4b58;
     --ink-dim:#7a5560;
     --ink-faint:#a98a92;
-    --tomato:#e8503a;
+    --brand:#e8503a;          /* brand/masthead only */
+    --tomato:var(--brand);
     --tomato-dk:#c33d2a;
-    --sky:#5b86c9;
-    --sky-dk:#3862a8;
-    --sun:#f5c518;
-    --sun-soft:#f7d873;       /* pastel butter for title bars */
-    --link-tint:#fff4e9;      /* pale peach highlight for a linked hammer-on/pull-off/slide source */
+    --capture:#f5c518;        /* add / committed musical material */
+    --capture-dk:#e5a600;
+    --explore:#4fbbbc;        /* suggestions, browsing, mode choice */
+    --explore-pale:#d5ece0;
+      --explore-dk:#1f5d5f;
+    --danger:#9c2330;         /* destructive actions only */
+    --focus:#156f8a;          /* keyboard focus is its own system signal */
+    --scale-root:#62538f;
+    --scale-third:#3e7193;
+    --scale-fifth:#53704a;
+    --scale-seventh:#765b80;
+    --link:#8a6b45;
+    --sky:var(--scale-third);
+    --sky-dk:#2e5e7d;
+    --sun:var(--capture);
+    --sun-soft:#f8eba5;
+    --link-tint:#f5e6d2;      /* linked technique source, not an action color */
     --fretwood:#b8a894;       /* pastel greyish-brown fretboard */
     --fretwood-2:#ad9c86;     /* slightly deeper edge for depth */
     --fretstring:#f6f1e6;     /* light strings/frets so they read on the taupe */
-    --gold:#f0b400;
-    --mint:#8ecfa8;
-    --mint-soft:#b6e0c6;      /* pastel sage for title bars */
-    --mint-dk:#5aa77f;
-    --lilac:#b09bd9;
-    --lilac-dk:#8b6fc0;
+    --gold:var(--capture-dk);
+    --mint:var(--explore);
+    --mint-soft:var(--explore-pale);
+    --mint-dk:var(--explore-dk);
+    --lilac:var(--scale-seventh);
+    --lilac-dk:#5d4368;
 
     /* semantic aliases so existing rules keep working */
     --bg:var(--cream);
@@ -60,7 +74,6 @@
     --amber-soft:rgba(240,180,0,.18);
     --amber-glow:rgba(240,180,0,.14);
     --scale-blue:var(--sky);
-    --danger:var(--tomato);
     --line:var(--ink);                    /* plum outlines everywhere */
     --radius:16px;
     --shadow:4px 4px 0 var(--ink);
@@ -909,6 +922,59 @@
   .cover-note{color:var(--ink-dim);font-size:.86rem;margin-top:10px;padding-top:10px;
     border-top:2px dashed var(--ink);line-height:1.55;font-weight:600}
   .cover-note b{color:var(--ink);font-family:"Arial Black",Arial,sans-serif;font-size:1rem;font-weight:900}
+
+  /* ---------- visual-role integration ----------
+     These overrides deliberately leave layout, markup, labels, transitions,
+     and state changes alone.  They only stop one colour from signalling five
+     unrelated things at once. */
+  button:focus-visible,input:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--focus)!important;outline-offset:2px}
+  .panel[data-win]::before,.panel.win-tomato::before,.panel.win-mint::before,.panel.win-sun::before,.panel.win-sky::before{background:var(--paper);color:var(--ink)}
+  .switch-knob,.switch-toggle.solo .switch-knob,.switch-toggle.tab .switch-knob,.toggle .acc-knob,.toggle.flats .acc-knob{background:var(--explore)}
+  .chord-suggestion.rank-0{background:#6ccbc8;color:var(--ink)}
+  .chord-suggestion.rank-1{background:#8ed9d4;color:var(--ink)}
+  .chord-suggestion.rank-2{background:#b5e5df;color:var(--ink)}
+  .chord-suggestion.rank-3{background:#d4eeea;color:var(--ink)}
+  .chord-suggestion.rank-4{background:#e8f5f2;color:var(--ink)}
+  .suggestion-spectrum-arrow{color:var(--ink-soft)}
+  .dot-note.sel,.dot-note.sel.root{background:var(--capture);color:var(--ink)}
+  .dot-note.sel.root{outline:2px solid var(--paper);outline-offset:2px}
+  .dot-note.technique-source{border-color:var(--link)}
+  .dot-note.scale.sroot{border-color:var(--ink);background:var(--scale-root);color:var(--paper);outline:1px solid var(--paper);outline-offset:1px}
+  .dot-note.scale.sthird{border-color:#2e5e7d;background:var(--scale-third);color:var(--paper)}
+  .dot-note.scale.sfifth{border-color:#3e5637;background:var(--scale-fifth);color:var(--paper);border-style:double}
+  .dot-note.scale.sseventh{border-color:var(--lilac-dk);background:var(--scale-seventh);color:var(--paper);border-radius:7px}
+  .scale-legend .lg-dot.lg-sroot,.scale-notes-line .lg-note.lg-sroot{background:var(--scale-root);color:var(--paper)}
+  .scale-legend .lg-dot.lg-sthird,.scale-notes-line .lg-note.lg-sthird{background:var(--scale-third);color:var(--paper)}
+  .scale-legend .lg-dot.lg-sfifth,.scale-notes-line .lg-note.lg-sfifth{background:var(--scale-fifth);color:var(--paper)}
+  .scale-legend .lg-dot.lg-sseventh,.scale-notes-line .lg-note.lg-sseventh{background:var(--scale-seventh);color:var(--paper)}
+  .box-chip.on,.btn.primary,.repeat-picker.on .picker-trigger,.song-sect.active{background:var(--capture);color:var(--ink)}
+  @media (hover:hover){.btn.primary:hover,.alts button:hover,.repl-btn:hover,.strum-btn:hover{background:var(--capture-dk)}}
+  .btn.ghost,.song-shelf-trigger,.song-tools summary,.scale-chip.on,.key-chord-chip.is-used{background:var(--explore);color:var(--ink)}
+  .lead-tech.armed,.lead-event.selected{background:var(--capture);color:var(--ink)}
+  @media (hover:hover){.lead-tech:hover,.lead-event:hover,.lead-event-copy:hover,.lead-edit:hover,.section-transfer button:hover{background:var(--explore)}}
+  .lead-event{background:var(--cream-2)}
+  .lead-event.lead-link-source{border-color:var(--link);box-shadow:1.5px 1.5px 0 var(--link)}
+  .lead-event.lead-link-source.selected{box-shadow:3px 3px 0 var(--link)}
+  @media (hover:hover){.lead-event.lead-link-source:hover{box-shadow:3px 3px 0 var(--link)}}
+  .lead-event.lead-link-target{border-color:var(--link);box-shadow:1.5px 1.5px 0 var(--link)}
+  .lead-connection-cue{background:var(--link);color:var(--paper)}
+  .chip.active{background:var(--capture);color:var(--ink)}
+  .chip.active .chip-name,.chip.active .rn,.chip.active .num,.chip.active .chip-x{color:var(--ink)}
+  .chip .rn{color:var(--brand)}
+  .song-sect.active .sect-name,.sect-name-wrap.open .sect-name{background-color:var(--explore);color:var(--ink);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  @media (hover:hover){.song-sect.active .sect-name:hover,.sect-name-wrap.open .sect-name:hover{background-color:var(--explore-dk);color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23fbf7ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}}
+  .help-fab{background:var(--paper)}
+  @media (hover:hover){.help-fab:hover{background:var(--cream-2)}}
+  .picker.open .picker-trigger,.song-shelf-trigger[aria-expanded="true"],.song-shelf-more[aria-expanded="true"]{background:var(--explore);color:var(--ink)}
+  @media (hover:hover){.picker:not(.open) .picker-trigger:hover,.picker-option:hover,.picker-option:focus{background:var(--explore-pale)}}
+  .btn.danger,.song-shelf-action.danger{background:var(--danger);color:var(--paper)}
+  @media (hover:hover){.btn.danger:hover{background:#7d1925}.chip-x:hover,.lead-event-x:hover,.lead-summary-x:hover,.help-close:hover,.song-shelf-close:hover{background:var(--danger);color:var(--paper)}}
+  .song-clear-btn{color:var(--danger)}
+  .drop-indicator{background:var(--capture)}
+  .fit-badge{background:var(--cream-2);color:var(--ink)}
+  .chip.outlier .chip-name::before{background:var(--brand)}
+  .guidance{background:var(--cream-2)}
+  .key-line strong,.mood,.scale-info b{color:var(--brand)}
 
   @media (prefers-reduced-motion:no-preference){
     .dot-note.sel{animation:pop .32s var(--ease-bounce)}

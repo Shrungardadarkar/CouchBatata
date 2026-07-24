@@ -47,7 +47,11 @@ theory guidance must still be careful, explicit, and testable.
 
 - Warm cream paper background.
 - Plum outlines and text.
-- Tomato, sunflower, mint, sky, and lilac sticker colors.
+- Coral is reserved for brand moments and musical emphasis; heat yellow marks
+  capture or commit actions; industrial aqua marks exploration, browsing, and
+  saved-project tools; berry is reserved for destructive actions.
+- Fretboard interval and scale guidance uses a separate, subdued mineral
+  palette with labels and marker shapes, so colour is never the only cue.
 - Thick borders, hard offset shadows, rounded cards, and physical button motion.
 - The transparent potato-on-couch mascot is a normal project asset:
   `mascot-v2.png`.

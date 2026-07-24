@@ -113,15 +113,15 @@
   h1 .dot{color:var(--sun);-webkit-text-stroke:2px var(--ink)}
   .header-subtitle{font-family:"Arial Black",Arial,sans-serif;font-weight:800;
     color:#2b1520;font-size:clamp(.78rem,2.2vw,.92rem);letter-spacing:0;margin-top:2px}
-  .song-context{display:flex;align-items:center;gap:9px;margin:16px 4px 0;padding:8px 10px 8px 12px;
-    border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:var(--shadow-sm)}
-  .song-context-kicker{color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+  .song-context{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:14px;row-gap:3px;
+    align-items:center;margin:16px 4px 0;padding:11px 10px 11px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:var(--shadow-sm)}
+  .song-context-kicker{grid-column:1;grid-row:1;color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
   /* The current idea is named where it is chosen, not again inside Tab builder.
-     Keeping the kicker, title, pencil and My songs control on one baseline makes
-     this a compact working context instead of a second title treatment. */
-  .song-name-row{display:flex;align-items:center;gap:5px;min-width:0;flex:1;min-height:28px}
+     Giving the working label its own row makes the current song feel like a
+     deliberate home base, while My Songs keeps its familiar button treatment. */
+  .song-name-row{grid-column:1;grid-row:2;display:flex;align-items:center;gap:5px;min-width:0;min-height:28px}
   .song-name-display{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);
-    font-family:"Arial Black",Arial,sans-serif;font-size:1rem;font-weight:900;line-height:1.25;padding:3px 2px}
+    font-family:"Arial Black",Arial,sans-serif;font-size:1.08rem;font-weight:900;line-height:1.25;padding:3px 2px}
   .song-name-display.placeholder{color:var(--ink-faint);font-weight:700}
   .song-name-row.editing .song-name-display{display:none}
   .song-name-input-wrap{flex:1;min-width:0;display:none}
@@ -693,7 +693,7 @@
   .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
-  .song-shelf-trigger{display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
+  .song-shelf-trigger{grid-column:2;grid-row:1 / span 2;align-self:center;display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
     background:var(--mint);color:var(--ink);box-shadow:2px 2px 0 var(--ink);font:800 .72rem/1 "Courier New",monospace;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .song-shelf-trigger[hidden]{display:none}
@@ -796,8 +796,14 @@
   .key-chord-chip.is-used::before{content:'✓';font-weight:950;color:var(--mint-dk)}
   .key-chord-rn{color:var(--amber);font-size:.75rem}
   .key-more-chords{margin-top:10px}
-  .key-more-chords summary{display:inline-flex;cursor:pointer;color:var(--ink-dim);font-size:.8rem;font-weight:850}
-  .key-more-chords[open] summary{margin-bottom:6px;color:var(--ink)}
+  .key-more-chords summary{display:inline-flex;align-items:center;gap:7px;cursor:pointer;list-style:none;color:var(--ink-dim);font-size:.8rem;font-weight:850;
+    padding:2px 0 3px;border-bottom:2px solid var(--mint-soft);transition:color .14s, border-color .14s}
+  .key-more-chords summary::-webkit-details-marker{display:none}
+  .key-more-chords summary::after{content:'▾';display:grid;place-items:center;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;
+    background:var(--paper);color:var(--ink);box-shadow:1px 1px 0 var(--ink);font:900 .78rem/1 Arial,sans-serif;transition:transform .2s var(--ease-spring),background .14s,box-shadow .14s}
+  @media (hover:hover){.key-more-chords summary:hover{color:var(--ink);border-color:var(--sun)}.key-more-chords summary:hover::after{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}}
+  .key-more-chords[open] summary{margin-bottom:6px;color:var(--ink);border-color:var(--sun)}
+  .key-more-chords[open] summary::after{background:var(--sun);transform:rotate(180deg);box-shadow:2px 2px 0 var(--ink)}
   .hint{color:var(--ink-dim);font-size:.84rem;margin-top:12px;line-height:1.6;font-weight:600}
 
   /* Collapsible key/scale panel — key always visible, rest expands on demand */
@@ -919,9 +925,9 @@
     .header-left{gap:16px}
     .mascot{width:70px;height:70px;margin:0}
     .wrap{padding:0 12px 16px}
-    .song-context{margin:12px 4px 0;padding:7px 8px 7px 10px;gap:6px}
+    .song-context{margin:12px 4px 0;padding:9px 8px 9px 10px;column-gap:8px;row-gap:2px}
     .song-context-kicker{font-size:.6rem;letter-spacing:.06em}
-    .song-name-row{gap:3px;min-width:0}.song-name-display{font-size:.9rem;padding:3px 1px}.song-name-btn{width:24px;height:24px}
+    .song-name-row{gap:3px;min-width:0}.song-name-display{font-size:.95rem;padding:3px 1px}.song-name-btn{width:24px;height:24px}
     .song-title-input{font-size:.86rem;padding:4px 6px}
     .song-shelf-trigger{padding:6px 8px}
     .panel{margin-top:30px;border-radius:15px;padding:24px 15px 20px}

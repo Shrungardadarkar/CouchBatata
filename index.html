@@ -971,9 +971,8 @@
      of inheriting the aqua browsing state used by ordinary selectors. */
   .section-add-control .picker.open .picker-trigger{background:var(--capture);color:var(--ink)}
   @media (hover:hover){.section-add-control .picker.open .picker-trigger:hover{background:var(--capture-dk)}}
-  /* Repeat menus live inside dense solo/chord chips. They always rise with
-     their own panel rather than covering the following panel. At the very top
-     of a viewport, the JS uses the same below-safe treatment as other menus. */
+  /* Repeat menus live inside dense solo/chord chips. JS chooses the room above
+     or below inside the owning panel and caps the scrollable menu to that room. */
   .repeat-picker .picker-menu{top:auto;bottom:calc(100% + 7px)}
   .repeat-picker.menu-below .picker-menu{top:calc(100% + 7px);bottom:auto}
   .btn.danger,.song-shelf-action.danger{background:var(--danger);color:var(--paper)}
@@ -3967,6 +3966,15 @@ function closeAllSectNameMenus(except){
     if(w!==except)closeSectNameMenu(w,false);
   });
 }
+function closeAllPickers(except){
+  document.querySelectorAll('.picker.open').forEach(picker=>{
+    if(picker===except)return;
+    const menu=picker.querySelector('.picker-menu');
+    if(menu){menu.hidden=true;menu.style.maxHeight='';}
+    picker.classList.remove('open','menu-below');
+    picker.querySelector('.picker-trigger')?.setAttribute('aria-expanded','false');
+  });
+}
 document.addEventListener('click',e=>{
   document.querySelectorAll('.sect-name-wrap.open').forEach(w=>{
     if(!w.contains(e.target))closeSectNameMenu(w,false);
@@ -3993,7 +4001,8 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
   const open=focusMode=>{
-    document.querySelectorAll('.picker.open').forEach(picker=>{if(picker!==wrap){picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open','menu-below');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');}});
+    closeAllSectNameMenus();
+    closeAllPickers(wrap);
     menu.hidden=false;menu.style.maxHeight='';wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
     requestAnimationFrame(()=>{
       // Section choices normally rise over the builder. Near the top of a
@@ -4001,17 +4010,21 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
       // leave the screen. Compact repeat menus intentionally stay above their
       // unit, so they never cover the next panel.
       if(wrap.classList.contains('repeat-picker')){
-        // A compact menu can scroll, but it should normally remain above its
-        // chip. Keep its established 240px cap; only use a viewport-safe below
-        // fallback when there is genuinely too little usable space above.
+        // A compact menu is bounded by its owning Solo/section panel, not the
+        // whole viewport. This prevents it crossing into the panel next door.
         const rect=trigger.getBoundingClientRect();
-        const above=Math.floor(rect.top-12);
-        const below=Math.floor(window.innerHeight-rect.bottom-12);
+        const owner=wrap.closest('#leadPanel,.song-sect');
+        const ownerRect=owner?.getBoundingClientRect();
+        const boundaryTop=Math.max(8,ownerRect?.top??8);
+        const boundaryBottom=Math.min(window.innerHeight-8,ownerRect?.bottom??window.innerHeight-8);
+        const above=Math.max(0,Math.floor(rect.top-boundaryTop-7));
+        // Reserve the 7px anchor gap plus the menu's 5px sticker shadow.
+        const below=Math.max(0,Math.floor(boundaryBottom-rect.bottom-12));
         if(above>=72||above>=below){
-          menu.style.maxHeight=Math.min(240,Math.max(72,above))+'px';
+          menu.style.maxHeight=Math.min(240,Math.max(36,above))+'px';
         }else{
           wrap.classList.add('menu-below');
-          menu.style.maxHeight=Math.min(240,Math.max(72,below))+'px';
+          menu.style.maxHeight=Math.min(240,Math.max(36,below))+'px';
         }
       }else if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
         wrap.classList.add('menu-below');
@@ -4044,9 +4057,7 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
   return {element:wrap,getValue:()=>selected,setValue:next=>{selected=String(next);refresh();}};
 }
 document.addEventListener('click',()=>{
-  document.querySelectorAll('.picker.open').forEach(picker=>{
-    picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open','menu-below');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');
-  });
+  closeAllPickers();
 });
 
 // The project choices are a compact upward overlay, not a page-expanding
@@ -4115,6 +4126,7 @@ function sectNameSelect(sec){
 
   const options=()=>[...menu.querySelectorAll('.sect-name-option')];
   const openMenu=focusIndex=>{
+    closeAllPickers();
     closeAllSectNameMenus(wrap);
     menu.hidden=false;wrap.classList.add('open');wrap.closest('.song-sect')?.classList.add('menu-open');
     trigger.setAttribute('aria-expanded','true');

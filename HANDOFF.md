@@ -50,6 +50,17 @@ commit, not just read as code. All pushed directly to `main`:
     scroll, and the board scrolling out of the viewport entirely on short
     screens) — if you touch `.board-sticker`/`positionBoardSticker()`,
     understand those two before changing the positioning math.
+    A later live re-audit (2026-07-24) found two more real regressions in
+    this component: `ac3feee` fixed `positionBoardSticker()` centering
+    dead-center on `.board-wrap`, which for common open-position voicings
+    (frets 0-4) placed the sticker directly over the notes it was
+    describing — now anchored near the bottom of the note grid instead,
+    using `.board-outer`'s height for the vertical calc (unaffected by
+    horizontal scroll) while keeping `.board-wrap` for horizontal
+    centering. The other finding from that re-audit — the
+    `openStringsHintShown` flag self-cancelling on its own first
+    display — was already independently fixed on `main` via the
+    `openStringsHint` opt-out flag in `showBoardSticker()`'s guard.
 
 `#toast` (the original app-wide toast) still exists and is still correct for
 everything NOT about the fretboard specifically: Undo/Restored/Song

@@ -5341,23 +5341,31 @@ try{
 
 /* ---------- board sticker (contextual messages anchored to the fretboard) ---------- */
 const boardSticker=document.getElementById('boardSticker');
-// left/top are computed against .board-wrap's own rect, not .board-outer's --
-// .board-wrap is the visible, non-scrolling viewport; .board-outer is the
-// full 820px+ scrollable content. Centering against .board-outer while it's
-// a position:relative ancestor would center against the *scrollable* content
-// box, so the sticker could scroll off-screen with the board on a phone
-// instead of staying anchored to what's actually visible.
+// Horizontal center must come from .board-wrap (the visible, non-scrolling
+// viewport), not .board-outer (the full 820px+ scrollable content) --
+// centering against .board-outer would center on the scrollable content box,
+// so the sticker could scroll off-screen with the board on a phone instead
+// of staying anchored to what's actually visible.
 function positionBoardSticker(){
   if(!boardSticker.classList.contains('show'))return;
-  const rect=document.querySelector('.board-wrap').getBoundingClientRect();
+  const wrapRect=document.querySelector('.board-wrap').getBoundingClientRect();
+  const outerRect=document.querySelector('.board-outer').getBoundingClientRect();
   // Clamp inside the viewport: if the board itself has scrolled out of view
   // (a short phone screen, or after scrolling down to reach "Add to
   // progression"), centering purely on the board's rect would place the
   // sticker off-screen and invisible -- worse than the old always-visible
   // top toast. When the board IS in view this clamp is a no-op.
   const margin=70;
-  const left=Math.min(Math.max(rect.left+rect.width/2,margin),window.innerWidth-margin);
-  const top=Math.min(Math.max(rect.top+rect.height/2,margin),window.innerHeight-margin);
+  const left=Math.min(Math.max(wrapRect.left+wrapRect.width/2,margin),window.innerWidth-margin);
+  // Anchor near the bottom of the note grid (over the fret-number row)
+  // rather than dead center -- open-position voicings (frets 0-4) are the
+  // common case and sit squarely in the horizontal middle of a 12-fret view,
+  // so a true center overlaps exactly the notes the message is usually
+  // describing. All 6 string rows live in the top ~90% of .board-outer's
+  // height; anchoring at 88% (using .board-outer's height, which is
+  // unaffected by horizontal scroll) keeps the sticker clear of them
+  // regardless of which strings/frets are actually played.
+  const top=Math.min(Math.max(outerRect.top+outerRect.height*0.88,margin),window.innerHeight-margin);
   boardSticker.style.left=left+'px';
   boardSticker.style.top=top+'px';
 }

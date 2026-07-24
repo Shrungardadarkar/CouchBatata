@@ -769,8 +769,8 @@
   .section-add-control .picker.menu-below .picker-menu{top:calc(100% + 8px);bottom:auto}
   .song-clear-btn{border:0;background:transparent;color:var(--tomato);padding:8px 3px;font:850 .78rem/1 inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:5px}
   .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
-  /* Project files are useful but secondary. Keep them in a small upward menu
-     so opening it never rearranges the builder below someone’s song. */
+  /* File actions stay together in a small upward menu so opening it never
+     rearranges the builder below someone’s song. */
   .song-tools{position:relative;margin-left:auto}.song-tools summary{display:inline-flex;align-items:center;gap:7px;min-height:44px;border:2.5px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:10px 17px;box-shadow:var(--shadow-sm);font-size:.9rem;font-weight:850;cursor:pointer;list-style:none}
   @media (hover:hover){.song-tools:not([open]) summary:hover{background:var(--mint-soft);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .song-tools summary::-webkit-details-marker{display:none}.song-tools summary::after{content:'▾';font-size:.72rem;transition:transform .16s var(--ease-spring)}
@@ -961,6 +961,9 @@
   @media (hover:hover){.help-fab:hover{background:var(--cream-2)}}
   .picker.open .picker-trigger,.song-shelf-trigger[aria-expanded="true"],.song-shelf-more[aria-expanded="true"]{background:var(--explore);color:var(--ink)}
   @media (hover:hover){.picker:not(.open) .picker-trigger:hover,.picker-option:hover,.picker-option:focus{background:var(--explore-pale)}}
+  /* Section menus share one type system; colour distinguishes their purpose,
+     not a surprise change in type size or weight. */
+  .picker-option,.sect-name-option{font:800 .86rem/1.22 "Helvetica Neue",Arial,sans-serif;padding:8px 10px}
   /* Menus keep the chosen row legible even while it receives keyboard focus.
      The prior generic focus tint overrode only its background, leaving the
      selected row's light text on a light surface. */
@@ -970,7 +973,20 @@
   /* The section-adder is a capture action, so opening it stays yellow instead
      of inheriting the aqua browsing state used by ordinary selectors. */
   .section-add-control .picker.open .picker-trigger{background:var(--capture);color:var(--ink)}
-  @media (hover:hover){.section-add-control .picker.open .picker-trigger:hover{background:var(--capture-dk)}}
+  .section-add-control .picker-option:focus{background:var(--sun-soft);color:var(--ink)}
+  .section-add-control .picker-option[aria-selected="true"],
+  .section-add-control .picker-option[aria-selected="true"]:focus{background:var(--ink);color:var(--paper)}
+  .sect-name-option:focus{background:var(--explore-pale);color:var(--ink)}
+  .sect-name-option[aria-selected="true"],.sect-name-option[aria-selected="true"]:focus{background:var(--explore-dk);color:var(--paper)}
+  @media (hover:hover){
+    .section-add-control .picker:not(.open) .picker-trigger:hover,
+    .section-add-control .picker.open .picker-trigger:hover{background:var(--capture-dk);color:var(--ink)}
+    .section-add-control .picker-option:hover{background:var(--sun-soft);color:var(--ink)}
+    .section-add-control .picker-option[aria-selected="true"]:hover{background:var(--ink);color:var(--paper)}
+    .sect-name-option:hover{background:var(--explore-pale);color:var(--ink)}
+    .sect-name-option[aria-selected="true"]:hover{background:var(--explore-dk);color:var(--paper)}
+    .sect-name:hover{background-color:var(--explore-dk);color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23fbf7ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  }
   /* Repeat menus live inside dense solo/chord chips. JS chooses the room above
      or below inside the owning panel and caps the scrollable menu to that room. */
   .repeat-picker .picker-menu{top:auto;bottom:calc(100% + 7px)}
@@ -1273,13 +1289,13 @@
     </div>
     <div class="song-action-group share-actions">
       <span class="song-action-kicker">Share &amp; keep</span>
-      <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
       <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
       <details class="song-tools">
-        <summary>Save / Import</summary>
+        <summary>File</summary>
         <div class="song-tools-menu">
           <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Save project (.json)</button>
           <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
+          <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
         </div>
       </details>
       <input id="projectFile" type="file" accept="application/json,.json" hidden>
@@ -4001,6 +4017,7 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
   const open=focusMode=>{
+    closeSongTools(false);
     closeAllSectNameMenus();
     closeAllPickers(wrap);
     menu.hidden=false;menu.style.maxHeight='';wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
@@ -4068,6 +4085,9 @@ function closeSongTools(restoreFocus=false){
   tools.removeAttribute('open');
   if(restoreFocus)tools.querySelector('summary')?.focus();
 }
+document.querySelector('.song-tools')?.addEventListener('toggle',event=>{
+  if(event.currentTarget.open){closeAllPickers();closeAllSectNameMenus();}
+});
 document.addEventListener('click',event=>{
   const tools=document.querySelector('.song-tools[open]');
   if(tools&&!tools.contains(event.target))closeSongTools(false);
@@ -4126,6 +4146,7 @@ function sectNameSelect(sec){
 
   const options=()=>[...menu.querySelectorAll('.sect-name-option')];
   const openMenu=focusIndex=>{
+    closeSongTools(false);
     closeAllPickers();
     closeAllSectNameMenus(wrap);
     menu.hidden=false;wrap.classList.add('open');wrap.closest('.song-sect')?.classList.add('menu-open');

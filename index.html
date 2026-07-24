@@ -455,19 +455,25 @@
   @media (hover:hover){.lead-event:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .lead-event.dragging{opacity:.3}
   .lead-event.lead-pop{animation:leadPop .34s var(--ease-bounce)}
-  .lead-event.lead-link-source{background:var(--cream);border:2.5px dashed var(--tomato);box-shadow:1.5px 1.5px 0 var(--tomato)}
-  .lead-event.lead-link-source.selected{background:var(--link-tint);box-shadow:3px 3px 0 var(--tomato)}
-  @media (hover:hover){.lead-event.lead-link-source:hover{background:var(--link-tint);box-shadow:3px 3px 0 var(--tomato)}}
-  .lead-event.lead-link-target{border-color:var(--tomato);box-shadow:1.5px 1.5px 0 var(--tomato)}
-  .lead-connection-cue{display:inline-flex;align-items:center;gap:3px;border-radius:999px;padding:2px 5px;background:var(--tomato);color:var(--cream);font-family:"Courier New",monospace;font-size:.62rem;font-weight:900;line-height:1;white-space:nowrap}
+  .lead-event.lead-phrase{background:var(--cream);border:2.5px dashed var(--link);box-shadow:1.5px 1.5px 0 var(--link)}
+  .lead-event.lead-phrase.selected{background:var(--link-tint);box-shadow:3px 3px 0 var(--link)}
+  @media (hover:hover){.lead-event.lead-phrase:hover{background:var(--link-tint);box-shadow:3px 3px 0 var(--link)}}
   @keyframes leadPop{0%{transform:scale(.25) rotate(-12deg);opacity:0}60%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}
   .lead-event-x{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-size:.9rem;font-weight:900;line-height:1;cursor:pointer}
   @media (hover:hover){.lead-event-x:hover{background:var(--tomato);color:var(--cream)}}
   .lead-event-copy{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:5px;background:var(--cream);color:var(--ink);font:inherit;font-size:.72rem;font-weight:900;line-height:1;cursor:pointer}
   @media (hover:hover){.lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}}
   .lead-event .repeat-picker{font-size:.68rem;flex:0 0 auto}
-  .lead-link{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:var(--ink);color:var(--cream);font-family:"Courier New",monospace;font-size:.64rem;font-weight:900;line-height:1;white-space:nowrap}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
+  .lead-phrase-editor{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-2px 0 12px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--link);border-radius:9px}
+  .lead-phrase-editor[hidden]{display:none}
+  .lead-phrase-editor-label{font-family:"Courier New",monospace;font-size:.68rem;font-weight:900;text-transform:uppercase;letter-spacing:.04em;color:var(--ink)}
+  .lead-step-btn{font:inherit;font-size:.72rem;font-weight:900;color:var(--ink);background:var(--paper);border:2px solid var(--ink);border-radius:7px;padding:5px 8px;cursor:pointer;box-shadow:1px 1px 0 var(--ink)}
+  .lead-step-btn.active{background:var(--explore);box-shadow:2px 2px 0 var(--ink)}
+  @media (hover:hover){.lead-step-btn:hover{background:var(--explore-pale);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
+  @media (hover:hover){.lead-step-btn.active:hover{background:var(--explore)}}
+  .lead-step-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .dot-note.phrase-step{width:auto;min-width:28px;padding:0 5px;border-style:dashed;background:rgba(246,241,230,.9);color:var(--ink);font-size:.66rem}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
   .lead-summary-x{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
   @media (hover:hover){.lead-summary-x:hover{background:var(--tomato);color:var(--cream)}}
@@ -771,7 +777,7 @@
   .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
   /* File actions stay together in a small upward menu so opening it never
      rearranges the builder below someone’s song. */
-  .song-tools{position:relative;margin-left:auto}.song-tools summary{display:inline-flex;align-items:center;gap:7px;min-height:44px;border:2.5px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:10px 17px;box-shadow:var(--shadow-sm);font-size:.9rem;font-weight:850;cursor:pointer;list-style:none}
+  .song-tools{position:relative}.song-tools summary{display:inline-flex;align-items:center;gap:7px;min-height:44px;border:2.5px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:10px 17px;box-shadow:var(--shadow-sm);font-size:.9rem;font-weight:850;cursor:pointer;list-style:none}
   @media (hover:hover){.song-tools:not([open]) summary:hover{background:var(--mint-soft);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .song-tools summary::-webkit-details-marker{display:none}.song-tools summary::after{content:'▾';font-size:.72rem;transition:transform .16s var(--ease-spring)}
   .song-tools[open] summary{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}.song-tools[open] summary::after{transform:rotate(180deg)}
@@ -947,11 +953,9 @@
   .lead-tech.armed,.lead-event.selected{background:var(--capture);color:var(--ink)}
   @media (hover:hover){.lead-tech:hover,.lead-event:hover,.lead-event-copy:hover,.lead-edit:hover,.section-transfer button:hover{background:var(--explore)}}
   .lead-event{background:var(--cream-2)}
-  .lead-event.lead-link-source{border-color:var(--link);box-shadow:1.5px 1.5px 0 var(--link)}
-  .lead-event.lead-link-source.selected{box-shadow:3px 3px 0 var(--link)}
-  @media (hover:hover){.lead-event.lead-link-source:hover{box-shadow:3px 3px 0 var(--link)}}
-  .lead-event.lead-link-target{border-color:var(--link);box-shadow:1.5px 1.5px 0 var(--link)}
-  .lead-connection-cue{background:var(--link);color:var(--paper)}
+  .lead-event.lead-phrase{border-color:var(--link);box-shadow:1.5px 1.5px 0 var(--link)}
+  .lead-event.lead-phrase.selected{box-shadow:3px 3px 0 var(--link)}
+  @media (hover:hover){.lead-event.lead-phrase:hover{box-shadow:3px 3px 0 var(--link)}}
   .chip.active{background:var(--capture);color:var(--ink)}
   .chip.active .chip-name,.chip.active .rn,.chip.active .num,.chip.active .chip-x{color:var(--ink)}
   .chip .rn{color:var(--brand)}
@@ -1251,11 +1255,12 @@
 
 <div class="panel win-lilac" data-win="Solo / Arpeggio" id="leadPanel">
   <h2>Solo / Arpeggio recorder</h2>
-  <p class="lead-intro">Choose one or more notes on the fretboard, then use the technique strip below it to add an event to this solo draft.</p>
+  <p class="lead-intro">Choose one or more notes on the fretboard, then use the technique strip below it to add a note, chord hit, or connected phrase to this solo draft.</p>
   <div class="lead-toolbar">
     <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
   </div>
   <div class="lead-sequence" id="leadSequence" aria-live="polite"></div>
+  <div class="lead-phrase-editor" id="leadPhraseEditor" hidden aria-label="Edit solo phrase"></div>
   <div class="btn-row">
     <button class="btn primary" id="btnLeadCreate" type="button">Create solo</button>
     <button class="btn" id="btnLeadClearSelection" type="button">Clear selection</button>
@@ -1330,7 +1335,8 @@
   </details>
   <details>
     <summary>Solo / arpeggio</summary>
-    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer up or down from the fret change. In both the draft and Song, a dashed card marked “starts … →” is the source and the red-bordered card marked “from N” is its destination. Dragging either end moves the whole connected phrase together. Use Notes / Tab to change the display, use the ×N menu to repeat a unit, and ⧉ to duplicate an editable event or whole linked phrase.</p>
+    <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer their direction from the fret change.</p>
+    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Click a phrase to reveal numbered steps on the fretboard, edit any step, or add another destination to make a longer chain such as a double pull-off. The same strings must continue through each step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -2275,6 +2281,7 @@ let leadDisplay='notes';
 let leadDraft=[];       // events being prepared before Create solo adds them to a section
 let leadDraftSourceSectionId=null; // section being edited, or null for a new solo
 let leadDraftEditIndex=null; // draft event loaded onto the fretboard for editing
+let leadPhraseEdit=null; // {start,end,active} for one derived linked phrase
 let leadTechniquePending=null; // {action, notes} — source chosen, destination next
 let _popLeadDraftIndex=null;
 let boardMode='chord';
@@ -2401,6 +2408,9 @@ function snapshotSummary(snapshot){
   return {
     sectionCount:songSections.length,
     chordCount:songSections.reduce((total,section)=>total+(Array.isArray(section.chords)?section.chords.length:0),0),
+    // Keep this persisted summary field backward-compatible: it records raw
+    // stored lead events and is used only as a yes/no shelf signal. Phrase
+    // counts are derived where the phrase UI is rendered.
     leadEventCount:songSections.reduce((total,section)=>total+(Array.isArray(section.lead)?section.lead.length:0),0)
   };
 }
@@ -2723,7 +2733,7 @@ function blankProjectSnapshot(){
 }
 function resetProjectEditingState(){
   activeChip=null;resetChordSelection();exitShapes();
-  leadDraft=[];leadDraftSourceSectionId=null;leadDraftEditIndex=null;
+  leadDraft=[];leadDraftSourceSectionId=null;leadDraftEditIndex=null;leadPhraseEdit=null;
   leadTechniquePending=null;leadSelection=new Array(6).fill(null);leadSelectionSectionId=null;
 }
 function applySongRecord(record){
@@ -2800,25 +2810,78 @@ function leadEventLabel(event,events=leadDraft){
     ?STR_LABEL[note.s]+' '+pcName((OPEN[note.s]+note.f)%12)
     :STR_LABEL[note.s]+' '+(note.f===0?'open':note.f));
   const technique=event.t?(' · '+LEAD_TECH_LABEL[event.t]):' · clean';
-  const repeats=(event.rep||1)>1?' ×'+event.rep:'';
-  return notes.join(' + ')+technique+repeats;
+  return notes.join(' + ')+technique;
 }
 function hasLeadLink(event){
   return LEAD_LINK_TECHNIQUES.has(event?.t)&&Number.isInteger(event.from)&&Array.isArray(event.links)&&event.links.length>0;
 }
-function leadSourceNumber(event,events=leadDraft){
-  const sourceIndex=(events||[]).findIndex(candidate=>candidate.id===event.from);
-  return sourceIndex>=0?sourceIndex+1:'?';
+function leadChordLabel(event){
+  const notes=event?.notes||[];
+  const pcs=new Set(notes.map(note=>(OPEN[note.s]+note.f)%12));
+  if(notes.length<3||pcs.size<3)return null;
+  const results=identify(notes.map(note=>OPEN[note.s]+note.f));
+  if(!results.length)return null;
+  const top=results[0];
+  const ambiguous=results.some((candidate,index)=>index>0&&candidate.score===top.score&&(candidate.root!==top.root||candidate.suf!==top.suf||candidate.slash!==top.slash));
+  return ambiguous?null:chordLabel(top);
 }
-function leadConnectionTarget(event,index,events=leadDraft){
-  const target=(events||[])[index+1];
-  return hasLeadLink(target)&&target.from===event?.id?target:null;
+function leadStepLabel(event){
+  if(leadDisplay==='notes'){
+    const chord=leadChordLabel(event);
+    if(chord)return chord;
+    const seen=new Set();
+    return (event?.notes||[]).flatMap(note=>{
+      const name=pcName((OPEN[note.s]+note.f)%12);
+      if(seen.has(name))return [];
+      seen.add(name);return [name];
+    }).join('+');
+  }
+  return (event?.notes||[]).map(note=>STR_LABEL[note.s]+note.f).join('+');
 }
-function leadConnectionLabel(event){
-  if(event?.t==='/'||event?.t==='\\')return 'Slide';
-  if(event?.t==='h')return 'Hammer-on';
-  if(event?.t==='p')return 'Pull-off';
-  return 'Connection';
+function leadPhraseGroups(events){
+  const groups=[];
+  for(let index=0;index<(events||[]).length;){
+    const indexes=leadDragBlock(events,index);
+    const start=indexes[0]??index,end=indexes[indexes.length-1]??index;
+    groups.push({start,end,indexes,events:indexes.map(i=>events[i]).filter(Boolean)});
+    index=end+1;
+  }
+  return groups;
+}
+function leadPhraseAt(events,index){
+  const indexes=leadDragBlock(events,index);
+  const start=indexes[0]??index,end=indexes[indexes.length-1]??index;
+  return {start,end,indexes,events:indexes.map(i=>events[i]).filter(Boolean)};
+}
+function leadPhraseTechnique(phrase){
+  const techniques=phrase.events.slice(1).map(event=>event.t).filter(Boolean);
+  if(!techniques.length)return phrase.events[0]?.t||'';
+  const names=new Set(techniques.map(technique=>technique==='/'||technique==='\\'?'slide':technique));
+  return names.size===1?[...names][0]:'mixed';
+}
+function leadPhraseTechniqueLabel(phrase){
+  const technique=leadPhraseTechnique(phrase);
+  if(technique==='slide')return 'slide';
+  if(technique==='h')return 'hammer-on';
+  if(technique==='p')return 'pull-off';
+  if(technique==='mixed')return 'linked phrase';
+  return LEAD_TECH_LABEL[technique]||'clean';
+}
+function leadPhraseLabel(phrase){
+  if(phrase.events.length===1)return leadStepLabel(phrase.events[0])+' · '+leadPhraseTechniqueLabel(phrase);
+  return phrase.events.map(leadStepLabel).join(' → ')+' · '+leadPhraseTechniqueLabel(phrase);
+}
+function leadPhraseRepeat(phrase){
+  return Math.max(1,...phrase.events.map(event=>Number.isInteger(event.rep)?event.rep:1));
+}
+function setLeadPhraseRepeat(phrase,value){
+  phrase.events.forEach((event,index)=>{event.rep=index===0?value:1;});
+}
+function removeLeadPhrase(events,index){
+  const phrase=leadPhraseAt(events,index);
+  events.splice(phrase.start,phrase.indexes.length);
+  cleanBrokenLeadLinks(events);
+  return phrase;
 }
 function copyLeadEvents(events){
   return (events||[]).map(event=>({
@@ -2854,13 +2917,14 @@ function cleanBrokenLeadLinks(events){
     }else event.links=validLinks;
   });
 }
-function leadRepeatSelect(event,onChange){
+function leadPhraseRepeatSelect(phrase,onChange){
+  const repeat=leadPhraseRepeat(phrase);
   const picker=makePicker({
-    value:event.rep||1,options:Array.from({length:8},(_,index)=>({value:index+1,label:'×'+(index+1)})),
-    label:'Repeat this solo event',className:'repeat-picker'+((event.rep||1)>1?' on':''),
-    onChange:value=>{event.rep=+value;onChange();}
+    value:repeat,options:Array.from({length:8},(_,index)=>({value:index+1,label:'×'+(index+1)})),
+    label:'Repeat this solo phrase',className:'repeat-picker'+(repeat>1?' on':''),
+    onChange:value=>{setLeadPhraseRepeat(phrase,+value);onChange();}
   });
-  picker.element.title='Repeat this solo unit';return picker.element;
+  picker.element.title='Repeat this entire solo phrase';return picker.element;
 }
 function soloCreationTarget(){
   const sec=activeSection();
@@ -2880,53 +2944,55 @@ function renderLead(){
   const sec=activeSection();
   if(leadSelectionSectionId!==null&&leadSelectionSectionId!==sec?.id){
     leadSelection.fill(null);leadSelectionSectionId=sec?.id??null;
-    leadDraftEditIndex=null;leadTechniquePending=null;
+    leadDraftEditIndex=null;leadPhraseEdit=null;leadTechniquePending=null;
   }
   let targetSection=leadDraftSourceSectionId!==null?findSection(leadDraftSourceSectionId):soloCreationTarget();
   if(leadDraftSourceSectionId!==null&&!targetSection)leadDraftSourceSectionId=null;
   target.textContent=(targetSection?targetSection.name:'new Solo section')+
-    (Number.isInteger(leadDraftEditIndex)?' · editing event '+(leadDraftEditIndex+1):'');
+    (leadPhraseEdit?' · editing phrase':Number.isInteger(leadDraftEditIndex)?' · editing event '+(leadDraftEditIndex+1):'');
   out.innerHTML='';
   const events=leadDraft;
   if(!events.length){
     const empty=document.createElement('span');empty.className='lead-empty';empty.textContent='No saved solo events yet — select one or more notes, then press an action.';out.appendChild(empty);
   }else{
-    events.forEach((leadEvent,index)=>{
-      const linkedTarget=leadConnectionTarget(leadEvent,index,events);
-      const isTarget=hasLeadLink(leadEvent);
-      const event=document.createElement('div');event.className='lead-event'+(linkedTarget?' lead-link-source':'')+(isTarget?' lead-link-target':'')+(_popLeadDraftIndex===index?' lead-pop':'')+(leadDraftEditIndex===index?' selected':'');
-      event.title=linkedTarget?leadConnectionLabel(linkedTarget)+' starts here and continues to event '+(index+2)+' · drag moves both':isTarget?leadConnectionLabel(leadEvent)+' destination from event '+leadSourceNumber(leadEvent,events)+' · drag moves both':'Click to edit this event on the fretboard · drag to reorder';
-      event.setAttribute('aria-label','Solo event '+(index+1)+': '+leadEventLabel(leadEvent));
-      const label=document.createElement('span');label.textContent=(index+1)+'. '+leadEventLabel(leadEvent);event.appendChild(label);
-      if(linkedTarget){
-        const cue=document.createElement('span');cue.className='lead-connection-cue';cue.textContent='starts '+leadConnectionLabel(linkedTarget).toLowerCase()+' → '+(index+2);
-        cue.title=leadConnectionLabel(linkedTarget)+' starts at this event and ends at event '+(index+2);event.appendChild(cue);
-      }
-      if(hasLeadLink(leadEvent)){
-        const sourceNumber=leadSourceNumber(leadEvent);
-        const link=document.createElement('span');link.className='lead-link';link.textContent='from '+sourceNumber;
-        link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
-      }
-      event.appendChild(leadRepeatSelect(leadEvent,()=>{renderLead();}));
+    leadPhraseGroups(events).forEach((phrase,phraseIndex)=>{
+      const isPhrase=phrase.events.length>1;
+      const selected=leadPhraseEdit?.start===phrase.start||(!leadPhraseEdit&&Number.isInteger(leadDraftEditIndex)&&leadDraftEditIndex>=phrase.start&&leadDraftEditIndex<=phrase.end);
+      const popped=Number.isInteger(_popLeadDraftIndex)&&_popLeadDraftIndex>=phrase.start&&_popLeadDraftIndex<=phrase.end;
+      const event=document.createElement('div');event.className='lead-event'+(isPhrase?' lead-phrase':'')+(popped?' lead-pop':'')+(selected?' selected':'');
+      event.dataset.leadStart=phrase.start;event.dataset.leadEnd=phrase.end;
+      event.tabIndex=0;event.setAttribute('role','button');
+      event.title='Click to edit this '+(isPhrase?'phrase':'event')+' on the fretboard · drag to reorder';
+      const phraseLabel=leadPhraseLabel(phrase);
+      event.setAttribute('aria-label','Solo '+(isPhrase?'phrase ':'event ')+(phraseIndex+1)+': '+phraseLabel);
+      const label=document.createElement('span');label.textContent=(phraseIndex+1)+'. '+phraseLabel;event.appendChild(label);
+      event.appendChild(leadPhraseRepeatSelect(phrase,()=>{renderLead();}));
       const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
-      duplicate.title='Duplicate this solo event'+(linkedTarget||isTarget?' phrase':'');duplicate.setAttribute('aria-label',duplicate.title);
-      duplicate.addEventListener('click',e=>{e.stopPropagation();const copy=duplicateLeadPhrase(leadDraft,index);leadDraftEditIndex=null;_popLeadDraftIndex=copy.insertAt;render();renderLead();flash('Duplicated '+(copy.count>1?'linked phrase':'solo event'));});
+      duplicate.title='Duplicate this solo '+(isPhrase?'phrase':'event');duplicate.setAttribute('aria-label',duplicate.title);
+      duplicate.addEventListener('click',e=>{e.stopPropagation();const copy=duplicateLeadPhrase(leadDraft,phrase.start);leadDraftEditIndex=null;leadPhraseEdit=null;_popLeadDraftIndex=copy.insertAt;render();renderLead();flash('Duplicated '+(copy.count>1?'linked phrase':'solo event'));});
       event.appendChild(duplicate);
       const remove=document.createElement('button');remove.type='button';remove.className='lead-event-x';remove.textContent='×';
-      remove.title='Remove this solo event';remove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
+      remove.title='Remove this solo '+(isPhrase?'phrase':'event');remove.setAttribute('aria-label','Remove '+phraseLabel);
       remove.addEventListener('click',()=>{
-        leadDraft.splice(index,1);
-        cleanBrokenLeadLinks(leadDraft);
-        if(leadDraftEditIndex===index){leadDraftEditIndex=null;leadSelection.fill(null);}
-        else if(Number.isInteger(leadDraftEditIndex)&&leadDraftEditIndex>index)leadDraftEditIndex--;
-        render();renderLead();flash('Removed solo event');
+        const priorDraft=copyLeadEvents(leadDraft);
+        removeLeadPhrase(leadDraft,phrase.start);
+        leadDraftEditIndex=null;leadPhraseEdit=null;leadTechniquePending=null;leadSelection.fill(null);
+        render();renderLead();flash('Removed solo '+(isPhrase?'phrase':'event'),{actionText:'Undo',onAction:()=>{
+          leadDraft=priorDraft;leadDraftEditIndex=null;leadPhraseEdit=null;leadTechniquePending=null;render();renderLead();
+          flash('Restored solo '+(isPhrase?'phrase':'event'));
+        }});
       });
-      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x, .lead-event-copy'))selectLeadDraftEvent(index);});
-      event.appendChild(remove);attachLeadDraftDrag(event,index);
+      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))selectLeadDraftPhrase(phrase.start);});
+      event.addEventListener('keydown',e=>{
+        if(e.target!==event||(e.key!=='Enter'&&e.key!==' '))return;
+        e.preventDefault();selectLeadDraftPhrase(phrase.start);
+      });
+      event.appendChild(remove);attachLeadDraftDrag(event,phrase.start);
       out.appendChild(event);
     });
     _popLeadDraftIndex=null;
   }
+  renderLeadPhraseEditor();
   const createButton=document.getElementById('btnLeadCreate');
   const editing=leadDraftSourceSectionId!==null;
   createButton.disabled=!events.length;
@@ -2938,12 +3004,14 @@ function renderLead(){
   const clearSelectionButton=document.getElementById('btnLeadClearSelection');
   clearSelectionButton.disabled=leadTechniquePending?false:!hasLeadSelection;
   clearSelectionButton.textContent=leadTechniquePending?'Cancel '+LEAD_CONNECTION_LABEL[leadTechniquePending.action]:'Clear selection';
+  const phraseOverview=leadPhraseEdit&&!leadTechniquePending&&!Number.isInteger(leadDraftEditIndex);
   document.getElementById('leadTechLabel').textContent=leadTechniquePending
     ?(leadTechniquePending.editTargetId?'Editing ':'')+LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' — dashed source, selected destination; save when ready'
-    :'Apply to selected notes';
+    :phraseOverview?'Phrase selected — choose a numbered step below or add a destination':'Apply to selected notes';
   document.querySelectorAll('.lead-tech').forEach(button=>{
     const action=button.dataset.tech;
     const isPendingAction=leadTechniquePending?.action===action;
+    const editingPhraseSource=leadPhraseEdit&&!leadTechniquePending&&leadDraftEditIndex===leadPhraseEdit.start;
     button.classList.toggle('armed',!!isPendingAction);
     if(leadTechniquePending){
       button.textContent=isPendingAction?'Save '+LEAD_CONNECTION_LABEL[action]:button.dataset.label;
@@ -2951,8 +3019,8 @@ function renderLead(){
       button.title=isPendingAction?'Save the chosen destination':'';
     }else{
       button.textContent=button.dataset.label;
-      button.disabled=!hasLeadSelection;
-      button.title=LEAD_CONNECTION_ACTIONS.has(action)?'Choose source notes, then choose a destination':'';
+      button.disabled=!hasLeadSelection||phraseOverview||(editingPhraseSource&&action!=='');
+      button.title=editingPhraseSource&&action!==''?'Edit the source notes with Clean, or choose another numbered step':LEAD_CONNECTION_ACTIONS.has(action)?'Choose source notes, then choose a destination':'';
     }
   });
   const displayToggle=document.getElementById('boardLeadDisplay');
@@ -2961,7 +3029,95 @@ function renderLead(){
   displayToggle.setAttribute('aria-label','Fretboard display: '+(leadDisplay==='tab'?'Tab':'Notes'));
   displayToggle.title='Switch solo markers between Notes and Tab';
 }
+function leadPhraseAction(phrase){
+  const technique=leadPhraseTechnique(phrase);
+  return technique==='slide'?'slide':LEAD_CONNECTION_ACTIONS.has(technique)?technique:null;
+}
+function loadLeadPhraseStep(index){
+  if(!leadPhraseEdit)return;
+  const event=leadDraft[index];if(!event)return;
+  leadPhraseEdit.active=index;
+  leadSelection.fill(null);
+  (event.notes||[]).forEach(note=>{leadSelection[note.s]=note.f;});
+  leadSelectionSectionId=activeSection()?.id??null;
+  if(index>leadPhraseEdit.start&&hasLeadLink(event)){
+    const source=leadDraft[index-1];
+    const action=event.t==='/'||event.t==='\\'?'slide':event.t;
+    leadTechniquePending={
+      action,notes:(source?.notes||[]).map(note=>({s:note.s,f:note.f})),
+      editTargetId:event.id,phraseStart:leadPhraseEdit.start
+    };
+    leadDraftEditIndex=null;
+  }else{
+    leadTechniquePending=null;
+    leadDraftEditIndex=index;
+  }
+  render();renderLead();
+}
+function selectLeadDraftPhrase(index){
+  const phrase=leadPhraseAt(leadDraft,index);
+  if(phrase.events.length===1){leadPhraseEdit=null;selectLeadDraftEvent(phrase.start);return;}
+  // Opening a phrase is inspection, not mutation. Show every numbered step,
+  // then let the musician explicitly choose the step they want to edit.
+  leadPhraseEdit={start:phrase.start,end:phrase.end,active:null};
+  leadDraftEditIndex=null;leadTechniquePending=null;leadSelection.fill(null);
+  leadSelectionSectionId=activeSection()?.id??null;
+  render();renderLead();
+  flash('Phrase selected · choose a numbered step or add a destination');
+}
+function finishLeadPhraseEdit(){
+  leadPhraseEdit=null;leadDraftEditIndex=null;leadTechniquePending=null;
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
+  render();renderLead();
+}
+function extendLeadPhrase(){
+  if(!leadPhraseEdit)return;
+  const phrase=leadPhraseAt(leadDraft,leadPhraseEdit.start);
+  const action=leadPhraseAction(phrase);
+  const source=phrase.events[phrase.events.length-1];
+  if(!action||!source){flash('This phrase cannot be extended with one technique');return;}
+  leadTechniquePending={
+    action,notes:source.notes.map(note=>({s:note.s,f:note.f})),
+    sourceEventId:source.id,phraseStart:phrase.start,extendPhrase:true
+  };
+  leadPhraseEdit={start:phrase.start,end:phrase.end,active:phrase.end};
+  leadDraftEditIndex=null;leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;
+  render();renderLead();
+  flash('Choose the next destination, then save '+LEAD_CONNECTION_LABEL[action].toLowerCase());
+}
+function renderLeadPhraseEditor(){
+  const editor=document.getElementById('leadPhraseEditor');
+  if(!leadPhraseEdit){
+    editor.hidden=true;editor.innerHTML='';return;
+  }
+  const phrase=leadPhraseAt(leadDraft,leadPhraseEdit.start);
+  if(phrase.events.length<2){
+    leadPhraseEdit=null;editor.hidden=true;editor.innerHTML='';return;
+  }
+  leadPhraseEdit.start=phrase.start;leadPhraseEdit.end=phrase.end;
+  editor.hidden=false;editor.innerHTML='';
+  const label=document.createElement('span');label.className='lead-phrase-editor-label';
+  const multiString=phrase.events.slice(1).some(event=>(event.links||[]).length>1);
+  label.textContent=(multiString?'Multi-note ':'')+leadPhraseTechniqueLabel(phrase)+(phrase.events.length>2?' chain':'')+' · '+phrase.events.length+' steps';
+  editor.appendChild(label);
+  phrase.indexes.forEach((eventIndex,stepIndex)=>{
+    const button=document.createElement('button');button.type='button';button.className='lead-step-btn'+(leadPhraseEdit.active===eventIndex?' active':'');
+    button.textContent=stepIndex===0?'1 · Source':String(stepIndex+1);
+    button.setAttribute('aria-pressed',String(leadPhraseEdit.active===eventIndex));
+    button.title='Edit step '+(stepIndex+1)+' on the fretboard';
+    button.addEventListener('click',()=>loadLeadPhraseStep(eventIndex));
+    editor.appendChild(button);
+  });
+  const action=leadPhraseAction(phrase);
+  if(action){
+    const add=document.createElement('button');add.type='button';add.className='lead-step-btn';
+    add.textContent='+ Add destination';add.addEventListener('click',extendLeadPhrase);editor.appendChild(add);
+  }
+  const done=document.createElement('button');done.type='button';done.className='lead-step-btn active';
+  done.textContent='Done editing';done.addEventListener('click',finishLeadPhraseEdit);editor.appendChild(done);
+}
 function selectLeadDraftEvent(index){
+  leadPhraseEdit=null;
   let event=leadDraft[index];if(!event)return;
   // Clicking the source half of an existing connection edits its destination;
   // both cards are one phrase, rather than two unrelated editable events.
@@ -3079,6 +3235,14 @@ function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
+  const editingPhraseSource=editing&&leadPhraseEdit&&leadDraftEditIndex===leadPhraseEdit.start;
+  if(editingPhraseSource){
+    const next=leadDraft[leadDraftEditIndex+1];
+    const nextAction=next?.t==='/'||next?.t==='\\'?'slide':next?.t;
+    const validation=next&&hasLeadLink(next)?validateLeadConnection(notes,next.notes,nextAction):null;
+    if(validation?.error){flash('That source would break the phrase: '+validation.error.toLowerCase());return;}
+    t='';
+  }
   if(editing){
     leadDraft[leadDraftEditIndex]={id:editing.id,notes,t,from:null,links:null,rep:editing.rep||1};
     _popLeadDraftIndex=leadDraftEditIndex;
@@ -3089,12 +3253,18 @@ function saveLeadEvent(t){
   }
   const saved=leadDraft[_popLeadDraftIndex];
   playLeadEventPreview(saved);
-  const message=editing?'Updated solo event':'Added '+leadEventLabel(saved)+' to the draft';
+  const message=editingPhraseSource?'Updated phrase source':editing?'Updated solo event':'Added '+leadEventLabel(saved)+' to the draft';
+  if(editingPhraseSource){
+    cleanBrokenLeadLinks(leadDraft);
+    const phrase=leadPhraseAt(leadDraft,leadPhraseEdit.start);
+    leadPhraseEdit={start:phrase.start,end:phrase.end,active:null};
+  }
   leadDraftEditIndex=null;
   // The chosen chord is a one-shot starting point for this Solo event. Once
   // its notes have been applied, clear both the active selection and the
   // temporary reference so the fretboard is ready for the next phrase.
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
+  if(!editingPhraseSource)leadSelection.fill(null);
+  leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
   renderSong();render();renderLead();
   flash(message);
 }
@@ -3110,53 +3280,82 @@ function beginLeadConnection(action){
   flash(LEAD_CONNECTION_LABEL[action]+' armed — now choose the destination');
 }
 
+function validateLeadConnection(sourceNotes,destination,action){
+  const sourceByString=new Map(sourceNotes.map(note=>[note.s,note]));
+  const destinationByString=new Map(destination.map(note=>[note.s,note]));
+  if(sourceByString.size!==destinationByString.size||[...sourceByString.keys()].some(string=>!destinationByString.has(string))){
+    return {error:'Keep the same strings from one phrase step to the next'};
+  }
+  const moving=destination.filter(note=>note.f!==sourceByString.get(note.s).f);
+  if(!moving.length)return {error:'Choose at least one different destination fret'};
+  let technique=action;
+  if(action==='slide'){
+    const directions=new Set(moving.map(note=>Math.sign(note.f-sourceByString.get(note.s).f)));
+    if(directions.size>1)return {error:'For a chord slide, move linked strings in one direction'};
+    technique=[...directions][0]>0?'/':'\\';
+  }else{
+    const expected=action==='h'?1:-1;
+    if(moving.some(note=>Math.sign(note.f-sourceByString.get(note.s).f)!==expected)){
+      return {error:action==='h'?'Hammer-on destinations must be higher on each moving string':'Pull-off destinations must be lower on each moving string'};
+    }
+  }
+  return {sourceByString,technique,links:moving.map(note=>note.s)};
+}
+
 function commitLeadConnection(){
   const pending=leadTechniquePending;if(!pending)return;
   const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!destination.length){flash('Choose a destination before saving');return;}
-  const sourceByString=new Map(pending.notes.map(note=>[note.s,note]));
-  const linked=destination.filter(note=>sourceByString.has(note.s));
-  if(!linked.length){flash('Choose a destination on at least one source string');return;}
-  let technique=pending.action;
-  if(pending.action==='slide'){
-    const directions=new Set(linked.map(note=>Math.sign(note.f-sourceByString.get(note.s).f)).filter(Boolean));
-    if(!directions.size){flash('A slide destination must be at a different fret');return;}
-    if(directions.size>1){flash('For a chord slide, move linked strings in one direction');return;}
-    technique=[...directions][0]>0?'/':'\\';
-  }else{
-    const expected=pending.action==='h'?1:-1;
-    if(linked.some(note=>Math.sign(note.f-sourceByString.get(note.s).f)!==expected)){
-      flash(pending.action==='h'?'Hammer-on destinations must be higher on each linked string':'Pull-off destinations must be lower on each linked string');
-      return;
-    }
-  }
-  const links=linked.map(note=>note.s);
+  const validation=validateLeadConnection(pending.notes,destination,pending.action);
+  if(validation.error){flash(validation.error);return;}
+  const {sourceByString,technique,links}=validation;
   const existingTargetIndex=Number.isInteger(pending.editTargetId)
     ?leadDraft.findIndex(event=>event.id===pending.editTargetId):-1;
+  const following=existingTargetIndex>=0?leadDraft[existingTargetIndex+1]:null;
+  if(following&&hasLeadLink(following)&&following.from===leadDraft[existingTargetIndex]?.id){
+    const followingAction=following.t==='/'||following.t==='\\'?'slide':following.t;
+    const followingValidation=validateLeadConnection(destination,following.notes,followingAction);
+    if(followingValidation.error){flash('That change would break the next phrase step: '+followingValidation.error.toLowerCase());return;}
+  }
+  let phraseStart=Number.isInteger(pending.phraseStart)?pending.phraseStart:null;
+  let savedTargetIndex=-1;
   if(existingTargetIndex>=0){
     const existing=leadDraft[existingTargetIndex];
     const source=leadDraft.find(event=>event.id===existing.from);
     if(!source){flash('The source event is missing');return;}
     leadDraft[existingTargetIndex]={id:existing.id,notes:destination,t:technique,from:source.id,links,rep:existing.rep||1};
-    _popLeadDraftIndex=existingTargetIndex;
+    savedTargetIndex=existingTargetIndex;_popLeadDraftIndex=existingTargetIndex;
   }else if(Number.isInteger(pending.sourceEventId)){
     const sourceIndex=leadDraft.findIndex(event=>event.id===pending.sourceEventId);
     const existingSource=leadDraft[sourceIndex];
     if(!existingSource){flash('The source event is missing');return;}
-    const source={id:existingSource.id,notes:pending.notes,t:'',from:null,links:null,rep:existingSource.rep||1};
+    // The final destination of an existing phrase becomes the source of its
+    // next leg. Keep that event's incoming link, otherwise A→B extended to C
+    // would silently become A plus a separate B→C phrase.
+    const source=pending.extendPhrase
+      ?{...existingSource,notes:pending.notes.map(note=>({s:note.s,f:note.f}))}
+      :{id:existingSource.id,notes:pending.notes,t:'',from:null,links:null,rep:existingSource.rep||1};
     const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
     leadDraft[sourceIndex]=source;
-    leadDraft.splice(sourceIndex+1,0,target);_popLeadDraftIndex=sourceIndex+1;
+    leadDraft.splice(sourceIndex+1,0,target);savedTargetIndex=sourceIndex+1;_popLeadDraftIndex=sourceIndex+1;
+    if(phraseStart===null)phraseStart=sourceIndex;
   }else{
     const source={id:_nextLeadId++,notes:pending.notes,t:'',from:null,links:null,rep:1};
     const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
-    leadDraft.push(source,target);_popLeadDraftIndex=leadDraft.length-1;
+    leadDraft.push(source,target);savedTargetIndex=leadDraft.length-1;phraseStart=leadDraft.length-2;_popLeadDraftIndex=savedTargetIndex;
   }
   playLeadConnectionPreview(sourceByString,technique,links,destination);
   leadTechniquePending=null;leadDraftEditIndex=null;
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
+  if(Number.isInteger(phraseStart)){
+    const phrase=leadPhraseAt(leadDraft,phraseStart);
+    leadPhraseEdit={start:phrase.start,end:phrase.end,active:null};
+  }else leadSelection.fill(null);
+  if(Number.isInteger(phraseStart))leadSelection.fill(null);
+  leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
   renderSong();render();renderLead();
-  flash((existingTargetIndex>=0?'Updated ':'Added ')+LEAD_CONNECTION_LABEL[pending.action].toLowerCase());
+  const phrase=Number.isInteger(phraseStart)?leadPhraseAt(leadDraft,phraseStart):null;
+  const kind=phrase&&phrase.events.length>2?' chain':links.length>1?' multi-note phrase':'';
+  flash((existingTargetIndex>=0?'Updated ':'Added ')+LEAD_CONNECTION_LABEL[pending.action].toLowerCase()+kind);
 }
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
@@ -3178,7 +3377,7 @@ document.getElementById('btnLeadCreate').addEventListener('click',()=>{
     sec.lead.push(...copyLeadEvents(leadDraft));
   }
   const wasEditing=!!existing;
-  leadDraft=[];leadDraftSourceSectionId=null;leadDraftEditIndex=null;activeSectionId=sec.id;
+  leadDraft=[];leadDraftSourceSectionId=null;leadDraftEditIndex=null;leadPhraseEdit=null;activeSectionId=sec.id;
   renderSong();save();render();
   flash((wasEditing?'Updated':'Solo added to')+' '+sec.name);
 });
@@ -3186,14 +3385,14 @@ document.getElementById('btnLeadClearSelection').addEventListener('click',()=>{
   if(leadTechniquePending){
     leadTechniquePending=null;leadSelection.fill(null);consumeSoloChordReference();renderSong();render();renderLead();flash('Cancelled technique');return;
   }
-  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;consumeSoloChordReference();renderSong();render();renderLead();
+  leadSelection.fill(null);leadSelectionSectionId=activeSection()?.id??null;leadDraftEditIndex=null;leadPhraseEdit=null;consumeSoloChordReference();renderSong();render();renderLead();
 });
 document.getElementById('boardLeadDisplay').addEventListener('click',()=>{
   leadDisplay=leadDisplay==='notes'?'tab':'notes';render();renderLead();
 });
 document.getElementById('btnLeadClear').addEventListener('click',()=>{
   if(!leadDraft.length&&!soloChordReference)return;
-  leadDraft=[];leadDraftEditIndex=null;leadTechniquePending=null;leadSelection.fill(null);consumeSoloChordReference();renderSong();render();renderLead();flash('Cleared solo draft');
+  leadDraft=[];leadDraftEditIndex=null;leadPhraseEdit=null;leadTechniquePending=null;leadSelection.fill(null);consumeSoloChordReference();renderSong();render();renderLead();flash('Cleared solo draft');
 });
 const boardRect=()=>board.getBoundingClientRect();
 function placeInlays(){
@@ -3281,15 +3480,38 @@ function render(){
     // A chord carried from Chord mode is already copied into leadSelection as
     // solid, actionable notes. Do not leave a pale second copy behind when a
     // musician changes one string: it reads as a stale note, not a guide.
+    const editedPhrase=leadPhraseEdit?leadPhraseAt(leadDraft,leadPhraseEdit.start):null;
+    const activePhraseStep=editedPhrase?editedPhrase.indexes.indexOf(leadPhraseEdit.active):-1;
+    const pendingSourceStep=activePhraseStep>0?activePhraseStep-1:-1;
+    if(editedPhrase){
+      const references=new Map();
+      editedPhrase.indexes.forEach((eventIndex,stepIndex)=>{
+        if(eventIndex===leadPhraseEdit.active||stepIndex===pendingSourceStep)return;
+        (leadDraft[eventIndex]?.notes||[]).forEach(note=>{
+          const key=note.s+'-'+note.f;
+          const record=references.get(key)||{note,steps:[]};
+          record.steps.push(stepIndex+1);references.set(key,record);
+        });
+      });
+      references.forEach(({note,steps})=>{
+        const d=document.createElement('div');d.className='dot-note phrase-step';
+        const noteLabel=leadDisplay==='notes'?pcName((OPEN[note.s]+note.f)%12):String(note.f);
+        d.textContent=steps.join('/')+'·'+noteLabel;
+        d.title='Phrase step'+(steps.length>1?'s ':' ')+steps.join(', ');
+        cells[note.s][note.f].appendChild(d);
+      });
+    }
     (leadTechniquePending?.notes||[]).forEach(note=>{
       const d=document.createElement('div');d.className='dot-note technique-source';
-      d.textContent=leadDisplay==='notes'?pcName((OPEN[note.s]+note.f)%12):String(note.f);
+      const noteLabel=leadDisplay==='notes'?pcName((OPEN[note.s]+note.f)%12):String(note.f);
+      d.textContent=pendingSourceStep>=0?(pendingSourceStep+1)+'·'+noteLabel:noteLabel;
       cells[note.s][note.f].appendChild(d);
     });
     leadSelection.forEach((f,s)=>{
       if(!Number.isInteger(f))return;
       const d=document.createElement('div');d.className='dot-note sel';
-      d.textContent=leadDisplay==='notes'?pcName((OPEN[s]+f)%12):String(f);
+      const noteLabel=leadDisplay==='notes'?pcName((OPEN[s]+f)%12):String(f);
+      d.textContent=activePhraseStep>=0?(activePhraseStep+1)+'·'+noteLabel:noteLabel;
       cells[s][f].appendChild(d);
     });
     return;
@@ -3840,10 +4062,11 @@ function buildSectionCard(sec,idx,primary){
   if((sec.lead||[]).length){
     const leadWrap=document.createElement('div');leadWrap.className='sect-lead';
     const summary=document.createElement('div');summary.className='lead-summary';
-    const label=document.createElement('span');label.textContent='🎸 Solo · '+sec.lead.length+' event'+(sec.lead.length===1?'':'s');summary.appendChild(label);
+    const phraseCount=leadPhraseGroups(sec.lead).length;
+    const label=document.createElement('span');label.textContent='🎸 Solo · '+phraseCount+' phrase'+(phraseCount===1?'':'s');summary.appendChild(label);
     const edit=document.createElement('button');edit.type='button';edit.className='lead-edit';edit.textContent='Edit solo';
     edit.title='Edit this solo';edit.addEventListener('click',e=>{
-      e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;leadDraftEditIndex=null;activeSectionId=sec.id;
+      e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;leadDraftEditIndex=null;leadPhraseEdit=null;activeSectionId=sec.id;
       setBoardMode('solo');renderSong();renderLead();
       document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
       flash('Editing solo in '+sec.name);
@@ -3863,46 +4086,47 @@ function buildSectionCard(sec,idx,primary){
     });
     summary.appendChild(remove);
     leadWrap.appendChild(summary);
-    const events=document.createElement('div');events.className='lead-sequence';events.setAttribute('aria-label','Solo events — drag to reorder');
-    sec.lead.forEach((leadEvent,eventIdx)=>{
-      const linkedTarget=leadConnectionTarget(leadEvent,eventIdx,sec.lead);
-      const isTarget=hasLeadLink(leadEvent);
-      const event=document.createElement('div');event.className='lead-event'+(linkedTarget?' lead-link-source':'')+(isTarget?' lead-link-target':'');
-      event.title=linkedTarget?leadConnectionLabel(linkedTarget)+' starts here and continues to event '+(eventIdx+2)+' · drag moves both':isTarget?leadConnectionLabel(leadEvent)+' destination from event '+leadSourceNumber(leadEvent,sec.lead)+' · drag moves both':'Drag to reorder this solo event';
-      const eventLabel=document.createElement('span');eventLabel.textContent=(eventIdx+1)+'. '+leadEventLabel(leadEvent,sec.lead);event.appendChild(eventLabel);
-      if(linkedTarget){
-        const cue=document.createElement('span');cue.className='lead-connection-cue';cue.textContent='starts '+leadConnectionLabel(linkedTarget).toLowerCase()+' → '+(eventIdx+2);
-        cue.title=leadConnectionLabel(linkedTarget)+' starts at this event and ends at event '+(eventIdx+2);event.appendChild(cue);
-      }
-      if(hasLeadLink(leadEvent)){
-        const sourceNumber=leadSourceNumber(leadEvent,sec.lead);
-        const link=document.createElement('span');link.className='lead-link';link.textContent='from '+sourceNumber;
-        link.title='Connects from solo event '+sourceNumber;event.appendChild(link);
-      }
-      event.appendChild(leadRepeatSelect(leadEvent,()=>{renderSong();save();}));
+    const events=document.createElement('div');events.className='lead-sequence';events.setAttribute('aria-label','Solo phrases — drag to reorder');
+    leadPhraseGroups(sec.lead).forEach((phrase,phraseIndex)=>{
+      const isPhrase=phrase.events.length>1;
+      const event=document.createElement('div');event.className='lead-event'+(isPhrase?' lead-phrase':'');
+      event.dataset.leadStart=phrase.start;event.dataset.leadEnd=phrase.end;
+      event.tabIndex=0;event.setAttribute('role','button');
+      event.title='Click to edit this '+(isPhrase?'phrase':'event')+' on the fretboard · drag to reorder';
+      const phraseLabel=leadPhraseLabel(phrase);
+      event.setAttribute('aria-label','Solo '+(isPhrase?'phrase ':'event ')+(phraseIndex+1)+': '+phraseLabel);
+      const eventLabel=document.createElement('span');eventLabel.textContent=(phraseIndex+1)+'. '+phraseLabel;event.appendChild(eventLabel);
+      event.appendChild(leadPhraseRepeatSelect(phrase,()=>{renderSong();save();}));
       const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
-      duplicate.title='Duplicate this solo event'+(linkedTarget||isTarget?' phrase':'');duplicate.setAttribute('aria-label',duplicate.title);
-      duplicate.addEventListener('click',e=>{e.stopPropagation();const copy=duplicateLeadPhrase(sec.lead,eventIdx);renderSong();save();flash('Duplicated '+(copy.count>1?'linked phrase':'solo event'));});
+      duplicate.title='Duplicate this solo '+(isPhrase?'phrase':'event');duplicate.setAttribute('aria-label',duplicate.title);
+      duplicate.addEventListener('click',e=>{e.stopPropagation();const copy=duplicateLeadPhrase(sec.lead,phrase.start);renderSong();save();flash('Duplicated '+(copy.count>1?'linked phrase':'solo event'));});
       event.appendChild(duplicate);
       const eventRemove=document.createElement('button');eventRemove.type='button';eventRemove.className='lead-event-x';eventRemove.textContent='×';
-      eventRemove.title='Remove this solo event';eventRemove.setAttribute('aria-label','Remove '+leadEventLabel(leadEvent));
+      eventRemove.title='Remove this solo '+(isPhrase?'phrase':'event');eventRemove.setAttribute('aria-label','Remove '+phraseLabel);
       eventRemove.addEventListener('click',e=>{
         e.stopPropagation();
         const priorLead=copyLeadEvents(sec.lead);
-        sec.lead.splice(eventIdx,1);cleanBrokenLeadLinks(sec.lead);renderSong();
-        flash('Removed solo event',{actionText:'Undo',onAction:()=>{
+        removeLeadPhrase(sec.lead,phrase.start);renderSong();
+        flash('Removed solo '+(isPhrase?'phrase':'event'),{actionText:'Undo',onAction:()=>{
           if(!sections.includes(sec))return;
           sec.lead=priorLead;renderSong();
-          flash('Restored solo event');
+          flash('Restored solo '+(isPhrase?'phrase':'event'));
         }});
       });
       event.addEventListener('click',e=>{
         if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
-        setBoardMode('solo');selectLeadDraftEvent(eventIdx);renderSong();
+        setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
       });
-      event.appendChild(eventRemove);attachSavedLeadDrag(event,sec,eventIdx);events.appendChild(event);
+      event.addEventListener('keydown',e=>{
+        if(e.target!==event||(e.key!=='Enter'&&e.key!==' '))return;
+        e.preventDefault();
+        leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
+        setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
+        document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
+      });
+      event.appendChild(eventRemove);attachSavedLeadDrag(event,sec,phrase.start);events.appendChild(event);
     });
     leadWrap.appendChild(events);card.appendChild(leadWrap);
   }
@@ -4312,11 +4536,6 @@ function startDrag(e){
   // scrolling when a finger simply touches a solo event on a phone.
   try{drag.origEl.setPointerCapture(drag.pointerId);}catch(_){/* pointer may already be released */}
   drag.origEl.classList.add('dragging');
-  if(drag.blockIdxs?.length>1){
-    const cards=[...drag.origEl.parentElement.querySelectorAll('.lead-event')];
-    drag.blockEls=drag.blockIdxs.map(index=>cards[index]).filter(Boolean);
-    drag.blockEls.forEach(card=>card.classList.add('dragging'));
-  }
   // Ghost
   const g=drag.origEl.cloneNode(true);
   g.classList.add('drag-ghost');
@@ -4382,7 +4601,9 @@ function leadInsertPosition(events,e){
     if(!row||Math.abs(rect.top-row.top)>6){
       row={top:rect.top,bottom:rect.bottom,items:[]};rows.push(row);
     }else row.bottom=Math.max(row.bottom,rect.bottom);
-    row.items.push({event,index,rect});
+    const start=Number.isInteger(+event.dataset.leadStart)?+event.dataset.leadStart:index;
+    const end=Number.isInteger(+event.dataset.leadEnd)?+event.dataset.leadEnd:start;
+    row.items.push({event,index,start,end,rect});
   });
   let row=rows[rows.length-1];
   for(const candidate of rows){
@@ -4390,15 +4611,17 @@ function leadInsertPosition(events,e){
   }
   for(const item of row.items){
     if(e.clientX<item.rect.left+item.rect.width/2){
-      const insertIdx=leadSafeInsertIndex(events,item.index);
-      return {insertBefore:events[insertIdx]||null,insertIdx};
+      const insertIdx=leadSafeInsertIndex(drag.type==='lead-draft'?leadDraft:(findSection(drag.sourceSection)?.lead||[]),item.start);
+      return {insertBefore:item.event,insertIdx};
     }
   }
   const last=row.items[row.items.length-1];
   // If this is not the last visible row, insert immediately before the first
   // event on the next row; otherwise append to the end of the sequence.
-  const insertIdx=leadSafeInsertIndex(events,last.index+1);
-  return {insertBefore:events[insertIdx]||null,insertIdx};
+  const modelEvents=drag.type==='lead-draft'?leadDraft:(findSection(drag.sourceSection)?.lead||[]);
+  const insertIdx=leadSafeInsertIndex(modelEvents,last.end+1);
+  const insertBefore=events.find(event=>+event.dataset.leadStart>=insertIdx)||null;
+  return {insertBefore,insertIdx};
 }
 
 function updateChordDrop(el,e){
@@ -4455,16 +4678,18 @@ function commitDrop(){
     const block=new Set(drag.blockIdxs||[drag.sourceIdx]);
     const moved=leadDraft.filter((_,index)=>block.has(index));
     const remaining=leadDraft.filter((_,index)=>!block.has(index));
-    remaining.splice(drag.dropIdx,0,...moved);leadDraft=remaining;
+    const adjustedDrop=drag.dropIdx-[...block].filter(index=>index<drag.dropIdx).length;
+    remaining.splice(Math.max(0,adjustedDrop),0,...moved);leadDraft=remaining;
     cleanBrokenLeadLinks(leadDraft);
-    leadDraftEditIndex=null;
+    leadDraftEditIndex=null;leadPhraseEdit=null;leadTechniquePending=null;
     renderLead();
   } else if(drag.type==='lead-saved'&&drag.dropIdx>=0){
     const sec=findSection(drag.sourceSection);if(!sec)return;
     const block=new Set(drag.blockIdxs||[drag.sourceIdx]);
     const moved=sec.lead.filter((_,index)=>block.has(index));
     const remaining=sec.lead.filter((_,index)=>!block.has(index));
-    remaining.splice(drag.dropIdx,0,...moved);sec.lead=remaining;
+    const adjustedDrop=drag.dropIdx-[...block].filter(index=>index<drag.dropIdx).length;
+    remaining.splice(Math.max(0,adjustedDrop),0,...moved);sec.lead=remaining;
     cleanBrokenLeadLinks(sec.lead);
     renderSong();save();
   } else if(drag.type==='chord' && drag.dropSection!==null && drag.dropIdx>=0){
@@ -4766,28 +4991,29 @@ function buildExportText(){
     if((g.lead||[]).length){
       L.push('Solo / arpeggio:');
       const expanded=[];
-      (g.lead||[]).forEach(event=>{
-        for(let repeat=0;repeat<(event.rep||1);repeat++)expanded.push({event,repeat});
+      leadPhraseGroups(g.lead||[]).forEach(phrase=>{
+        for(let repeat=0;repeat<leadPhraseRepeat(phrase);repeat++){
+          phrase.events.forEach(event=>expanded.push({event,repeat}));
+        }
       });
-      const techniqueFor=(event,next,string,repeat)=>{
-        // A new linked technique is written after its source fret, matching
-        // ordinary tab: 8/10, 8h10, or 10p8. Old saved events preserve their
-        // former notation behavior for backwards-compatible exports.
+      const techniqueFor=(event,next,string)=>{
+        // Linked phrases write the technique after each source fret, matching
+        // ordinary tab: 8/10, 8h10, 10p8, and longer chains such as 8p5p3.
         if(event.t&&!hasLeadLink(event))return event.t;
-        if(repeat!==(event.rep||1)-1||!next||next.repeat!==0||!hasLeadLink(next.event))return '';
+        if(!next||!hasLeadLink(next.event)||next.event.from!==event.id)return '';
         return next.event.links.includes(string)?next.event.t:'';
       };
-      const widths=expanded.map(({event,repeat},index)=>{
+      const widths=expanded.map(({event},index)=>{
         const next=expanded[index+1];
         const longest=(event.notes||[]).reduce((max,n)=>Math.max(max,String(n.f).length),1);
-        const longestTechnique=(event.notes||[]).reduce((max,n)=>Math.max(max,techniqueFor(event,next,n.s,repeat).length),0);
+        const longestTechnique=(event.notes||[]).reduce((max,n)=>Math.max(max,techniqueFor(event,next,n.s).length),0);
         return Math.max(2,longest+longestTechnique);
       });
       for(let s=0;s<6;s++){
         let line=STR_LABEL[s]+'|';
-        expanded.forEach(({event,repeat},index)=>{
+        expanded.forEach(({event},index)=>{
           const note=(event.notes||[]).find(n=>n.s===s);
-          const token=note?String(note.f)+techniqueFor(event,expanded[index+1],s,repeat):'';
+          const token=note?String(note.f)+techniqueFor(event,expanded[index+1],s):'';
           line+=token.padEnd(widths[index],'-');
         });
         L.push(line);

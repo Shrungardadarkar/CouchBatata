@@ -103,7 +103,10 @@ songIndex[]           local song metadata for the My songs picker
 - Local data includes sections, lyrics, chord shapes, grouped lead events
   (including technique links and repeats), active section, spelling, scale
   state, panel state, and next IDs. Editable backups use the same normalized
-  JSON model.
+  JSON model. Linked solo events remain a flat, backward-compatible event list
+  in storage, while the interface derives one movable phrase from each adjacent
+  slide, hammer-on, or pull-off chain. Phrase repeat is stored on its first
+  event and applies to the complete movement during export.
 - Imported chords are rebuilt from known formulas instead of trusting arbitrary
   pitch-class or suffix data.
 
@@ -131,7 +134,9 @@ songIndex[]           local song metadata for the My songs picker
 ### Text chart
 
 Human-readable sections, chord repetitions, lead-tab lines, lyrics, tuning, and
-every distinct voicing. It is intentionally not an editable project format.
+every distinct voicing. Linked lead phrases use standard tab separators between
+each step (for example `8p5p3`) and repeat as complete phrases. It is
+intentionally not an editable project format.
 
 ### JSON project
 

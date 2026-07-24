@@ -105,27 +105,16 @@
   header{background:var(--tomato);border-bottom:var(--outline);
     padding:4px 28px 4px 20px;margin-bottom:0;
     display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
-  .header-left{display:flex;align-items:center;gap:18px}
-  .mascot{width:74px;height:74px;object-fit:contain;line-height:1;flex-shrink:0;
-    filter:drop-shadow(2px 2px 0 rgba(90,47,62,.4));cursor:pointer;
-    transition:transform .2s var(--ease-spring)}
-  .mascot:hover{animation:mascotWiggle .5s ease-in-out}
-  @keyframes mascotWiggle{
-    0%{transform:rotate(0deg) scale(1)}
-    25%{transform:rotate(-6deg) scale(1.06)}
-    50%{transform:rotate(5deg) scale(1.06)}
-    75%{transform:rotate(-3deg) scale(1.03)}
-    100%{transform:rotate(0deg) scale(1)}
-  }
-  .header-title{display:flex;flex-direction:column;gap:0}
+  .header-left{display:flex;align-items:center;min-width:0}
+  .header-title{display:block;min-width:0}
   h1{font-family:"Arial Black","Arial Bold",Arial,sans-serif;font-weight:900;
      font-style:normal;font-size:clamp(1.6rem,5vw,2.15rem);line-height:.95;letter-spacing:-.015em;
      color:var(--cream);text-transform:uppercase;
      -webkit-text-stroke:2px var(--ink);paint-order:stroke fill;
      text-shadow:2.5px 2.5px 0 var(--ink)}
   h1 .dot{color:var(--sun);-webkit-text-stroke:2px var(--ink)}
-  .header-subtitle{font-family:"Arial Black",Arial,sans-serif;font-weight:800;
-    color:#2b1520;font-size:clamp(.78rem,2.2vw,.92rem);letter-spacing:0;margin-top:2px}
+  .header-subtitle{max-width:184px;margin:0;color:#2b1520;text-align:right;
+    font:900 .61rem/1.2 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase}
   .song-context{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:14px;row-gap:3px;
     align-items:center;margin:16px 4px 0;padding:11px 10px 11px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:var(--shadow-sm)}
   .song-context-kicker{grid-column:1;grid-row:1;color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
@@ -944,6 +933,11 @@
   .dot-note.scale.sfifth{border-color:#3e5637;background:var(--scale-fifth);color:var(--paper);border-style:double}
   .dot-note.scale.sseventh{border-color:var(--lilac-dk);background:var(--scale-seventh);color:var(--paper);border-radius:7px}
   .scale-legend .lg-dot.lg-sroot,.scale-notes-line .lg-note.lg-sroot{background:var(--scale-root);color:var(--paper)}
+  /* Root is the visual anchor on the neck: keep its rounded-square silhouette
+     in the board, legend, and note key so players learn one recurring motif. */
+  .dot-note.scale.sroot{border-radius:6px}
+  .scale-legend .lg-dot.lg-sroot{border-radius:4px}
+  .scale-notes-line .lg-note.lg-sroot{border-radius:5px;box-shadow:inset 0 0 0 1px var(--paper),2px 2px 0 var(--ink)}
   .scale-legend .lg-dot.lg-sthird,.scale-notes-line .lg-note.lg-sthird{background:var(--scale-third);color:var(--paper)}
   .scale-legend .lg-dot.lg-sfifth,.scale-notes-line .lg-note.lg-sfifth{background:var(--scale-fifth);color:var(--paper)}
   .scale-legend .lg-dot.lg-sseventh,.scale-notes-line .lg-note.lg-sseventh{background:var(--scale-seventh);color:var(--paper)}
@@ -967,6 +961,21 @@
   @media (hover:hover){.help-fab:hover{background:var(--cream-2)}}
   .picker.open .picker-trigger,.song-shelf-trigger[aria-expanded="true"],.song-shelf-more[aria-expanded="true"]{background:var(--explore);color:var(--ink)}
   @media (hover:hover){.picker:not(.open) .picker-trigger:hover,.picker-option:hover,.picker-option:focus{background:var(--explore-pale)}}
+  /* Menus keep the chosen row legible even while it receives keyboard focus.
+     The prior generic focus tint overrode only its background, leaving the
+     selected row's light text on a light surface. */
+  .picker-option[aria-selected="true"],.picker-option[aria-selected="true"]:focus{
+    background:var(--explore-dk);color:var(--paper)}
+  @media (hover:hover){.picker-option[aria-selected="true"]:hover{background:var(--explore-dk);color:var(--paper)}}
+  /* The section-adder is a capture action, so opening it stays yellow instead
+     of inheriting the aqua browsing state used by ordinary selectors. */
+  .section-add-control .picker.open .picker-trigger{background:var(--capture);color:var(--ink)}
+  @media (hover:hover){.section-add-control .picker.open .picker-trigger:hover{background:var(--capture-dk)}}
+  /* Repeat menus live inside dense solo/chord chips. They always rise with
+     their own panel rather than covering the following panel. At the very top
+     of a viewport, the JS uses the same below-safe treatment as other menus. */
+  .repeat-picker .picker-menu{top:auto;bottom:calc(100% + 7px)}
+  .repeat-picker.menu-below .picker-menu{top:calc(100% + 7px);bottom:auto}
   .btn.danger,.song-shelf-action.danger{background:var(--danger);color:var(--paper)}
   @media (hover:hover){.btn.danger:hover{background:#7d1925}.chip-x:hover,.lead-event-x:hover,.lead-summary-x:hover,.help-close:hover,.song-shelf-close:hover{background:var(--danger);color:var(--paper)}}
   .song-clear-btn{color:var(--danger)}
@@ -987,9 +996,8 @@
 
   /* ===== mobile polish ===== */
   @media (max-width:520px){
-    header{padding:8px 16px 8px 12px}
-    .header-left{gap:16px}
-    .mascot{width:70px;height:70px;margin:0}
+    header{padding:8px 16px 8px 12px;gap:10px;flex-wrap:nowrap}
+    .header-subtitle{max-width:124px;font-size:.56rem;letter-spacing:.06em}
     .wrap{padding:0 12px 16px}
     .song-context{margin:12px 4px 0;padding:9px 8px 9px 10px;column-gap:8px;row-gap:2px}
     .song-context-kicker{font-size:.6rem;letter-spacing:.06em}
@@ -1054,12 +1062,11 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
-    .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,.scale-panel-chevron,.mascot,
+    .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,.scale-panel-chevron,
     #toast,.board-sticker,.modal-dialog,.song-shelf-dialog,.help-fab,.help-panel,.help-close,
     .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
     .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover{transform:none !important}
-    .mascot:hover{animation:none !important}
     #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     /* .board-sticker's translate(-50%,-50%) is load-bearing centering, not
@@ -1079,12 +1086,11 @@
 
 <header>
   <div class="header-left">
-    <img class="mascot" alt="A potato relaxing on a couch and playing an acoustic guitar" src="./mascot-v2.png">
     <div class="header-title">
       <h1>Couch Batata<span class="dot">.</span></h1>
-      <p class="header-subtitle">For the songs that you almost wrote.</p>
     </div>
   </div>
+  <p class="header-subtitle">For the songs that you almost wrote.</p>
 </header>
 
 <aside class="install-card" id="installCard" hidden aria-live="polite">
@@ -3982,17 +3988,32 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
     menu.querySelectorAll('.picker-option').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.value===selected)));
   };
   const close=(restoreFocus=false)=>{
-    menu.hidden=true;wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
+    menu.hidden=true;menu.style.maxHeight='';wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
     if(restoreFocus)trigger.focus();
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
   const open=focusMode=>{
     document.querySelectorAll('.picker.open').forEach(picker=>{if(picker!==wrap){picker.querySelector('.picker-menu').hidden=true;picker.classList.remove('open','menu-below');picker.querySelector('.picker-trigger').setAttribute('aria-expanded','false');}});
-    menu.hidden=false;wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
+    menu.hidden=false;menu.style.maxHeight='';wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
     requestAnimationFrame(()=>{
-      // Section choices normally rise over the builder. On a short viewport
-      // near the top, flip below instead of letting the menu leave the screen.
-      if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
+      // Section choices normally rise over the builder. Near the top of a
+      // short viewport, flip that standalone menu below instead of letting it
+      // leave the screen. Compact repeat menus intentionally stay above their
+      // unit, so they never cover the next panel.
+      if(wrap.classList.contains('repeat-picker')){
+        // A compact menu can scroll, but it should normally remain above its
+        // chip. Keep its established 240px cap; only use a viewport-safe below
+        // fallback when there is genuinely too little usable space above.
+        const rect=trigger.getBoundingClientRect();
+        const above=Math.floor(rect.top-12);
+        const below=Math.floor(window.innerHeight-rect.bottom-12);
+        if(above>=72||above>=below){
+          menu.style.maxHeight=Math.min(240,Math.max(72,above))+'px';
+        }else{
+          wrap.classList.add('menu-below');
+          menu.style.maxHeight=Math.min(240,Math.max(72,below))+'px';
+        }
+      }else if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
         wrap.classList.add('menu-below');
       }
       const items=buttons();const current=Math.max(0,items.findIndex(button=>button.dataset.value===selected));

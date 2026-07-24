@@ -363,3 +363,7 @@
 - Added installable PWA metadata, icons, offline caching, and social preview.
 - Added dependency-free tests, documentation, AI-agent guidance, and automated
   GitHub Pages deployment.
+## 2026-07-24
+
+- Solo playback now distinguishes single-note picks, arpeggios, chord-like strums, and synchronized linked phrases. Clean multi-note events expose an Arp/Strum picker, and playback intent is preserved in project backups.
+- Clicking a saved solo/phrase chip previews it and reveals its notes on the fretboard without entering edit mode.

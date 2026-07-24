@@ -464,6 +464,11 @@
   .lead-event-copy{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:5px;background:var(--cream);color:var(--ink);font:inherit;font-size:.72rem;font-weight:900;line-height:1;cursor:pointer}
   @media (hover:hover){.lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}}
   .lead-event .repeat-picker{font-size:.68rem;flex:0 0 auto}
+  .lead-event .lead-play-picker{font-size:.68rem;flex:0 0 auto}
+  .lead-play-picker .picker-trigger{min-width:42px;border-radius:6px;padding:3px 6px;font-size:.72rem;box-shadow:none}
+  .lead-play-picker .picker-menu{min-width:78px}
+  .lead-play-picker.on .picker-trigger{background:var(--sun);color:var(--ink)}
+  .dot-note.preview{background:var(--link);color:var(--paper);outline:2px solid var(--paper);outline-offset:2px}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-phrase-editor{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-2px 0 12px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--link);border-radius:9px}
   .lead-phrase-editor[hidden]{display:none}
@@ -1336,7 +1341,7 @@
   <details>
     <summary>Solo / arpeggio</summary>
     <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer their direction from the fret change.</p>
-    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. In the recorder, click a phrase to reveal numbered steps on the fretboard, edit any step, or add another destination to make a longer chain such as a double pull-off. In the Song, click a saved phrase to play it; use <b>Edit solo</b> when you want to change it. The same strings must continue through each step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
+    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Clean multi-note events can be set to <b>Arp</b> (picked one at a time) or <b>Strum</b> (one chord-like gesture); linked slides, hammer-ons, and pull-offs always move together. In the recorder, choose a numbered step to edit any note, or add another destination to make a longer chain. In the Song, click any saved solo chip to hear it and reveal its notes on the fretboard; use <b>Edit solo</b> when you want to change it. The same strings must continue through each linked step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -2277,6 +2282,10 @@ let sectionTransferSourceId=null;
 let soloChordReference=null;
 let leadSelection=new Array(6).fill(null); // one selected fret per string before saving
 let leadSelectionSectionId=null;
+// Saved-event preview is intentionally separate from leadSelection: clicking a
+// song chip should show/hear it without silently entering solo edit mode.
+let leadPreviewNotes=[];
+let leadPreviewPhrase=null;
 let leadDisplay='notes';
 let leadDraft=[];       // events being prepared before Create solo adds them to a section
 let leadDraftSourceSectionId=null; // section being edited, or null for a new solo
@@ -2572,7 +2581,7 @@ function projectSnapshot(){
       lead:(s.lead||[]).map(event=>({
         id:event.id,
         notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
-        t:event.t||'',from:event.from,links:event.links,rep:event.rep||1
+        t:event.t||'',play:event.play||'',from:event.from,links:event.links,rep:event.rep||1
       })),
       chords:s.chords.map(c=>({
         root:c.root, suf:c.suf, pcs:[...c.pcs], frets:[...c.frets], rep:c.rep||1
@@ -2650,7 +2659,8 @@ function restoreProject(d){
       const from=Number.isInteger(event.from)&&event.from>0?event.from:null;
       const links=Array.isArray(event.links)
         ?event.links.filter(s=>Number.isInteger(s)&&s>=0&&s<=5):null;
-      return [{id,notes,t,from,links,rep}];
+      const play=event.play==='note'||event.play==='arp'||event.play==='strum'?event.play:'';
+      return [{id,notes,t,play,from,links,rep}];
     });
     return {
       id,
@@ -2838,6 +2848,27 @@ function leadStepLabel(event){
   }
   return (event?.notes||[]).map(note=>STR_LABEL[note.s]+note.f).join('+');
 }
+function leadEventPlayMode(event){
+  if(hasLeadLink(event)||['h','p','/','\\'].includes(event?.t))return 'linked';
+  if(event?.play==='note'||event?.play==='arp'||event?.play==='strum')return event.play;
+  const count=(event?.notes||[]).length;
+  return count<=1?'note':'arp';
+}
+function leadPlayModeLabel(event){
+  const mode=leadEventPlayMode(event);
+  return mode==='strum'?'strum':mode==='arp'?'arp':mode==='note'?'note':'linked';
+}
+function leadPlayModeSelect(event,onChange){
+  if((event?.notes||[]).length<2||hasLeadLink(event)||event?.t)return null;
+  const picker=makePicker({
+    value:leadEventPlayMode(event),
+    options:[{value:'arp',label:'Arp'},{value:'strum',label:'Strum'}],
+    label:'Playback intent',className:'lead-play-picker '+(leadEventPlayMode(event)==='strum'?'on':''),
+    onChange:value=>{event.play=value;onChange?.(value);}
+  });
+  picker.element.title='Choose whether these notes play one at a time or together';
+  return picker.element;
+}
 function leadPhraseGroups(events){
   const groups=[];
   for(let index=0;index<(events||[]).length;){
@@ -2868,7 +2899,11 @@ function leadPhraseTechniqueLabel(phrase){
   return LEAD_TECH_LABEL[technique]||'clean';
 }
 function leadPhraseLabel(phrase){
-  if(phrase.events.length===1)return leadStepLabel(phrase.events[0])+' · '+leadPhraseTechniqueLabel(phrase);
+  if(phrase.events.length===1){
+    const event=phrase.events[0];
+    const mode=leadPlayModeLabel(event);
+    return leadStepLabel(event)+' · '+leadPhraseTechniqueLabel(phrase)+(mode==='arp'?' · arp':mode==='strum'?' · strum':'');
+  }
   return phrase.events.map(leadStepLabel).join(' → ')+' · '+leadPhraseTechniqueLabel(phrase);
 }
 function leadPhraseRepeat(phrase){
@@ -2886,7 +2921,7 @@ function removeLeadPhrase(events,index){
 function copyLeadEvents(events){
   return (events||[]).map(event=>({
     id:event.id||_nextLeadId++,notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
-    t:event.t||'',from:event.from||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
+    t:event.t||'',play:event.play||'',from:event.from||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
   }));
 }
 function cloneLeadEventsForNewSection(events){
@@ -2894,7 +2929,7 @@ function cloneLeadEventsForNewSection(events){
   (events||[]).forEach(event=>ids.set(event.id,_nextLeadId++));
   return (events||[]).map(event=>({
     id:ids.get(event.id)||_nextLeadId++,notes:(event.notes||[]).map(n=>({s:n.s,f:n.f})),
-    t:event.t||'',from:ids.get(event.from)||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
+    t:event.t||'',play:event.play||'',from:ids.get(event.from)||null,links:Array.isArray(event.links)?[...event.links]:null,rep:event.rep||1
   }));
 }
 function duplicateLeadPhrase(events,index){
@@ -2966,6 +3001,8 @@ function renderLead(){
       const phraseLabel=leadPhraseLabel(phrase);
       event.setAttribute('aria-label','Solo '+(isPhrase?'phrase ':'event ')+(phraseIndex+1)+': '+phraseLabel);
       const label=document.createElement('span');label.textContent=(phraseIndex+1)+'. '+phraseLabel;event.appendChild(label);
+      const playPicker=leadPlayModeSelect(phrase.events.length===1?phrase.events[0]:null,()=>{renderLead();});
+      if(playPicker)event.appendChild(playPicker);
       event.appendChild(leadPhraseRepeatSelect(phrase,()=>{renderLead();}));
       const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
       duplicate.title='Duplicate this solo '+(isPhrase?'phrase':'event');duplicate.setAttribute('aria-label',duplicate.title);
@@ -2982,7 +3019,7 @@ function renderLead(){
           flash('Restored solo '+(isPhrase?'phrase':'event'));
         }});
       });
-      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))selectLeadDraftPhrase(phrase.start);});
+      event.addEventListener('click',e=>{if(!e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker, .lead-play-picker'))selectLeadDraftPhrase(phrase.start);});
       event.addEventListener('keydown',e=>{
         if(e.target!==event||(e.key!=='Enter'&&e.key!==' '))return;
         e.preventDefault();selectLeadDraftPhrase(phrase.start);
@@ -3143,6 +3180,7 @@ function selectLeadDraftEvent(index){
   flash('Editing solo event '+(index+1)+' — change notes, then choose an action to update it');
 }
 function toggleLeadNote(s,f){
+  leadPreviewNotes=[];leadPreviewPhrase=null;
   const sectionId=activeSection()?.id??null;
   if(leadSelectionSectionId!==sectionId){leadSelection.fill(null);leadSelectionSectionId=sectionId;}
   const deselecting=leadSelection[s]===f;
@@ -3160,13 +3198,12 @@ function toggleLeadNote(s,f){
 function playLeadEventPreview(event){
   if(!soundOn||!event||!event.notes||!event.notes.length)return;
   const t0=audioCtx().currentTime+0.02;
-  // Solo/arpeggio notes are picked one at a time, never hit together like a
-  // chord strum — even a multi-note event (e.g. a double-stop) gets a
-  // per-note stagger. Deliberately slower than the chord strum's 75ms: a
-  // strum is one continuous sweep across strings, but picked notes need to
-  // read as distinct events, not a fast blur.
+  const mode=leadEventPlayMode(event);
+  const spacing=mode==='strum'?0.035:mode==='arp'?0.12:0;
+  // Arpeggios read as distinct picked notes; strums use a tight sweep so a
+  // carried chord or multi-note hit is heard as one gesture.
   event.notes.forEach(({s,f},i)=>{
-    const when=t0+i*0.12;
+    const when=t0+i*spacing;
     const midi=OPEN[s]+f;
     if(event.t==='b')pluck(s,midi,{when,detuneFromCents:0,detuneToCents:200,rampMs:140});
     else if(event.t==='r')pluck(s,midi,{when,detuneFromCents:200,detuneToCents:0,rampMs:140});
@@ -3214,6 +3251,15 @@ function playLeadPhrasePreview(phrase){
     },index*320);
   });
 }
+function showLeadPhrasePreview(phrase){
+  leadPreviewPhrase=phrase;
+  leadPreviewNotes=(phrase?.events||[]).flatMap(event=>event.notes||[]).map(note=>({s:note.s,f:note.f}));
+  leadSelection.fill(null);
+  leadSelectionSectionId=activeSection()?.id??null;
+  setBoardMode('solo');
+  render();
+  document.getElementById('tabPanel')?.scrollIntoView({behavior:'smooth',block:'center'});
+}
 
 // What the Pick button plays in Solo/arpeggio mode. Mirrors the audio half of
 // commitLeadConnection/saveLeadEvent without touching the draft — a mid-edit
@@ -3258,6 +3304,7 @@ function saveLeadEvent(t){
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
   if(!notes.length){flash('Select one or more notes first');return;}
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
+  const carriedChord=!!soloChordReference&&notes.length>1&&notes.every(note=>soloChordReference[note.s]===note.f);
   const editingPhraseSource=editing&&leadPhraseEdit&&leadDraftEditIndex===leadPhraseEdit.start;
   if(editingPhraseSource){
     const next=leadDraft[leadDraftEditIndex+1];
@@ -3267,11 +3314,11 @@ function saveLeadEvent(t){
     t='';
   }
   if(editing){
-    leadDraft[leadDraftEditIndex]={id:editing.id,notes,t,from:null,links:null,rep:editing.rep||1};
+    leadDraft[leadDraftEditIndex]={id:editing.id,notes,t,play:editing.play||(notes.length>1?'arp':'note'),from:null,links:null,rep:editing.rep||1};
     _popLeadDraftIndex=leadDraftEditIndex;
   }else{
     // Do not write to the song until the musician confirms with Create solo.
-    leadDraft.push({id:_nextLeadId++,notes,t,from:null,links:null,rep:1});
+    leadDraft.push({id:_nextLeadId++,notes,t,play:carriedChord?'strum':notes.length>1?'arp':'note',from:null,links:null,rep:1});
     _popLeadDraftIndex=leadDraft.length-1;
   }
   const saved=leadDraft[_popLeadDraftIndex];
@@ -3537,6 +3584,14 @@ function render(){
       d.textContent=activePhraseStep>=0?(activePhraseStep+1)+'·'+noteLabel:noteLabel;
       cells[s][f].appendChild(d);
     });
+    if(leadPreviewNotes.length&&!leadSelection.some(Number.isInteger)){
+      leadPreviewNotes.forEach(note=>{
+        const d=document.createElement('div');d.className='dot-note sel preview';
+        d.textContent=leadDisplay==='notes'?pcName((OPEN[note.s]+note.f)%12):String(note.f);
+        d.title='Previewed solo notes — click Edit solo to change them';
+        cells[note.s][note.f].appendChild(d);
+      });
+    }
     return;
   }
   /* selected notes + mute marks on the nut */
@@ -3727,6 +3782,9 @@ setSoundOn(soundOn);
 
 function setBoardMode(mode){
   if(mode!== 'chord'&&mode!== 'solo')return;
+  if(mode==='chord'){
+    leadPreviewNotes=[];leadPreviewPhrase=null;
+  }
   if(mode==='solo'){
     // The default open tuning is a starting canvas, not a selected chord. A
     // user-played, suggested, shaped, or song-chip chord becomes the active
@@ -3736,7 +3794,7 @@ function setBoardMode(mode){
     // This is more than a visual guide: when a chord is deliberately chosen,
     // its notes become the active Solo selection so a musician can immediately
     // save a chord hit or use it as the first part of an arpeggio.
-    if(soloChordReference&&!Number.isInteger(leadDraftEditIndex)){
+    if(soloChordReference&&!leadPreviewNotes.length&&!Number.isInteger(leadDraftEditIndex)){
       leadSelection=soloChordReference.slice();
       leadSelectionSectionId=activeSection()?.id??null;
     }
@@ -4119,6 +4177,8 @@ function buildSectionCard(sec,idx,primary){
       const phraseLabel=leadPhraseLabel(phrase);
       event.setAttribute('aria-label','Solo '+(isPhrase?'phrase ':'event ')+(phraseIndex+1)+': '+phraseLabel);
       const eventLabel=document.createElement('span');eventLabel.textContent=(phraseIndex+1)+'. '+phraseLabel;event.appendChild(eventLabel);
+      const playPicker=leadPlayModeSelect(phrase.events.length===1?phrase.events[0]:null,()=>{renderSong();save();});
+      if(playPicker)event.appendChild(playPicker);
       event.appendChild(leadPhraseRepeatSelect(phrase,()=>{renderSong();save();}));
       const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
       duplicate.title='Duplicate this solo '+(isPhrase?'phrase':'event');duplicate.setAttribute('aria-label',duplicate.title);
@@ -4137,12 +4197,14 @@ function buildSectionCard(sec,idx,primary){
         }});
       });
       event.addEventListener('click',e=>{
-        if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
+        if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker, .lead-play-picker'))return;
         if(leadDraftSourceSectionId!==sec.id){
           playLeadPhrasePreview(phrase);
+          showLeadPhrasePreview(phrase);
           flash('Playing solo '+(phraseIndex+1));
           return;
         }
+        leadPreviewNotes=[];leadPreviewPhrase=null;
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -4152,9 +4214,11 @@ function buildSectionCard(sec,idx,primary){
         e.preventDefault();
         if(leadDraftSourceSectionId!==sec.id){
           playLeadPhrasePreview(phrase);
+          showLeadPhrasePreview(phrase);
           flash('Playing solo '+(phraseIndex+1));
           return;
         }
+        leadPreviewNotes=[];leadPreviewPhrase=null;
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -4484,7 +4548,7 @@ function attachChipDrag(chip,sec,cIdx){
 
 function attachLeadDraftDrag(eventEl,eventIdx){
   eventEl.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
+        if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker, .lead-play-picker'))return;
     if(e.pointerType==='mouse'&&e.button!==0)return;
     const rect=eventEl.getBoundingClientRect();
     const blockIdxs=leadDragBlock(leadDraft,eventIdx);

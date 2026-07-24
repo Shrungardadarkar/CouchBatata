@@ -76,7 +76,7 @@ assert.match(html, /id="boardLeadDisplay" type="button" role="switch"/);
 assert.match(html, /leadDisplay==='tab'\?String\(f\):scaleNoteName\(scaleActive\.root,scaleActive\.scale,scaleIndex\)/);
 assert.match(html, /btnLeadCreate/);
 assert.match(html, /leadDraft/);
-assert.match(html, /leadDraft\.push\(\{id:_nextLeadId\+\+,notes,t,from:null,links:null,rep:1\}\)/);
+assert.match(html, /leadDraft\.push\(\{id:_nextLeadId\+\+,notes,t,play:carriedChord\?'strum':notes\.length>1\?'arp':'note',from:null,links:null,rep:1\}\)/);
 assert.match(html, /function consumeSoloChordReference\(\)/);
 assert.match(html, /consumeSoloChordReference\(\);renderSong\(\);render\(\);renderLead\(\)/);
 assert.match(html, /Save solo/);

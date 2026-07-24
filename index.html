@@ -1336,7 +1336,7 @@
   <details>
     <summary>Solo / arpeggio</summary>
     <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer their direction from the fret change.</p>
-    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Click a phrase to reveal numbered steps on the fretboard, edit any step, or add another destination to make a longer chain such as a double pull-off. The same strings must continue through each step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
+    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. In the recorder, click a phrase to reveal numbered steps on the fretboard, edit any step, or add another destination to make a longer chain such as a double pull-off. In the Song, click a saved phrase to play it; use <b>Edit solo</b> when you want to change it. The same strings must continue through each step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -3198,6 +3198,23 @@ function playLeadConnectionPreview(sourceByString,technique,links,destinationNot
   });
 }
 
+// Preview a saved phrase as a short musical gesture. Saved solo chips are
+// listen controls by default; editing is an explicit mode entered via
+// “Edit solo”. Each transition is scheduled separately so a chain remains
+// intelligible instead of collapsing into one simultaneous chord hit.
+function playLeadPhrasePreview(phrase){
+  if(!soundOn||!phrase?.events?.length)return;
+  phrase.events.forEach((event,index)=>{
+    setTimeout(()=>{
+      if(index>0&&hasLeadLink(event)){
+        const source=phrase.events[index-1];
+        const technique=event.t==='/'||event.t==='\\'?'slide':event.t;
+        playLeadConnectionPreview(new Map((source.notes||[]).map(note=>[note.s,note])),technique,event.links||[],event.notes||[]);
+      }else playLeadEventPreview(event);
+    },index*320);
+  });
+}
+
 // What the Pick button plays in Solo/arpeggio mode. Mirrors the audio half of
 // commitLeadConnection/saveLeadEvent without touching the draft — a mid-edit
 // hammer-on/pull-off/slide (dashed source, chosen destination) previews as
@@ -3223,6 +3240,12 @@ function previewSoloPick(){
       technique=directions.size===1?([...directions][0]>0?'/':'\\'):'/';
     }
     playLeadConnectionPreview(sourceByString,technique,linked.map(note=>note.s),destination);
+    return;
+  }
+  // A selected phrase overview has no active note selection by design. Pick
+  // the phrase itself in that state; numbered-step editing remains explicit.
+  if(leadPhraseEdit&&!Number.isInteger(leadDraftEditIndex)){
+    playLeadPhrasePreview(leadPhraseAt(leadDraft,leadPhraseEdit.start));
     return;
   }
   const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
@@ -4115,6 +4138,11 @@ function buildSectionCard(sec,idx,primary){
       });
       event.addEventListener('click',e=>{
         if(e.target.closest('.lead-event-x, .lead-event-copy, .repeat-picker'))return;
+        if(leadDraftSourceSectionId!==sec.id){
+          playLeadPhrasePreview(phrase);
+          flash('Playing solo '+(phraseIndex+1));
+          return;
+        }
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
@@ -4122,6 +4150,11 @@ function buildSectionCard(sec,idx,primary){
       event.addEventListener('keydown',e=>{
         if(e.target!==event||(e.key!=='Enter'&&e.key!==' '))return;
         e.preventDefault();
+        if(leadDraftSourceSectionId!==sec.id){
+          playLeadPhrasePreview(phrase);
+          flash('Playing solo '+(phraseIndex+1));
+          return;
+        }
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
         document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});

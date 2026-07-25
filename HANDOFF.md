@@ -83,8 +83,9 @@ cleared/Imported project/local-song actions/etc. Don't move those.
 12. **Solo playback intent and chip preview** — commit `e40d92f` adds an
     optional `play` field to lead events. Clean multi-note events can be
     explicitly played as `arp` or `strum`; one-note events default to `note`.
-    Linked slides, hammer-ons, and pull-offs remain synchronized source/
-    destination phrases. Older projects without `play` still load through the
+    Multi-note linked slides, hammer-ons, and pull-offs default to `strum` but
+    expose the same choice while retaining synchronized source/destination
+    strings. Older projects without `play` still load through the
     derived defaults. Clicking a saved solo/phrase chip now previews its sound
     and shows its notes on the shared fretboard without entering edit mode;
     **Edit solo** remains the explicit editing path. Help, README, PROJECT, and

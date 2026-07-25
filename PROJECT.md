@@ -14,10 +14,10 @@ they knew its name. The primary loop is:
 4. Arrange sections, repeats, and optional lyrics.
 5. Switch the same fretboard to Solo / arpeggio mode and record into the active
    section, using any selected scale overlay as a visual guide.
-6. Choose how a clean multi-note solo event should sound: **Arp** picks notes
-   one at a time, while **Strum** makes one chord-like gesture. Connected
-   slides, hammer-ons, and pull-offs are synchronized across their linked
-   strings.
+6. Choose how a multi-note solo event should sound: **Arp** picks notes one at
+   a time, while **Strum** makes one chord-like gesture. Multi-note connected
+   slides, hammer-ons, and pull-offs default to Strum but expose the same
+   choice; the strings remain linked either way.
 7. Review key and scale guidance.
 8. Export a readable chart or an editable project backup.
 
@@ -113,7 +113,8 @@ songIndex[]           local song metadata for the My songs picker
   event and applies to the complete movement during export.
 - Legacy projects without `play` remain valid. The app derives `note` for a
   one-note event and `arp` for an unannotated multi-note clean event; a chord
-  deliberately carried from Chord mode is saved as `strum`.
+  deliberately carried from Chord mode is saved as `strum`. A multi-note
+  linked phrase without an explicit intent previews as `strum`.
 - Clicking a saved solo/phrase chip is a non-editing preview: it plays the
   phrase and shows its notes on the shared fretboard. **Edit solo** is the
   explicit transition into mutation mode, so previewing never changes a draft.

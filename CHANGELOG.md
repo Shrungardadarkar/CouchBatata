@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-25 — Linked phrase playback intent
+
+- Added the Arp / Strum picker to multi-note slide, hammer-on, and pull-off
+  phrases, defaulting them to a tight strum while preserving linked strings.
+- Saved linked phrases now retain that intent and use it when previewed from a
+  Song chip or the recorder.
+
 ## 2026-07-25 — Project context documentation
 
 - Updated `PROJECT.md`, `README.md`, `HANDOFF.md`, and `CONTRIBUTING.md` to

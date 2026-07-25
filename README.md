@@ -66,10 +66,10 @@ Users do not need an app-store download.
   then **Create solo** adds them to the selected section (or a new Solo section).
 - Solo techniques slide in directly beneath the fret numbers and activate only
   after selecting one or more notes.
-- Clean multi-note solo events can be marked **Arp** (picked one at a time) or
-  **Strum** (one chord-like gesture). Slides, hammer-ons, and pull-offs retain
-  their linked source/destination relationship and play together across the
-  connected strings.
+- Multi-note solo events can be marked **Arp** (picked one at a time) or
+  **Strum** (one chord-like gesture). Multi-note slides, hammer-ons, and
+  pull-offs default to Strum but expose the same choice while retaining their
+  linked source/destination relationship.
 - Saved solos are visible in their Song section and can be reopened with
   **Edit solo** for further changes; the action becomes **Save solo** while
   editing. A new solo joins an active chord section, or creates a Solo section

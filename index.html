@@ -1341,7 +1341,7 @@
   <details>
     <summary>Solo / arpeggio</summary>
     <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer their direction from the fret change.</p>
-    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Clean multi-note events can be set to <b>Arp</b> (picked one at a time) or <b>Strum</b> (one chord-like gesture); linked slides, hammer-ons, and pull-offs always move together. In the recorder, choose a numbered step to edit any note, or add another destination to make a longer chain. In the Song, click any saved solo chip to hear it and reveal its notes on the fretboard; use <b>Edit solo</b> when you want to change it. The same strings must continue through each linked step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
+    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Clean multi-note events can be set to <b>Arp</b> (picked one at a time) or <b>Strum</b> (one chord-like gesture). Multi-note linked slides, hammer-ons, and pull-offs default to <b>Strum</b>, with the same <b>Arp / Strum</b> choice available on the phrase; the strings stay linked either way. In the recorder, choose a numbered step to edit any note, or add another destination to make a longer chain. In the Song, click any saved solo chip to hear it and reveal its notes on the fretboard; use <b>Edit solo</b> when you want to change it. The same strings must continue through each linked step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -2849,8 +2849,8 @@ function leadStepLabel(event){
   return (event?.notes||[]).map(note=>STR_LABEL[note.s]+note.f).join('+');
 }
 function leadEventPlayMode(event){
-  if(hasLeadLink(event)||['h','p','/','\\'].includes(event?.t))return 'linked';
   if(event?.play==='note'||event?.play==='arp'||event?.play==='strum')return event.play;
+  if(hasLeadLink(event)||['h','p','/','\\'].includes(event?.t))return 'linked';
   const count=(event?.notes||[]).length;
   return count<=1?'note':'arp';
 }
@@ -2867,6 +2867,24 @@ function leadPlayModeSelect(event,onChange){
     onChange:value=>{event.play=value;onChange?.(value);}
   });
   picker.element.title='Choose whether these notes play one at a time or together';
+  return picker.element;
+}
+function leadPhrasePlayMode(phrase){
+  const linked=phrase?.events?.slice(1)||[];
+  const multi=linked.length>0&&phrase.events.some(event=>(event.notes||[]).length>1);
+  if(!multi)return 'linked';
+  const explicit=linked.find(event=>event.play==='arp'||event.play==='strum');
+  return explicit?.play||'strum';
+}
+function leadPhrasePlayModeSelect(phrase,onChange){
+  if(phrase?.events?.length<2||leadPhrasePlayMode(phrase)==='linked')return null;
+  const mode=leadPhrasePlayMode(phrase);
+  const picker=makePicker({
+    value:mode,options:[{value:'arp',label:'Arp'},{value:'strum',label:'Strum'}],
+    label:'Linked phrase playback intent',className:'lead-play-picker '+(mode==='strum'?'on':''),
+    onChange:value=>{phrase.events.slice(1).forEach(event=>{if(hasLeadLink(event))event.play=value;});onChange?.(value);}
+  });
+  picker.element.title='Choose whether this multi-note linked phrase is picked or strummed';
   return picker.element;
 }
 function leadPhraseGroups(events){
@@ -2904,7 +2922,8 @@ function leadPhraseLabel(phrase){
     const mode=leadPlayModeLabel(event);
     return leadStepLabel(event)+' · '+leadPhraseTechniqueLabel(phrase)+(mode==='arp'?' · arp':mode==='strum'?' · strum':'');
   }
-  return phrase.events.map(leadStepLabel).join(' → ')+' · '+leadPhraseTechniqueLabel(phrase);
+  const mode=leadPhrasePlayMode(phrase);
+  return phrase.events.map(leadStepLabel).join(' → ')+' · '+leadPhraseTechniqueLabel(phrase)+(mode==='arp'?' · arp':mode==='strum'?' · strum':'');
 }
 function leadPhraseRepeat(phrase){
   return Math.max(1,...phrase.events.map(event=>Number.isInteger(event.rep)?event.rep:1));
@@ -3001,7 +3020,9 @@ function renderLead(){
       const phraseLabel=leadPhraseLabel(phrase);
       event.setAttribute('aria-label','Solo '+(isPhrase?'phrase ':'event ')+(phraseIndex+1)+': '+phraseLabel);
       const label=document.createElement('span');label.textContent=(phraseIndex+1)+'. '+phraseLabel;event.appendChild(label);
-      const playPicker=leadPlayModeSelect(phrase.events.length===1?phrase.events[0]:null,()=>{renderLead();});
+      const playPicker=phrase.events.length>1
+        ?leadPhrasePlayModeSelect(phrase,()=>{renderLead();})
+        :leadPlayModeSelect(phrase.events[0],()=>{renderLead();});
       if(playPicker)event.appendChild(playPicker);
       event.appendChild(leadPhraseRepeatSelect(phrase,()=>{renderLead();}));
       const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';
@@ -3217,20 +3238,22 @@ function playLeadEventPreview(event){
 // (that's what "linked" means here), so these get an exact-interval ramp
 // instead of a guessed default — legato techniques (h/p) also get a
 // softened attack, since there's no fresh pick strike on the real gesture.
-function playLeadConnectionPreview(sourceByString,technique,links,destinationNotes){
+function playLeadConnectionPreview(sourceByString,technique,links,destinationNotes,playMode='strum'){
   if(!soundOn)return;
   const t0=audioCtx().currentTime+0.02;
   const linkedSet=new Set(links);
   const legato=technique==='h'||technique==='p';
+  const spacing=playMode==='arp'?0.12:0.035;
   const rampMs=legato?90:180;
   const fadeInMs=legato?18:4; // slide still keeps a pick-like onset, just not a hard digital step
-  destinationNotes.forEach(({s,f})=>{
+  destinationNotes.forEach(({s,f},index)=>{
     const midi=OPEN[s]+f;
+    const when=t0+index*spacing;
     if(linkedSet.has(s)){
       const fromCents=(sourceByString.get(s).f-f)*100;
-      pluck(s,midi,{when:t0,detuneFromCents:fromCents,detuneToCents:0,rampMs,fadeInMs,velocity:legato?0.75:1});
+      pluck(s,midi,{when,detuneFromCents:fromCents,detuneToCents:0,rampMs,fadeInMs,velocity:legato?0.75:1});
     }else{
-      pluck(s,midi,{when:t0});
+      pluck(s,midi,{when});
     }
   });
 }
@@ -3241,13 +3264,17 @@ function playLeadConnectionPreview(sourceByString,technique,links,destinationNot
 // intelligible instead of collapsing into one simultaneous chord hit.
 function playLeadPhrasePreview(phrase){
   if(!soundOn||!phrase?.events?.length)return;
+  const phraseMode=leadPhrasePlayMode(phrase);
   phrase.events.forEach((event,index)=>{
     setTimeout(()=>{
       if(index>0&&hasLeadLink(event)){
         const source=phrase.events[index-1];
         const technique=event.t==='/'||event.t==='\\'?'slide':event.t;
-        playLeadConnectionPreview(new Map((source.notes||[]).map(note=>[note.s,note])),technique,event.links||[],event.notes||[]);
-      }else playLeadEventPreview(event);
+        playLeadConnectionPreview(new Map((source.notes||[]).map(note=>[note.s,note])),technique,event.links||[],event.notes||[],phraseMode==='arp'?'arp':'strum');
+      }else{
+        const previewEvent=phraseMode==='strum'&&event.notes?.length>1&&!event.t?{...event,play:'strum'}:event;
+        playLeadEventPreview(previewEvent);
+      }
     },index*320);
   });
 }
@@ -3285,7 +3312,8 @@ function previewSoloPick(){
       const directions=new Set(linked.map(note=>Math.sign(note.f-sourceByString.get(note.s).f)).filter(Boolean));
       technique=directions.size===1?([...directions][0]>0?'/':'\\'):'/';
     }
-    playLeadConnectionPreview(sourceByString,technique,linked.map(note=>note.s),destination);
+    const multiNote= pending.notes.length>1 || destination.length>1;
+    playLeadConnectionPreview(sourceByString,technique,linked.map(note=>note.s),destination,multiNote?'strum':'note');
     return;
   }
   // A selected phrase overview has no active note selection by design. Pick
@@ -3388,12 +3416,14 @@ function commitLeadConnection(){
     if(followingValidation.error){flash('That change would break the next phrase step: '+followingValidation.error.toLowerCase());return;}
   }
   let phraseStart=Number.isInteger(pending.phraseStart)?pending.phraseStart:null;
+  const multiNoteConnection=pending.notes.length>1||destination.length>1;
   let savedTargetIndex=-1;
   if(existingTargetIndex>=0){
     const existing=leadDraft[existingTargetIndex];
     const source=leadDraft.find(event=>event.id===existing.from);
     if(!source){flash('The source event is missing');return;}
-    leadDraft[existingTargetIndex]={id:existing.id,notes:destination,t:technique,from:source.id,links,rep:existing.rep||1};
+    if(multiNoteConnection)source.play='strum';
+    leadDraft[existingTargetIndex]={id:existing.id,notes:destination,t:technique,play:existing.play||(multiNoteConnection?'strum':'note'),from:source.id,links,rep:existing.rep||1};
     savedTargetIndex=existingTargetIndex;_popLeadDraftIndex=existingTargetIndex;
   }else if(Number.isInteger(pending.sourceEventId)){
     const sourceIndex=leadDraft.findIndex(event=>event.id===pending.sourceEventId);
@@ -3404,17 +3434,17 @@ function commitLeadConnection(){
     // would silently become A plus a separate B→C phrase.
     const source=pending.extendPhrase
       ?{...existingSource,notes:pending.notes.map(note=>({s:note.s,f:note.f}))}
-      :{id:existingSource.id,notes:pending.notes,t:'',from:null,links:null,rep:existingSource.rep||1};
-    const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
+      :{id:existingSource.id,notes:pending.notes,t:'',play:pending.notes.length>1?'strum':'note',from:null,links:null,rep:existingSource.rep||1};
+    const target={id:_nextLeadId++,notes:destination,t:technique,play:multiNoteConnection?'strum':'note',from:source.id,links,rep:1};
     leadDraft[sourceIndex]=source;
     leadDraft.splice(sourceIndex+1,0,target);savedTargetIndex=sourceIndex+1;_popLeadDraftIndex=sourceIndex+1;
     if(phraseStart===null)phraseStart=sourceIndex;
   }else{
-    const source={id:_nextLeadId++,notes:pending.notes,t:'',from:null,links:null,rep:1};
-    const target={id:_nextLeadId++,notes:destination,t:technique,from:source.id,links,rep:1};
+    const source={id:_nextLeadId++,notes:pending.notes,t:'',play:pending.notes.length>1?'strum':'note',from:null,links:null,rep:1};
+    const target={id:_nextLeadId++,notes:destination,t:technique,play:multiNoteConnection?'strum':'note',from:source.id,links,rep:1};
     leadDraft.push(source,target);savedTargetIndex=leadDraft.length-1;phraseStart=leadDraft.length-2;_popLeadDraftIndex=savedTargetIndex;
   }
-  playLeadConnectionPreview(sourceByString,technique,links,destination);
+  playLeadConnectionPreview(sourceByString,technique,links,destination,multiNoteConnection?'strum':'note');
   leadTechniquePending=null;leadDraftEditIndex=null;
   if(Number.isInteger(phraseStart)){
     const phrase=leadPhraseAt(leadDraft,phraseStart);
@@ -4177,7 +4207,9 @@ function buildSectionCard(sec,idx,primary){
       const phraseLabel=leadPhraseLabel(phrase);
       event.setAttribute('aria-label','Solo '+(isPhrase?'phrase ':'event ')+(phraseIndex+1)+': '+phraseLabel);
       const eventLabel=document.createElement('span');eventLabel.textContent=(phraseIndex+1)+'. '+phraseLabel;event.appendChild(eventLabel);
-      const playPicker=leadPlayModeSelect(phrase.events.length===1?phrase.events[0]:null,()=>{renderSong();save();});
+      const playPicker=phrase.events.length>1
+        ?leadPhrasePlayModeSelect(phrase,()=>{renderSong();save();})
+        :leadPlayModeSelect(phrase.events[0],()=>{renderSong();save();});
       if(playPicker)event.appendChild(playPicker);
       event.appendChild(leadPhraseRepeatSelect(phrase,()=>{renderSong();save();}));
       const duplicate=document.createElement('button');duplicate.type='button';duplicate.className='lead-event-copy';duplicate.textContent='⧉';

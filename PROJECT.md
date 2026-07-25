@@ -15,7 +15,7 @@ they knew its name. The primary loop is:
 5. Switch the same fretboard to Solo / arpeggio mode and record into the active
    section, using any selected scale overlay as a visual guide.
 6. Choose how a multi-note solo event should sound: **Arp** picks notes one at
-   a time, while **Strum** makes one chord-like gesture. Multi-note connected
+   a time, while **Strum** plays the strings together as one hit. Multi-note connected
    slides, hammer-ons, and pull-offs default to Strum but expose the same
    choice; the strings remain linked either way.
 7. Review key and scale guidance.

@@ -67,7 +67,7 @@ Users do not need an app-store download.
 - Solo techniques slide in directly beneath the fret numbers and activate only
   after selecting one or more notes.
 - Multi-note solo events can be marked **Arp** (picked one at a time) or
-  **Strum** (one chord-like gesture). Multi-note slides, hammer-ons, and
+  **Strum** (all strings together as one hit). Multi-note slides, hammer-ons, and
   pull-offs default to Strum but expose the same choice while retaining their
   linked source/destination relationship.
 - Saved solos are visible in their Song section and can be reopened with

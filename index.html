@@ -466,7 +466,8 @@
   .lead-event .repeat-picker{font-size:.68rem;flex:0 0 auto}
   .lead-event .lead-play-picker{font-size:.68rem;flex:0 0 auto}
   .lead-play-picker .picker-trigger{min-width:42px;border-radius:6px;padding:3px 6px;font-size:.72rem;box-shadow:none}
-  .lead-play-picker .picker-menu{min-width:78px}
+  .lead-play-picker .picker-menu{min-width:78px;top:auto;bottom:calc(100% + 7px)}
+  .lead-play-picker.menu-below .picker-menu{top:calc(100% + 7px);bottom:auto}
   .lead-play-picker.on .picker-trigger{background:var(--sun);color:var(--ink)}
   .dot-note.preview{background:var(--link);color:var(--paper);outline:2px solid var(--paper);outline-offset:2px}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
@@ -1341,7 +1342,7 @@
   <details>
     <summary>Solo / arpeggio</summary>
     <p>Switch modes and a deliberately selected chord becomes the active Solo selection, ready to save as a chord hit or reshape into an arpeggio. Saving it or pressing Clear selection removes that one-shot reference; choose or edit a chord again to start another. For Slide, Hammer-on, or Pull-off: select the source, press the technique, choose its destination, then press Save. Slides infer their direction from the fret change.</p>
-    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Clean multi-note events can be set to <b>Arp</b> (picked one at a time) or <b>Strum</b> (one chord-like gesture). Multi-note linked slides, hammer-ons, and pull-offs default to <b>Strum</b>, with the same <b>Arp / Strum</b> choice available on the phrase; the strings stay linked either way. In the recorder, choose a numbered step to edit any note, or add another destination to make a longer chain. In the Song, click any saved solo chip to hear it and reveal its notes on the fretboard; use <b>Edit solo</b> when you want to change it. The same strings must continue through each linked step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
+    <p>A connected movement is shown as one dashed phrase—for example <b>G → C · slide</b>—instead of separate source and destination cards. Couch Batata recognises chord shapes when the selected notes form one; otherwise it shows the note or tab steps. Clean multi-note events can be set to <b>Arp</b> (picked one at a time) or <b>Strum</b> (all strings together). Multi-note linked slides, hammer-ons, and pull-offs default to <b>Strum</b>, with the same <b>Arp / Strum</b> choice available on the phrase; the strings stay linked either way. This saved-chip intent is separate from the fretboard’s Pick and Strum buttons, which are live exploration controls. In the recorder, choose a numbered step to edit any note, or add another destination to make a longer chain. In the Song, click any saved solo chip to hear it and reveal its notes on the fretboard; use <b>Edit solo</b> when you want to change it. The same strings must continue through each linked step, while held notes may stay in place. The ×N menu repeats the whole phrase, ⧉ duplicates it, × deletes it, and dragging moves it as one unit.</p>
   </details>
   <details>
     <summary>Saving &amp; editing a solo</summary>
@@ -3220,9 +3221,10 @@ function playLeadEventPreview(event){
   if(!soundOn||!event||!event.notes||!event.notes.length)return;
   const t0=audioCtx().currentTime+0.02;
   const mode=leadEventPlayMode(event);
-  const spacing=mode==='strum'?0.035:mode==='arp'?0.12:0;
-  // Arpeggios read as distinct picked notes; strums use a tight sweep so a
-  // carried chord or multi-note hit is heard as one gesture.
+  const spacing=mode==='strum'?0:mode==='arp'?0.12:0;
+  // A saved Arp is deliberately sequential. A saved Strum is a simultaneous
+  // multi-string hit; the fretboard's separate Strum button remains a visible
+  // downstroke sweep for exploration, so these two intents do not get mixed.
   event.notes.forEach(({s,f},i)=>{
     const when=t0+i*spacing;
     const midi=OPEN[s]+f;
@@ -3243,7 +3245,7 @@ function playLeadConnectionPreview(sourceByString,technique,links,destinationNot
   const t0=audioCtx().currentTime+0.02;
   const linkedSet=new Set(links);
   const legato=technique==='h'||technique==='p';
-  const spacing=playMode==='arp'?0.12:0.035;
+  const spacing=playMode==='arp'?0.12:0;
   const rampMs=legato?90:180;
   const fadeInMs=legato?18:4; // slide still keeps a pick-like onset, just not a hard digital step
   destinationNotes.forEach(({s,f},index)=>{
@@ -4396,6 +4398,8 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
           wrap.classList.add('menu-below');
           menu.style.maxHeight=Math.min(240,Math.max(36,below))+'px';
         }
+      }else if(wrap.classList.contains('lead-play-picker')&&menu.getBoundingClientRect().top<8){
+        wrap.classList.add('menu-below');
       }else if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
         wrap.classList.add('menu-below');
       }

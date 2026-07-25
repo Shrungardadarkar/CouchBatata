@@ -6,6 +6,10 @@
   phrases, defaulting them to a tight strum while preserving linked strings.
 - Saved linked phrases now retain that intent and use it when previewed from a
   Song chip or the recorder.
+- Saved Strum playback is simultaneous, while Arp remains sequential. The
+  fretboard Strum button remains a separate live downstroke sweep.
+- Linked-phrase playback menus open upward by default so they do not cover the
+  following solo chips, with a viewport-aware downward fallback.
 
 ## 2026-07-25 — Project context documentation
 

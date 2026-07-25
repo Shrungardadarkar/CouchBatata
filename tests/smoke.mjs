@@ -203,6 +203,8 @@ assert.match(html, /const spacing=mode==='strum'\?0:mode==='arp'\?0\.12:0/);
 assert.match(html, /const spacing=playMode==='arp'\?0\.12:0/);
 assert.match(html, /function leadPlayToggle\(mode,onChange,label\)/);
 assert.match(html, /\.lead-play-toggle button\[aria-pressed="true"\]/);
+assert.match(html, /if\(boardMode==='solo'\)\{\s*\/\/ Chord chips are also a fast way/);
+assert.match(html, /leadSelection=soloChordReference\.slice\(\)/);
 assert.match(html, /\.repeat-picker\.open \.picker-menu\{position:static;display:grid/);
 assert.match(html, /Repeat menus are inline by CSS/);
 assert.doesNotMatch(html, /<audio\b|new Audio\(/, "Sound must be synthesized, not loaded from audio assets");

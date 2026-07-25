@@ -5055,13 +5055,30 @@ function secTransferBtn(sec){
 function toggleChip(sec,cIdx){
   const isSame = activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
   if(isSame){
-    activeChip=null;resetChordSelection();exitShapes();analyze();renderSong();return;
+    activeChip=null;
+    if(boardMode==='solo'){
+      soloChordReference=null;leadSelection.fill(null);leadPreviewNotes=[];leadPreviewPhrase=null;
+      leadSelectionSectionId=activeSection()?.id??null;
+      exitShapes();renderSong();render();renderLead();
+    }else{
+      resetChordSelection();exitShapes();analyze();renderSong();
+    }
+    return;
   }
   activeChip={sectionId:sec.id, chordIdx:cIdx};
   activeSectionId = sec.id; // clicking a chord also activates its section
   const c = sec.chords[cIdx];
   enterShapesFor({root:c.root, suf:c.suf, pcs:[...c.pcs], mood:moodFor(c.suf), slash:null}, c.frets);
-  renderSong();
+  if(boardMode==='solo'){
+    // Chord chips are also a fast way to seed Solo/arpeggio from the saved
+    // progression. Chord mode owns `selection`; Solo mode owns
+    // `leadSelection`, so copy the loaded voicing across explicitly.
+    soloChordReference=selection.map(f=>Number.isInteger(f)?f:null);
+    leadSelection=soloChordReference.slice();
+    leadSelectionSectionId=sec.id;
+    leadPreviewNotes=[];leadPreviewPhrase=null;
+    renderSong();render();renderLead();
+  }else renderSong();
 }
 function moodFor(suf){const f=FORMULAS.find(x=>x.suf===suf);return f?f.mood:''}
 

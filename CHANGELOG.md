@@ -2,6 +2,8 @@
 
 ## 2026-07-25 — Linked phrase playback intent
 
+- Saved chord chips now copy their voicing into the shared Solo fretboard when
+  Solo mode is active, so loading and playing a chord visibly updates the board.
 - Fretboard Pick in Solo mode now resolves carried chords from the editing
   context and plays them sequentially as an exploration arpeggio.
 - Replaced the Arp / Strum dropdown with an always-visible compact toggle, so

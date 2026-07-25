@@ -3306,6 +3306,12 @@ function showLeadPhrasePreview(phrase){
 // that technique instead of falling through to chord-mode strumming logic.
 function previewSoloPick(){
   if(!soundOn)return;
+  // A chord selected from the editing context may be carried as a reference
+  // while the live Solo selection is temporarily empty. Resolve the button's
+  // target from the live notes first, then the carried chord, then the current
+  // chord board. This is the fretboard Pick action, so it is always sequential
+  // and never changes the saved chip's Arp/Strum intent.
+  audioCtx();
   if(leadTechniquePending){
     const pending=leadTechniquePending;
     const sourceByString=new Map(pending.notes.map(note=>[note.s,note]));
@@ -3334,10 +3340,16 @@ function previewSoloPick(){
     playLeadPhrasePreview(leadPhraseAt(leadDraft,leadPhraseEdit.start));
     return;
   }
-  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  let notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  if(!notes.length&&soloChordReference){
+    notes=soloChordReference.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  }
+  if(!notes.length&&boardMode==='solo'){
+    notes=selection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  }
   if(!notes.length)return;
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
-  playLeadEventPreview({notes,t:editing?editing.t:''});
+  playLeadEventPreview({notes,t:editing?editing.t:'',play:'arp'});
 }
 
 function saveLeadEvent(t){

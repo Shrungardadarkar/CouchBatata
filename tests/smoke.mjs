@@ -96,6 +96,8 @@ assert.match(html, /function renderLeadPhraseEditor\(\)/);
 assert.match(html, /function extendLeadPhrase\(\)/);
 assert.match(html, /function leadPhraseRepeatSelect\(phrase,onChange\)/);
 assert.match(html, /function playLeadPhrasePreview\(phrase\)/);
+assert.match(html, /if\(!notes\.length&&soloChordReference\)/);
+assert.match(html, /playLeadEventPreview\(\{notes,t:editing\?editing\.t:'',play:'arp'\}\)/);
 assert.match(html, /playLeadPhrasePreview\(phrase\);\s*selectLeadDraftPhrase\(phrase\.start\)/);
 assert.match(html, /if\(leadDraftSourceSectionId!==sec\.id\)\{\s*playLeadPhrasePreview\(phrase\)/);
 assert.match(html, /if\(leadPhraseEdit&&!Number\.isInteger\(leadDraftEditIndex\)\)\{\s*playLeadPhrasePreview/);

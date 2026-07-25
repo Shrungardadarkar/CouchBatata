@@ -2,6 +2,8 @@
 
 ## 2026-07-25 — Linked phrase playback intent
 
+- Fretboard Pick in Solo mode now resolves carried chords from the editing
+  context and plays them sequentially as an exploration arpeggio.
 - Replaced the Arp / Strum dropdown with an always-visible compact toggle, so
   the choice cannot overlap neighboring solo chips.
 - Chip previews now initialise audio and play their first event inside the

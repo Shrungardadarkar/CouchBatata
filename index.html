@@ -465,10 +465,10 @@
   @media (hover:hover){.lead-event-copy:hover{background:var(--sun);transform:rotate(-5deg) scale(1.08)}}
   .lead-event .repeat-picker{font-size:.68rem;flex:0 0 auto}
   .lead-event .lead-play-picker{font-size:.68rem;flex:0 0 auto}
-  .lead-play-picker .picker-trigger{min-width:42px;border-radius:6px;padding:3px 6px;font-size:.72rem;box-shadow:none}
-  .lead-play-picker .picker-menu{min-width:78px;top:auto;bottom:calc(100% + 7px)}
-  .lead-play-picker.menu-below .picker-menu{top:calc(100% + 7px);bottom:auto}
-  .lead-play-picker.on .picker-trigger{background:var(--sun);color:var(--ink)}
+  .lead-play-toggle{display:inline-flex;align-items:center;gap:2px;padding:2px;border:2px solid var(--ink);border-radius:7px;background:var(--paper);box-shadow:none}
+  .lead-play-toggle button{font:inherit;font-size:.68rem;font-weight:900;color:var(--ink);background:transparent;border:0;border-radius:5px;padding:3px 6px;cursor:pointer;line-height:1}
+  .lead-play-toggle button[aria-pressed="true"]{background:var(--sun);color:var(--ink)}
+  @media (hover:hover){.lead-play-toggle button:hover{background:var(--explore-pale)}.lead-play-toggle button[aria-pressed="true"]:hover{background:var(--sun)}}
   .dot-note.preview{background:var(--link);color:var(--paper);outline:2px solid var(--paper);outline-offset:2px}
   .lead-empty{align-self:center;color:var(--ink-faint);font-size:.8rem;font-weight:700;padding:2px 4px}
   .lead-phrase-editor{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-2px 0 12px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--link);border-radius:9px}
@@ -2859,16 +2859,23 @@ function leadPlayModeLabel(event){
   const mode=leadEventPlayMode(event);
   return mode==='strum'?'strum':mode==='arp'?'arp':mode==='note'?'note':'linked';
 }
+function leadPlayToggle(mode,onChange,label){
+  let selected=mode==='arp'?'arp':'strum';
+  const wrap=document.createElement('span');
+  wrap.className='lead-play-picker lead-play-toggle';
+  wrap.setAttribute('role','group');wrap.setAttribute('aria-label',label);
+  ['arp','strum'].forEach(value=>{
+    const button=document.createElement('button');button.type='button';button.textContent=value==='arp'?'Arp':'Strum';
+    button.setAttribute('aria-pressed',String(selected===value));
+    button.title=value==='arp'?'Play strings one at a time':'Play all selected strings together';
+    button.addEventListener('click',event=>{event.stopPropagation();selected=value;wrap.querySelectorAll('button').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));onChange?.(value);});
+    wrap.appendChild(button);
+  });
+  wrap.title=label;return wrap;
+}
 function leadPlayModeSelect(event,onChange){
   if((event?.notes||[]).length<2||hasLeadLink(event)||event?.t)return null;
-  const picker=makePicker({
-    value:leadEventPlayMode(event),
-    options:[{value:'arp',label:'Arp'},{value:'strum',label:'Strum'}],
-    label:'Playback intent',className:'lead-play-picker '+(leadEventPlayMode(event)==='strum'?'on':''),
-    onChange:value=>{event.play=value;onChange?.(value);}
-  });
-  picker.element.title='Choose whether these notes play one at a time or together';
-  return picker.element;
+  return leadPlayToggle(leadEventPlayMode(event),value=>{event.play=value;onChange?.(value);},'Playback intent');
 }
 function leadPhrasePlayMode(phrase){
   const linked=phrase?.events?.slice(1)||[];
@@ -2880,13 +2887,7 @@ function leadPhrasePlayMode(phrase){
 function leadPhrasePlayModeSelect(phrase,onChange){
   if(phrase?.events?.length<2||leadPhrasePlayMode(phrase)==='linked')return null;
   const mode=leadPhrasePlayMode(phrase);
-  const picker=makePicker({
-    value:mode,options:[{value:'arp',label:'Arp'},{value:'strum',label:'Strum'}],
-    label:'Linked phrase playback intent',className:'lead-play-picker '+(mode==='strum'?'on':''),
-    onChange:value=>{phrase.events.slice(1).forEach(event=>{if(hasLeadLink(event))event.play=value;});onChange?.(value);}
-  });
-  picker.element.title='Choose whether this multi-note linked phrase is picked or strummed';
-  return picker.element;
+  return leadPlayToggle(mode,value=>{phrase.events.slice(1).forEach(event=>{if(hasLeadLink(event))event.play=value;});onChange?.(value);},'Linked phrase playback intent');
 }
 function leadPhraseGroups(events){
   const groups=[];
@@ -3266,9 +3267,13 @@ function playLeadConnectionPreview(sourceByString,technique,links,destinationNot
 // intelligible instead of collapsing into one simultaneous chord hit.
 function playLeadPhrasePreview(phrase){
   if(!soundOn||!phrase?.events?.length)return;
+  // Create/resume the audio context inside the chip's click gesture. The
+  // first event is played synchronously; delaying every event with a timer can
+  // cause mobile browsers to reject the first sound as non-user-initiated.
+  audioCtx();
   const phraseMode=leadPhrasePlayMode(phrase);
   phrase.events.forEach((event,index)=>{
-    setTimeout(()=>{
+    const play=()=>{
       if(index>0&&hasLeadLink(event)){
         const source=phrase.events[index-1];
         const technique=event.t==='/'||event.t==='\\'?'slide':event.t;
@@ -3277,7 +3282,8 @@ function playLeadPhrasePreview(phrase){
         const previewEvent=phraseMode==='strum'&&event.notes?.length>1&&!event.t?{...event,play:'strum'}:event;
         playLeadEventPreview(previewEvent);
       }
-    },index*320);
+    };
+    if(index===0)play();else setTimeout(play,index*320);
   });
 }
 function showLeadPhrasePreview(phrase){

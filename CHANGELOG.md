@@ -2,6 +2,10 @@
 
 ## 2026-07-25 — Linked phrase playback intent
 
+- Replaced the Arp / Strum dropdown with an always-visible compact toggle, so
+  the choice cannot overlap neighboring solo chips.
+- Chip previews now initialise audio and play their first event inside the
+  click gesture, preserving sound on mobile browsers.
 - Added the Arp / Strum picker to multi-note slide, hammer-on, and pull-off
   phrases, defaulting them to a tight strum while preserving linked strings.
 - Saved linked phrases now retain that intent and use it when previewed from a

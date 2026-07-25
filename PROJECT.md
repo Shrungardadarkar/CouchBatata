@@ -14,8 +14,12 @@ they knew its name. The primary loop is:
 4. Arrange sections, repeats, and optional lyrics.
 5. Switch the same fretboard to Solo / arpeggio mode and record into the active
    section, using any selected scale overlay as a visual guide.
-6. Review key and scale guidance.
-7. Export a readable chart or an editable project backup.
+6. Choose how a clean multi-note solo event should sound: **Arp** picks notes
+   one at a time, while **Strum** makes one chord-like gesture. Connected
+   slides, hammer-ons, and pull-offs are synchronized across their linked
+   strings.
+7. Review key and scale guidance.
+8. Export a readable chart or an editable project backup.
 
 The return and guidance moments are deliberately calm. A restored session names
 the last section long enough to orient the player; a routine chord addition is
@@ -69,7 +73,7 @@ selection[6]          selected fret per string; null or "x" are also valid
 current               identified chord on the fretboard
 currentAlts[]         alternate chord interpretations
 sections[]            ordered song sections, chords, lead events, and lyrics
-lead event            {id, notes:[{s,f}], t, from?, links?, rep}: one or more simultaneous notes, an optional tab technique, and an optional repeat count; connected techniques are recorded as explicit source then destination events
+lead event            {id, notes:[{s,f}], t, play?, from?, links?, rep}: one or more simultaneous notes, an optional tab technique, an optional playback intent (`note`, `arp`, or `strum`), and an optional repeat count; connected techniques are recorded as explicit source then destination events
 activeSectionId       section receiving newly added chords
 activeChip            selected song chord
 scaleActive           selected scale overlay
@@ -101,12 +105,18 @@ songIndex[]           local song metadata for the My songs picker
   collides. IndexedDB-unavailable browsers retain the original single-song
   fallback and request confirmation before replacing it.
 - Local data includes sections, lyrics, chord shapes, grouped lead events
-  (including technique links and repeats), active section, spelling, scale
+  (including technique links, playback intent, and repeats), active section, spelling, scale
   state, panel state, and next IDs. Editable backups use the same normalized
   JSON model. Linked solo events remain a flat, backward-compatible event list
   in storage, while the interface derives one movable phrase from each adjacent
   slide, hammer-on, or pull-off chain. Phrase repeat is stored on its first
   event and applies to the complete movement during export.
+- Legacy projects without `play` remain valid. The app derives `note` for a
+  one-note event and `arp` for an unannotated multi-note clean event; a chord
+  deliberately carried from Chord mode is saved as `strum`.
+- Clicking a saved solo/phrase chip is a non-editing preview: it plays the
+  phrase and shows its notes on the shared fretboard. **Edit solo** is the
+  explicit transition into mutation mode, so previewing never changes a draft.
 - Imported chords are rebuilt from known formulas instead of trusting arbitrary
   pitch-class or suffix data.
 

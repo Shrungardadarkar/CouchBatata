@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-25 — Project context documentation
+
+- Updated `PROJECT.md`, `README.md`, `HANDOFF.md`, and `CONTRIBUTING.md` to
+  document the current multi-song model, solo playback intent (`note`, `arp`,
+  `strum`, and linked techniques), saved-chip preview behavior, compatibility
+  defaults, and owner-directed handoff workflow.
+- Expanded the in-app Help copy so the same playback and preview rules are
+  available to people using the tool, not only to contributors.
+
 ## 2026-07-23 — Calm returning and in-key guidance
 
 - Kept the named “Last time” restoration notice visible long enough to orient a

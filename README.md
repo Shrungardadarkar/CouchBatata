@@ -66,10 +66,17 @@ Users do not need an app-store download.
   then **Create solo** adds them to the selected section (or a new Solo section).
 - Solo techniques slide in directly beneath the fret numbers and activate only
   after selecting one or more notes.
+- Clean multi-note solo events can be marked **Arp** (picked one at a time) or
+  **Strum** (one chord-like gesture). Slides, hammer-ons, and pull-offs retain
+  their linked source/destination relationship and play together across the
+  connected strings.
 - Saved solos are visible in their Song section and can be reopened with
   **Edit solo** for further changes; the action becomes **Save solo** while
   editing. A new solo joins an active chord section, or creates a Solo section
   when no chord section is active.
+- Clicking a saved solo or phrase chip previews it and reveals its notes on the
+  shared fretboard without entering edit mode. Use **Edit solo** when you want
+  to change the phrase.
 - Key and scale direction appears before the fretboard; after a clear key is
   established, clickable I / IV / V (or i / iv / V) shapes appear first, with
   other unused in-key chords available on request. An active scale overlay

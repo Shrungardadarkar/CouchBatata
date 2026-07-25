@@ -80,6 +80,16 @@ cleared/Imported project/local-song actions/etc. Don't move those.
     keyboard focus, responsive layouts, service-worker offline reload, and
     the fallback path.
 
+12. **Solo playback intent and chip preview** — commit `e40d92f` adds an
+    optional `play` field to lead events. Clean multi-note events can be
+    explicitly played as `arp` or `strum`; one-note events default to `note`.
+    Linked slides, hammer-ons, and pull-offs remain synchronized source/
+    destination phrases. Older projects without `play` still load through the
+    derived defaults. Clicking a saved solo/phrase chip now previews its sound
+    and shows its notes on the shared fretboard without entering edit mode;
+    **Edit solo** remains the explicit editing path. Help, README, PROJECT, and
+    CHANGELOG document this behavior.
+
 ## What's next: the remaining "Later" tier
 
 These three were explicitly **not** implemented because each

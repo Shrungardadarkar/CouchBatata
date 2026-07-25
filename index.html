@@ -601,6 +601,7 @@
   .song-sect:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .song-sect.active{background:var(--sun);
     box-shadow:4px 4px 0 var(--ink)}
+  .song-sect.chord-picker-open .sect-lead{margin-top:var(--chord-picker-space,190px);transition:margin-top .16s var(--ease-spring)}
   .song-sect.menu-open{position:relative;z-index:30}
 
   .sect-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -4367,6 +4368,8 @@ function closeAllPickers(except){
     const menu=picker.querySelector('.picker-menu');
     if(menu){menu.hidden=true;menu.style.maxHeight='';}
     picker.classList.remove('open','menu-below');
+    const chordOwner=picker.closest('.song-sect');
+    chordOwner?.classList.remove('chord-picker-open');chordOwner?.style.removeProperty('--chord-picker-space');
     picker.querySelector('.picker-trigger')?.setAttribute('aria-expanded','false');
   });
 }
@@ -4392,6 +4395,8 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
   };
   const close=(restoreFocus=false)=>{
     menu.hidden=true;menu.style.maxHeight='';wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
+    const chordOwner=wrap.closest('.song-sect');
+    chordOwner?.classList.remove('chord-picker-open');chordOwner?.style.removeProperty('--chord-picker-space');
     if(restoreFocus)trigger.focus();
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
@@ -4405,7 +4410,17 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
       // short viewport, flip that standalone menu below instead of letting it
       // leave the screen. Compact repeat menus intentionally stay above their
       // unit, so they never cover the next panel.
-      if(wrap.classList.contains('repeat-picker')){
+      const chordOwner=wrap.closest('.song-sect .sect-chords');
+      if(chordOwner&&wrap.classList.contains('repeat-picker')){
+        // A chord repeat menu sits before the Solo content in a section. Keep
+        // it below the chord row and reserve that height instead of covering
+        // the next workflow.
+        wrap.classList.add('menu-below');
+        const owner=wrap.closest('.song-sect');
+        owner?.classList.add('chord-picker-open');
+        menu.style.maxHeight='240px';
+        owner?.style.setProperty('--chord-picker-space',Math.min(240,menu.scrollHeight+14)+'px');
+      }else if(wrap.classList.contains('repeat-picker')){
         // A compact menu is bounded by its owning Solo/section panel, not the
         // whole viewport. This prevents it crossing into the panel next door.
         const rect=trigger.getBoundingClientRect();

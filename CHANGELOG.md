@@ -18,8 +18,8 @@
   fretboard Strum button remains a separate live downstroke sweep.
 - Linked-phrase playback menus open upward by default so they do not cover the
   following solo chips, with a viewport-aware downward fallback.
-- Chord repeat-count menus now open below the chord row and reserve measured
-  space before Solo content, preventing them from covering the next workflow.
+- Repeat-count menus now expand inline in a compact two-column layout, pushing
+  surrounding rows down instead of covering adjacent chips or panels.
 
 ## 2026-07-25 — Project context documentation
 

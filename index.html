@@ -601,7 +601,6 @@
   .song-sect:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
   .song-sect.active{background:var(--sun);
     box-shadow:4px 4px 0 var(--ink)}
-  .song-sect.chord-picker-open .sect-lead{margin-top:var(--chord-picker-space,190px);transition:margin-top .16s var(--ease-spring)}
   .song-sect.menu-open{position:relative;z-index:30}
 
   .sect-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
@@ -998,10 +997,13 @@
     .sect-name-option[aria-selected="true"]:hover{background:var(--explore-dk);color:var(--paper)}
     .sect-name:hover{background-color:var(--explore-dk);color:var(--paper);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%23fbf7ee' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
   }
-  /* Repeat menus live inside dense solo/chord chips. JS chooses the room above
-     or below inside the owning panel and caps the scrollable menu to that room. */
-  .repeat-picker .picker-menu{top:auto;bottom:calc(100% + 7px)}
-  .repeat-picker.menu-below .picker-menu{top:calc(100% + 7px);bottom:auto}
+  /* Repeat menus expand inside their chip instead of floating over adjacent
+     rows. A two-column layout keeps the eight choices compact and lets the
+     surrounding flex/grid layout make room for it. */
+  .repeat-picker.open{display:inline-flex;flex-direction:column;vertical-align:top;align-items:stretch}
+  .repeat-picker.open .picker-menu{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:120px;min-width:120px;max-height:none!important;overflow:visible;margin-top:6px;padding:4px;box-shadow:2px 2px 0 var(--ink)}
+  .repeat-picker .picker-menu[hidden]{display:none}
+  .repeat-picker.open .picker-option{padding:5px 4px;font-size:.7rem}
   .btn.danger,.song-shelf-action.danger{background:var(--danger);color:var(--paper)}
   @media (hover:hover){.btn.danger:hover{background:#7d1925}.chip-x:hover,.lead-event-x:hover,.lead-summary-x:hover,.help-close:hover,.song-shelf-close:hover{background:var(--danger);color:var(--paper)}}
   .song-clear-btn{color:var(--danger)}
@@ -4368,8 +4370,6 @@ function closeAllPickers(except){
     const menu=picker.querySelector('.picker-menu');
     if(menu){menu.hidden=true;menu.style.maxHeight='';}
     picker.classList.remove('open','menu-below');
-    const chordOwner=picker.closest('.song-sect');
-    chordOwner?.classList.remove('chord-picker-open');chordOwner?.style.removeProperty('--chord-picker-space');
     picker.querySelector('.picker-trigger')?.setAttribute('aria-expanded','false');
   });
 }
@@ -4395,8 +4395,6 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
   };
   const close=(restoreFocus=false)=>{
     menu.hidden=true;menu.style.maxHeight='';wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
-    const chordOwner=wrap.closest('.song-sect');
-    chordOwner?.classList.remove('chord-picker-open');chordOwner?.style.removeProperty('--chord-picker-space');
     if(restoreFocus)trigger.focus();
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
@@ -4410,33 +4408,10 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
       // short viewport, flip that standalone menu below instead of letting it
       // leave the screen. Compact repeat menus intentionally stay above their
       // unit, so they never cover the next panel.
-      const chordOwner=wrap.closest('.song-sect .sect-chords');
-      if(chordOwner&&wrap.classList.contains('repeat-picker')){
-        // A chord repeat menu sits before the Solo content in a section. Keep
-        // it below the chord row and reserve that height instead of covering
-        // the next workflow.
-        wrap.classList.add('menu-below');
-        const owner=wrap.closest('.song-sect');
-        owner?.classList.add('chord-picker-open');
-        menu.style.maxHeight='240px';
-        owner?.style.setProperty('--chord-picker-space',Math.min(240,menu.scrollHeight+14)+'px');
-      }else if(wrap.classList.contains('repeat-picker')){
-        // A compact menu is bounded by its owning Solo/section panel, not the
-        // whole viewport. This prevents it crossing into the panel next door.
-        const rect=trigger.getBoundingClientRect();
-        const owner=wrap.closest('#leadPanel,.song-sect');
-        const ownerRect=owner?.getBoundingClientRect();
-        const boundaryTop=Math.max(8,ownerRect?.top??8);
-        const boundaryBottom=Math.min(window.innerHeight-8,ownerRect?.bottom??window.innerHeight-8);
-        const above=Math.max(0,Math.floor(rect.top-boundaryTop-7));
-        // Reserve the 7px anchor gap plus the menu's 5px sticker shadow.
-        const below=Math.max(0,Math.floor(boundaryBottom-rect.bottom-12));
-        if(above>=72||above>=below){
-          menu.style.maxHeight=Math.min(240,Math.max(36,above))+'px';
-        }else{
-          wrap.classList.add('menu-below');
-          menu.style.maxHeight=Math.min(240,Math.max(36,below))+'px';
-        }
+      if(wrap.classList.contains('repeat-picker')){
+        // Repeat menus are inline by CSS, so their owning row grows instead
+        // of covering the next chip or panel.
+        menu.style.maxHeight='none';
       }else if(wrap.classList.contains('lead-play-picker')&&menu.getBoundingClientRect().top<8){
         wrap.classList.add('menu-below');
       }else if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){

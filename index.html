@@ -197,7 +197,7 @@
      absolutely-positioned child of the horizontally-scrolling .board-wrap
      would be centered against the full scrollable content width and could
      scroll off-screen with the board instead of staying put. */
-  .board-sticker{position:fixed;z-index:60;
+  .board-sticker{position:absolute;z-index:60;
     background:var(--sun);color:var(--ink);font-weight:900;font-size:.88rem;
     padding:11px 20px;border:2.5px solid var(--ink);border-radius:10px;box-shadow:var(--shadow);
     max-width:min(88vw,380px);text-align:center;line-height:1.35;
@@ -5857,22 +5857,24 @@ try{
 
 /* ---------- board sticker (contextual messages anchored to the fretboard) ---------- */
 const boardSticker=document.getElementById('boardSticker');
-// Horizontal center must come from .board-wrap (the visible, non-scrolling
-// viewport), not .board-outer (the full 820px+ scrollable content) --
-// centering against .board-outer would center on the scrollable content box,
-// so the sticker could scroll off-screen with the board on a phone instead
-// of staying anchored to what's actually visible.
+// Positioned via CSS `position:absolute` against #tabPanel (the nearest
+// positioned ancestor, .panel{position:relative}), NOT `position:fixed`
+// against the viewport. That used to require a viewport-clamp fallback for
+// when the board scrolled out of view -- which pinned the sticker to a bare
+// screen edge with nothing under it, reading as "centered on the screen"
+// rather than "on the fretboard." Being absolute-in-flow instead means the
+// sticker scrolls exactly with the panel with zero extra JS: if the board
+// is off-screen, the sticker is off-screen with it, never floating alone.
 function positionBoardSticker(){
   if(!boardSticker.classList.contains('show'))return;
+  const panelRect=document.getElementById('tabPanel').getBoundingClientRect();
   const wrapRect=document.querySelector('.board-wrap').getBoundingClientRect();
   const outerRect=document.querySelector('.board-outer').getBoundingClientRect();
-  // Clamp inside the viewport: if the board itself has scrolled out of view
-  // (a short phone screen, or after scrolling down to reach "Add to
-  // progression"), centering purely on the board's rect would place the
-  // sticker off-screen and invisible -- worse than the old always-visible
-  // top toast. When the board IS in view this clamp is a no-op.
-  const margin=70;
-  const left=Math.min(Math.max(wrapRect.left+wrapRect.width/2,margin),window.innerWidth-margin);
+  // Horizontal center comes from .board-wrap (the visible, non-scrolling
+  // viewport), not .board-outer (the full 820px+ scrollable content) --
+  // centering against .board-outer would drift off the visible board as the
+  // user scrolls the fretboard sideways past fret 4-5 on a phone.
+  const left=(wrapRect.left+wrapRect.width/2)-panelRect.left;
   // Anchor near the bottom of the note grid (over the fret-number row)
   // rather than dead center -- open-position voicings (frets 0-4) are the
   // common case and sit squarely in the horizontal middle of a 12-fret view,
@@ -5881,13 +5883,11 @@ function positionBoardSticker(){
   // height; anchoring at 88% (using .board-outer's height, which is
   // unaffected by horizontal scroll) keeps the sticker clear of them
   // regardless of which strings/frets are actually played.
-  const top=Math.min(Math.max(outerRect.top+outerRect.height*0.88,margin),window.innerHeight-margin);
+  const top=(outerRect.top+outerRect.height*0.88)-panelRect.top;
   boardSticker.style.left=left+'px';
   boardSticker.style.top=top+'px';
 }
 window.addEventListener('resize',positionBoardSticker);
-window.addEventListener('scroll',positionBoardSticker,{passive:true});
-document.querySelector('.board-wrap').addEventListener('scroll',positionBoardSticker,{passive:true});
 
 let boardStickerTimer=null;
 function hideBoardSticker(){

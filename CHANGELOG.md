@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-07-26 — Desktop two-column layout (experimental)
+
+- On wide screens (1100px+), Tab builder and Key & Scales now live in a
+  sticky right rail next to the fretboard/chord column, instead of stacking
+  below it — cross-referencing the song or adding a chord no longer requires
+  scrolling past the fretboard. Phone and narrow-tablet layouts are
+  unchanged: same single-column stack, same visual order.
+- Implemented via two non-semantic grouping wrappers (`.col-main`,
+  `.col-rail`) that are `display:contents` below the breakpoint, so mobile
+  markup order/behavior is untouched; `order` on each panel restores the
+  original single-column reading order at that width.
+
 ## 2026-07-25 — Linked phrase playback intent
 
 - Saved chord chips now copy their voicing into the shared Solo fretboard when

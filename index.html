@@ -481,6 +481,57 @@
      an active scale needs to stay visible in Chord mode as well, not just
      where it was set, otherwise the reordered Suggestions row looks like an
      unexplained bug instead of a deliberate, still-live choice. */
+  /* ===== scale bar: all scale context sits ABOVE the board, so the space
+     below it stays free for the technique strip and Create solo. Above the
+     board = context you read; below = actions you take. Because it hangs off
+     the board (shared by both modes) rather than either live-strip, one bar
+     covers Chord and Solo at once. ===== */
+  .scale-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:11px;
+    background:var(--mint-soft);border:2px solid var(--ink);border-radius:10px;padding:6px 9px;
+    box-shadow:1.5px 1.5px 0 var(--ink)}
+  .scale-bar[hidden]{display:none}
+  .sb-name{font:inherit;font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:.76rem;
+    color:var(--ink);display:inline-flex;align-items:center;gap:5px;background:none;border:0;padding:2px 0;cursor:pointer}
+  .sb-caret{font-size:.62rem;opacity:.65}
+  .sb-divider{width:1.5px;height:16px;background:rgba(90,47,62,.3);flex:0 0 auto}
+  .sb-note{font:900 .6rem/1.3 "Courier New",monospace;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em}
+  .sb-box{font:900 .62rem/1 "Courier New",monospace;color:var(--ink-dim);background:var(--paper);
+    border:1.5px solid var(--ink-faint);border-radius:6px;padding:5px 8px;cursor:pointer;
+    transition:transform .14s var(--ease-spring),box-shadow .14s var(--ease-spring),background .12s}
+  @media (hover:hover){.sb-box:hover{border-color:var(--ink);color:var(--ink);transform:translateY(-1px)}}
+  .sb-box.on{color:var(--ink);border-color:var(--ink);background:var(--sun);box-shadow:1.5px 1.5px 0 var(--ink)}
+  .sb-rt{color:var(--tomato-dk)}
+  .sb-x{margin-left:auto;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;
+    background:var(--paper);color:var(--ink);cursor:pointer;flex:0 0 auto;font-family:inherit}
+  @media (hover:hover){.sb-x:hover{background:var(--tomato);color:var(--cream)}}
+  .sb-alts{flex-basis:100%;margin-top:7px;background:var(--paper);border:2px dashed var(--ink);
+    border-radius:9px;padding:9px 10px}
+  .sb-alt-lbl{font:900 .58rem/1 "Courier New",monospace;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--ink-dim);margin-bottom:6px}
+  .sb-notes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+  .sb-note-pill{display:inline-flex;align-items:baseline;gap:2px;background:var(--cream);border:2px solid var(--ink-faint);
+    border-radius:7px;padding:4px 8px;font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:.68rem;color:var(--ink)}
+  .sb-note-pill sub{font-family:"Courier New",monospace;font-size:.52rem;font-weight:900;opacity:.7}
+  .sb-note-pill.sroot{border-color:var(--lilac-dk)}
+  .sb-note-pill.sthird{border-color:var(--sky)}
+  .sb-note-pill.sfifth{border-color:var(--mint-dk)}
+  .sb-note-pill.sseventh{border-color:var(--lilac)}
+  .sb-alt{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;padding:6px 9px;
+    background:var(--cream);border:2px solid var(--ink);border-radius:8px;margin-bottom:5px;
+    box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;font:inherit}
+  .sb-alt b{font-size:.7rem;color:var(--ink)}
+  .sb-alt span{font-size:.62rem;color:var(--ink-dim);font-style:italic}
+  .sb-alt.previewing{background:var(--sun-soft)}
+  .sb-alt .sb-pv{margin-left:auto;font:900 .54rem/1 "Courier New",monospace;color:var(--tomato-dk);text-transform:uppercase;font-style:normal}
+  /* Box focus reads on the fret numbers themselves — no extra bracket row. */
+  .fret-nums div.in-box-range{color:var(--ink);background:var(--sun-soft);border-radius:4px;font-weight:900}
+  /* Long-press a scale dot to have it name its own degree, which is why no
+     permanent Root/3rd/5th legend needs to reserve space. */
+  .degree-tip{position:absolute;z-index:70;background:var(--ink);color:var(--cream);
+    font-size:.62rem;font-weight:800;padding:5px 9px;border-radius:6px;white-space:nowrap;
+    box-shadow:2px 2px 0 rgba(90,47,62,.35);pointer-events:none;transform:translate(-50%,-115%)}
+
   .key-chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
   .key-chip-row[hidden]{display:none}
   .mini-key-chip{font:inherit;display:inline-flex;align-items:center;gap:5px;background:var(--cream);
@@ -889,10 +940,6 @@
   .key-coach-cue{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;padding:4px 8px;border:2px solid var(--ink);border-radius:999px;
     background:var(--mint);color:var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);font-size:.72rem;font-weight:900;line-height:1.15;white-space:nowrap}
   @media (prefers-reduced-motion:no-preference){.key-coach-cue{animation:keyCoachPulse 1.5s var(--ease-spring) 3}.scale-panel-header.key-coach-ready{animation:keyPanelGlow 1.5s ease-in-out 3}@keyframes keyCoachPulse{50%{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}@keyframes keyPanelGlow{50%{background:linear-gradient(90deg,rgba(142,207,168,.52),transparent 75%)}}}
-  .scale-overlay-status{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;max-width:320px;
-    padding:5px 9px;border:2px solid var(--ink);border-radius:999px;background:var(--mint);color:var(--ink);
-    box-shadow:1.5px 1.5px 0 var(--ink);font-size:.73rem;font-weight:900;line-height:1.1;white-space:nowrap}
-  .scale-overlay-status[hidden]{display:none}
   .scale-panel.forced-open .scale-panel-header{cursor:default}
   .scale-panel.forced-open .scale-panel-chevron{opacity:.35}
   .scale-panel-forced-note{font-size:.72rem;color:var(--tomato);font-style:italic;font-weight:800;
@@ -1106,9 +1153,6 @@
     .toggle.flats .acc-knob{transform:translateX(29px)}
     .scale-panel{padding:0}
     .scale-panel-header{padding:22px 15px 16px}
-    .scale-panel-header.has-active-scale{flex-wrap:wrap;gap:8px 10px}
-    .scale-panel-header.has-active-scale .key-line{flex:1 1 calc(100% - 32px)}
-    .scale-panel-header.has-active-scale .scale-overlay-status{order:3;max-width:100%}
     .scale-panel-body{padding-left:15px;padding-right:15px}
     .btn-row{gap:9px}
     .scale-chip{min-width:140px}
@@ -1257,6 +1301,7 @@
       </span>
     </button>
   </div>
+  <div class="scale-bar" id="scaleBar" hidden aria-label="Active scale"></div>
   <div class="board-wrap">
     <div class="board-outer">
       <div class="string-labels" id="stringLabels"></div>
@@ -1380,7 +1425,6 @@
 <div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
   <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
     <div class="key-line" id="keyLine"></div>
-    <span class="scale-overlay-status" id="scaleOverlayStatus" aria-live="polite" hidden></span>
     <span class="scale-panel-chevron" id="scalePanelChevron" aria-hidden="true">▾</span>
   </button>
   <div class="scale-panel-body" id="scalePanelBody" hidden>
@@ -2171,17 +2215,11 @@ function renderChordSuggestions(){
   if(!show)return;
   const data=chordSuggestionCandidates();
   if(data.state==='bootstrap')label.textContent='Suggestions';
-  else{
-    let html='Suggestions <span class="suggestion-spectrum">· core <span class="suggestion-spectrum-arrow" aria-hidden="true">←</span><span class="suggestion-spectrum-arrow" aria-hidden="true">→</span> colourful</span>';
-    // suggestionContext() (feeding chordSuggestionCandidates above) reads
-    // scaleActive before falling back to the plain key -- so a scale picked
-    // in Solo mode silently reorders this row too. Name it here instead of
-    // letting the reorder look like an unexplained bug.
-    if(scaleActive&&SCALES[scaleActive.scale]){
-      html+=' <span class="suggestion-scale-bias">· biased by '+pcName(scaleActive.root)+' '+SCALES[scaleActive.scale].name+'</span>';
-    }
-    label.innerHTML=html;
-  }
+  // suggestionContext() reads scaleActive before falling back to the plain
+  // key, so an active scale reorders this row. That's now explained by the
+  // scale bar sitting directly above it ("biasing suggestions"), rather than
+  // by a suffix repeating the same fact here.
+  else label.innerHTML='Suggestions <span class="suggestion-spectrum">· core <span class="suggestion-spectrum-arrow" aria-hidden="true">←</span><span class="suggestion-spectrum-arrow" aria-hidden="true">→</span> colourful</span>';
   chordSuggestionItems=data.items.map(item=>({...item,neutral:data.state==='bootstrap'}));
   const row=document.getElementById('chordSuggestRow');
   row.innerHTML='';
@@ -2384,6 +2422,13 @@ const LEAD_CONNECTION_LABEL={p:'Pull-off',h:'Hammer-on',slide:'Slide'};
 
 let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
+let scalePreview=null;   // {root,scale} auditioned on the board but not committed
+let scaleAltsOpen=false; // the scale bar's own disclosure, not persisted
+// Plain-language degree names for the long-press tip, so the colour code
+// explains itself on demand instead of via a permanent legend.
+const SCALE_DEGREE_NAMES={sroot:'the root — home',sthird:'the 3rd — the colour',
+  sfifth:'the 5th — a safe landing note',sseventh:'the 7th — leans forward',
+  stension:'a passing tone — move through it'};
 let currentKeyInfo=null; // {tonic, outIdxs (Set), inChords, totalChords, isPerfectFit, alsoFits}
 let currentOutlierMap=new Map(); // sectionId → Set of local chord idxs that are outliers
 let currentCoveringMode=null;    // {root, scale} that covers all chords incl. outliers, or null
@@ -3240,7 +3285,12 @@ function extendLeadPhrase(){
 }
 function renderLeadPhraseEditor(){
   const editor=document.getElementById('leadPhraseEditor');
-  if(!leadPhraseEdit){
+  // While a chain is being extended forward, this drawer has nothing left to
+  // offer: tapping a fret is "+ Add destination" and the armed technique
+  // button is "Done editing". Showing it mid-chain just competes with the
+  // board for attention. It returns the moment chaining stops, for its one
+  // remaining job -- jumping back to revise a specific earlier step.
+  if(!leadPhraseEdit||leadTechniquePending?.extendPhrase){
     editor.hidden=true;editor.innerHTML='';return;
   }
   const phrase=leadPhraseAt(leadDraft,leadPhraseEdit.start);
@@ -3718,12 +3768,17 @@ function render(){
       cells[s][f].classList.toggle('in-box',inBox);
     }
   }
-  if(scaleActive){
-    const S=SCALES[scaleActive.scale];
+  // scalePreview lets an alternate be auditioned on the board before it is
+  // committed -- you choose a scale by seeing its shape, not by reading its
+  // description. It never touches scaleActive, so backing out restores the
+  // real selection with no save.
+  const overlayScale=scalePreview||scaleActive;
+  if(overlayScale){
+    const S=SCALES[overlayScale.scale];
     // Map each scale pitch class back to its interval from the root
     const pcToScaleIndex=new Map();
     S.intervals.forEach((iv,index)=>{
-      pcToScaleIndex.set((scaleActive.root+iv)%12,index);
+      pcToScaleIndex.set((overlayScale.root+iv)%12,index);
     });
     for(let s=0;s<6;s++){
       if(!soloMode&&selection[s]==='x')continue;
@@ -3735,12 +3790,18 @@ function render(){
           const outOfBox=!!activeBox&&!activeBox.perString[s].has(f);
           const d=document.createElement('div');
           d.className='dot-note scale '+scaleDegreeClass(iv)+(outOfBox?' out-of-box':'');
-          d.textContent=leadDisplay==='tab'?String(f):scaleNoteName(scaleActive.root,scaleActive.scale,scaleIndex);
+          d.textContent=leadDisplay==='tab'?String(f):scaleNoteName(overlayScale.root,overlayScale.scale,scaleIndex);
+          d.dataset.degree=scaleDegreeLabel(overlayScale.scale,scaleIndex);
+          d.dataset.degreeName=SCALE_DEGREE_NAMES[scaleDegreeClass(iv)]||'';
           cells[s][f].appendChild(d);
         }
       }
     }
   }
+  // Box focus reads on the fret numbers rather than a separate bracket row.
+  fn.childNodes.forEach((node,f)=>{
+    node.classList?.toggle('in-box-range',!!activeBox&&f>=activeBox.startFret&&f<=activeBox.endFret);
+  });
   if(soloMode){
     // A chord carried from Chord mode is already copied into leadSelection as
     // solid, actionable notes. Do not leave a pale second copy behind when a
@@ -4016,9 +4077,40 @@ function setBoardMode(mode){
   btnStrumMode.title=strumLabel+' the current shape';
   render();
   renderChordSuggestions();
+  // The scale bar swaps between its Solo form (position boxes) and its Chord
+  // form ("biasing suggestions"), so it has to re-render on every mode change.
+  renderKeyChips();
   if(mode==='solo')renderLead();
 }
 document.getElementById('btnBoardMode').addEventListener('click',()=>setBoardMode(boardMode==='chord'?'solo':'chord'));
+
+/* Long-press any scale dot and it names its own degree — the reason no
+   permanent Root/3rd/5th/7th legend needs to hold space below the board. */
+let degreeTipTimer=null,degreeTipEl=null;
+function hideDegreeTip(){
+  clearTimeout(degreeTipTimer);degreeTipTimer=null;
+  degreeTipEl?.remove();degreeTipEl=null;
+}
+board.addEventListener('pointerdown',e=>{
+  // .dot-note sets pointer-events:none so taps reach the cell underneath --
+  // so find the dot inside the pressed cell rather than from the event target.
+  const cell=e.target.closest('.cell');if(!cell)return;
+  const dot=cell.querySelector('.dot-note.scale');if(!dot)return;
+  const label=dot.dataset.degreeName;if(!label)return;
+  clearTimeout(degreeTipTimer);
+  degreeTipTimer=setTimeout(()=>{
+    hideDegreeTip();
+    const tip=document.createElement('div');tip.className='degree-tip';
+    tip.textContent=dot.textContent+' · '+label;
+    const outer=document.querySelector('.board-outer');
+    const cr=cell.getBoundingClientRect(),orr=outer.getBoundingClientRect();
+    tip.style.left=(cr.left-orr.left+cr.width/2)+'px';
+    tip.style.top=(cr.top-orr.top)+'px';
+    outer.appendChild(tip);degreeTipEl=tip;
+  },380);
+});
+['pointerup','pointercancel','pointerleave'].forEach(ev=>board.addEventListener(ev,hideDegreeTip));
+board.addEventListener('scroll',hideDegreeTip,{passive:true});
 
 function setFlats(v){useFlats=v;
   const btn=document.getElementById('btnAccidental');
@@ -5500,52 +5592,119 @@ function primarySuggestedScale(){
 function renderChordKeyChips(){
   const host=document.getElementById('chordKeyChips');
   if(!host)return;
-  const parts=[];
   const sug=suggestedInKeyChord();
-  if(sug)parts.push('<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>');
-  if(scaleActive&&SCALES[scaleActive.scale]){
-    const S=SCALES[scaleActive.scale];
-    parts.push('<button type="button" class="mini-key-chip on" id="chipClearScaleFromChord" title="Clear this scale">🎯 scale: '+pcName(scaleActive.root)+' '+S.name+' <span class="key-chip-x">✕</span></button>');
-  }
-  host.innerHTML=parts.join('');
-  host.hidden=!parts.length;
+  // The active scale is no longer a chip here -- the bar above the board shows
+  // it for both modes at once.
+  host.innerHTML=sug?'<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>':'';
+  host.hidden=!sug;
   document.getElementById('chipAlsoInKey')?.addEventListener('click',()=>{loadSuggestedChord(sug);});
-  document.getElementById('chipClearScaleFromChord')?.addEventListener('click',clearActiveScale);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
   if(!host)return;
-  let html='';
-  if(scaleActive&&SCALES[scaleActive.scale]){
-    const S=SCALES[scaleActive.scale];
-    html='<button type="button" class="mini-key-chip on" id="chipClearScaleFromSolo" title="Clear this scale">🎯 scale: '+pcName(scaleActive.root)+' '+S.name+' <span class="key-chip-x">✕</span></button>';
-  } else {
-    const sug=primarySuggestedScale();
-    if(sug){
-      const S=SCALES[sug.scale];
-      html='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+S.name+'</button>';
-    }
-  }
-  host.innerHTML=html;
-  host.hidden=!html;
+  // Only the *suggestion* lives down here, near the actions. Once accepted it
+  // hands off to the bar on top, so active state never sits in two places.
+  const sug=scaleActive?null:primarySuggestedScale();
+  host.innerHTML=sug?'<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>':'';
+  host.hidden=!sug;
   document.getElementById('chipSoloScaleIdea')?.addEventListener('click',()=>{
-    const sug=primarySuggestedScale();
     if(!sug)return;
-    scaleActive={root:sug.root,scale:sug.scale};scaleBoxIdx=null;
-    render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+    setActiveScale(sug.root,sug.scale);
   });
-  document.getElementById('chipClearScaleFromSolo')?.addEventListener('click',clearActiveScale);
 }
-// scaleActive is shared, global, cross-mode state (see the note above
-// renderChordSuggestions' label) -- clearing it from either live-strip
-// un-biases Suggestions and drops the board overlay from both modes at once.
-function clearActiveScale(){
-  scaleActive=null;scaleBoxIdx=null;
+function setActiveScale(root,scale){
+  scaleActive={root,scale};scaleBoxIdx=null;scalePreview=null;
+  maybeShowScaleAdvice();
   render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+}
+// The one genuine playing instruction from the old scale-detail block. Shown
+// once ever, as a board sticker, then never again -- it orients, it doesn't nag.
+function maybeShowScaleAdvice(){
+  try{
+    if(localStorage.getItem('couch-batata.scaleadvice.v1.seen'))return;
+    localStorage.setItem('couch-batata.scaleadvice.v1.seen','1');
+    showBoardSticker('Land on the coloured tones — pass through the greys',{timeout:4200});
+  }catch{}
+}
+// scaleActive is shared, global, cross-mode state -- clearing it un-biases the
+// Suggestions row and drops the board overlay in both modes at once.
+function clearActiveScale(){
+  scaleActive=null;scaleBoxIdx=null;scalePreview=null;scaleAltsOpen=false;
+  render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+}
+// Alternates, each auditionable on the board before committing.
+function scaleAltsMarkup(){
+  const S=SCALES[scaleActive.scale];
+  let h='<div class="sb-alts"><div class="sb-alt-lbl">The notes you\'re working with</div><div class="sb-notes">';
+  S.intervals.forEach((iv,i)=>{
+    h+='<span class="sb-note-pill '+scaleDegreeClass(iv)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,i)+
+      '<sub>'+scaleDegreeLabel(scaleActive.scale,i)+'</sub></span>';
+  });
+  h+='</div>';
+  const others=(suggestScales(currentKeyInfo?.tonic??scaleActive.root)||[])
+    .filter(s=>!(s.root===scaleActive.root&&s.scale===scaleActive.scale));
+  if(others.length){
+    h+='<div class="sb-alt-lbl">Or try — tap to preview, tap again to keep</div>';
+    others.forEach((s,i)=>{
+      const previewing=scalePreview&&scalePreview.root===s.root&&scalePreview.scale===s.scale;
+      h+='<button type="button" class="sb-alt'+(previewing?' previewing':'')+'" data-alt="'+i+'">'+
+        '<b>'+pcName(s.root)+' '+SCALES[s.scale].name+'</b><span>'+s.why+'</span>'+
+        (previewing?'<span class="sb-pv">tap again to keep</span>':'')+'</button>';
+    });
+  }
+  return h+'</div>';
+}
+function renderScaleBar(){
+  const bar=document.getElementById('scaleBar');
+  if(!bar)return;
+  if(!scaleActive||!SCALES[scaleActive.scale]){
+    bar.hidden=true;bar.innerHTML='';scaleAltsOpen=false;scalePreview=null;return;
+  }
+  const shown=scalePreview||scaleActive;
+  let html='<button type="button" class="sb-name" id="sbName" title="Other scales, and the notes in this one">🎯 '+
+    pcName(shown.root)+' '+SCALES[shown.scale].name+' <span class="sb-caret">'+(scaleAltsOpen?'▴':'▾')+'</span></button>';
+  if(boardMode==='solo'){
+    // Positions are a soloing concern, so the box chips only appear in Solo.
+    const boxes=computeScaleBoxes();
+    if(boxes.length){
+      html+='<span class="sb-divider"></span><button type="button" class="sb-box'+(scaleBoxIdx===null?' on':'')+'" data-box="all" title="Show the whole neck">All</button>';
+      boxes.forEach((b,i)=>{
+        html+='<button type="button" class="sb-box'+(scaleBoxIdx===i?' on':'')+'" data-box="'+i+'" title="Frets '+
+          b.startFret+'–'+b.endFret+(b.isRoot?' — the root position':'')+'">'+(i+1)+(b.isRoot?' <span class="sb-rt">rt</span>':'')+'</button>';
+      });
+    }
+  }else{
+    html+='<span class="sb-divider"></span><span class="sb-note">biasing suggestions</span>';
+  }
+  html+='<button type="button" class="sb-x" id="sbClear" title="Clear this scale" aria-label="Clear this scale">✕</button>';
+  if(scaleAltsOpen)html+=scaleAltsMarkup();
+  bar.innerHTML=html;bar.hidden=false;
+  document.getElementById('sbName').addEventListener('click',()=>{
+    scaleAltsOpen=!scaleAltsOpen;
+    if(!scaleAltsOpen&&scalePreview){scalePreview=null;render();}
+    renderScaleBar();
+  });
+  document.getElementById('sbClear').addEventListener('click',clearActiveScale);
+  bar.querySelectorAll('.sb-box').forEach(btn=>btn.addEventListener('click',()=>{
+    const v=btn.dataset.box;
+    scaleBoxIdx=v==='all'?null:+v;
+    render();renderScaleSuggest(currentKeyInfo?.tonic??0);renderScaleBar();save();
+  }));
+  const others=(suggestScales(currentKeyInfo?.tonic??scaleActive.root)||[])
+    .filter(s=>!(s.root===scaleActive.root&&s.scale===scaleActive.scale));
+  bar.querySelectorAll('.sb-alt').forEach(btn=>btn.addEventListener('click',()=>{
+    const alt=others[+btn.dataset.alt];if(!alt)return;
+    if(scalePreview&&scalePreview.root===alt.root&&scalePreview.scale===alt.scale){
+      scaleAltsOpen=false;setActiveScale(alt.root,alt.scale);return;   // second tap keeps it
+    }
+    scalePreview={root:alt.root,scale:alt.scale};   // first tap auditions it
+    render();renderScaleBar();
+  }));
 }
 function renderKeyChips(){
   renderChordKeyChips();
   renderSoloKeyChip();
+  renderScaleBar();
 }
 function renderKey(){
   const panel=document.getElementById('scalePanel'),
@@ -5725,7 +5884,6 @@ function renderGuidance(keyInfo){
 
 function renderScaleSuggest(primary){
   const host=document.getElementById('scaleSuggest');
-  renderScaleOverlayStatus();
   host.hidden=false;
   const sugs=suggestScales(primary);
   host.innerHTML='<h3>For soloing — try one of these scales:</h3>';
@@ -5737,9 +5895,8 @@ function renderScaleSuggest(primary){
     chip.innerHTML='<b>'+pcName(sug.root)+' '+S.name+'</b><span class="why">'+sug.why+'</span>';
     chip.title='Click to overlay this scale on the fretboard';
     chip.addEventListener('click',()=>{
-      scaleActive=isScaleActive(sug)?null:{root:sug.root,scale:sug.scale};
-      scaleBoxIdx=null;  // reset to full-neck view whenever the scale changes
-      renderScaleSuggest(primary);render();renderChordSuggestions();renderKeyChips();save();
+      if(isScaleActive(sug)){clearActiveScale();renderScaleSuggest(primary);return;}
+      setActiveScale(sug.root,sug.scale);renderScaleSuggest(primary);
     });
     row.appendChild(chip);
   });
@@ -5788,18 +5945,6 @@ function renderScaleSuggest(primary){
       });
     });
   }
-}
-function renderScaleOverlayStatus(){
-  const status=document.getElementById('scaleOverlayStatus');
-  const header=document.getElementById('scalePanelHeader');
-  if(!status)return;
-  if(!scaleActive){status.hidden=true;status.textContent='';header?.classList.remove('has-active-scale');return;}
-  const scale=SCALES[scaleActive.scale];
-  if(!scale){status.hidden=true;status.textContent='';header?.classList.remove('has-active-scale');return;}
-  status.hidden=false;
-  header?.classList.add('has-active-scale');
-  status.textContent='● Fretboard: '+pcName(scaleActive.root)+' '+scale.name+' active';
-  status.title='This scale is currently shown on the fretboard. Open Key & Scales and select the active scale card to turn it off.';
 }
 function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;

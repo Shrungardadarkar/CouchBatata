@@ -506,7 +506,23 @@
     border-radius:10px;padding:11px 12px}
   .key-palette .guidance{margin-top:0;margin-bottom:12px}
   .key-palette .scale-notes-line{margin-top:6px}
-  .scale-detail-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .scale-switch-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+  .scale-notes-head{margin-top:14px}
+  /* One scrolling row of name-only chips keeps the fretboard on screen while
+     choosing -- the whole reason preview is worth having here. */
+  .scale-alt-row{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 4px;-webkit-overflow-scrolling:touch}
+  .scale-alt-chip{flex:0 0 auto;font:inherit;font-weight:800;font-size:.76rem;color:var(--ink);
+    background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:6px 13px;
+    box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;white-space:nowrap;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  @media (hover:hover){.scale-alt-chip:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
+  .scale-alt-chip.on{background:var(--sun);box-shadow:3px 3px 0 var(--ink)}
+  .scale-alt-chip .alt-keep{font:900 .58rem/1 "Courier New",monospace;text-transform:uppercase;color:var(--tomato-dk);margin-left:3px}
+  /* The description of whichever chip is being considered -- so compacting the
+     list does not cost the copy that helps someone choose. */
+  .scale-alt-why{margin:7px 2px 0;font-size:.76rem;font-style:italic;color:var(--ink-dim);font-weight:600}
+  /* An un-committed audition reads as provisional, never as saved state. */
+  .key-palette.is-previewing{border-style:solid;border-color:var(--sun);background:var(--sun-soft)}
   .scale-clear-btn{padding:5px 11px;font-size:.74rem;font-family:inherit;font-weight:800}
   .key-palette .scale-boxes{border-top-color:var(--ink-faint)}
   .key-palette .scale-legend{border-top-color:var(--ink-faint)}
@@ -1861,9 +1877,10 @@ function scaleDegreeClass(iv){
 // sit in a natural hand-span window (verified against the standard A minor
 // pentatonic box diagrams — this reproduces them exactly, string for string).
 function computeScaleBoxes(){
-  if(!scaleActive)return [];
-  const S=SCALES[scaleActive.scale];
-  const scalePcs=new Set(S.intervals.map(i=>(scaleActive.root+i)%12));
+  const active=effectiveScale();
+  if(!active)return [];
+  const S=SCALES[active.scale];
+  const scalePcs=new Set(S.intervals.map(i=>(active.root+i)%12));
   const lowE=OPEN[5];
   // Anchor points: every fret in one octave (0–11) where a scale tone falls on the low E string
   const anchors=[];
@@ -1887,7 +1904,7 @@ function computeScaleBoxes(){
       }
       perString.push(frets);
     }
-    const isRoot=((lowE+anchorFret)%12)===scaleActive.root;
+    const isRoot=((lowE+anchorFret)%12)===active.root;
     return {
       anchorFret,
       startFret:minF===99?anchorFret:minF,
@@ -2370,6 +2387,11 @@ const LEAD_CONNECTION_LABEL={p:'Pull-off',h:'Hammer-on',slide:'Slide'};
 let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
 let scalePreview=null;   // {root,scale} auditioned on the board but not committed
+// What the fretboard and the detail box are showing right now -- the preview
+// while one is being auditioned, otherwise the committed scale. Everything
+// that draws a scale reads this, so a preview is truthful end to end rather
+// than changing the board while the notes list still describes something else.
+function effectiveScale(){return scalePreview||scaleActive;}
 let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
 let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
 // Plain-language degree names for the long-press tip, so the colour code
@@ -3716,7 +3738,7 @@ function render(){
   // committed -- you choose a scale by seeing its shape, not by reading its
   // description. It never touches scaleActive, so backing out restores the
   // real selection with no save.
-  const overlayScale=scalePreview||scaleActive;
+  const overlayScale=effectiveScale();
   if(overlayScale){
     const S=SCALES[overlayScale.scale];
     // Map each scale pitch class back to its interval from the root
@@ -5529,9 +5551,10 @@ function renderChordKeyChips(){
   let html='';
   if(sug)html+='<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>';
   if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
-  html+=scalesChipMarkup();
+  const isChordMode=boardMode==='chord';
+  if(isChordMode)html+=scalesChipMarkup();
   if(chordPaletteOpen&&hasMore)html+=palette;
-  if(scalePickerOpen)html+=scalePickerMarkup();
+  if(isChordMode&&scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
   document.getElementById('chipAlsoInKey')?.addEventListener('click',()=>{loadSuggestedChord(sug);});
@@ -5544,13 +5567,15 @@ function renderChordKeyChips(){
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
   if(!host)return;
-  // Only the *suggestion* lives down here, near the actions. Once accepted it
-  // hands off to the bar on top, so active state never sits in two places.
-  const sug=scaleActive?null:primarySuggestedScale();
+  // Only the *suggestion* lives down here, near the actions. Built only in
+  // Solo mode: the Chord strip renders the same picker, and having both hosts
+  // build it duplicated every control into hidden DOM.
+  const isSoloMode=boardMode==='solo';
+  const sug=scaleActive||!isSoloMode?null:primarySuggestedScale();
   let html='';
   if(sug)html+='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>';
-  html+=scalesChipMarkup('Solo');
-  if(scalePickerOpen)html+=scalePickerMarkup();
+  if(isSoloMode)html+=scalesChipMarkup();
+  if(isSoloMode&&scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
   document.getElementById('chipSoloScaleIdea')?.addEventListener('click',()=>{if(sug)setActiveScale(sug.root,sug.scale);});
@@ -5572,15 +5597,44 @@ function scalesChipMarkup(){
 }
 function scalePickerMarkup(){
   const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
-  let h='<div class="key-palette">';
-  if(scaleActive&&SCALES[scaleActive.scale]){
-    const S=SCALES[scaleActive.scale];
-    h+='<div class="scale-detail-head"><p class="key-chord-intro" style="margin:0">The notes you\u2019re working with</p>'+
-      '<button type="button" class="btn ghost scale-clear-btn" data-clear-scale title="Remove this scale from the fretboard">Clear scale</button></div>';
+  const shown=effectiveScale();
+  const previewing=!!scalePreview;
+  let h='<div class="key-palette'+(previewing?' is-previewing':'')+'">';
+  const others=sugs.filter(x=>!(scaleActive&&x.root===scaleActive.root&&x.scale===scaleActive.scale));
+  // The switcher comes first, immediately under the chip that opened this box.
+  // Compacting the chips alone was not enough to keep the fretboard on screen
+  // (measured: it moved the row 1165px -> 1099px in a 900px viewport); what
+  // pushed it down was the notes, legend and boxes sitting above it. Those are
+  // reference for the current choice, so they read after the control that
+  // changes it.
+  if(others.length){
+    h+='<div class="scale-switch-head"><p class="key-chord-intro" style="margin:0">'+
+      (scaleActive?'Or try':'For soloing')+' <span class="key-chord-degrees">'+
+      (scaleActive?'tap to preview, tap again to keep':'tap one to show it on the fretboard')+'</span></p>'+
+      (shown?(previewing
+        ? '<button type="button" class="btn ghost scale-clear-btn" data-cancel-preview title="Go back to the scale you had">Keep current</button>'
+        : '<button type="button" class="btn ghost scale-clear-btn" data-clear-scale title="Remove this scale from the fretboard">Clear scale</button>'):'')+
+      '</div><div class="scale-alt-row">';
+    others.forEach(x=>{
+      const on=scalePreview&&scalePreview.root===x.root&&scalePreview.scale===x.scale;
+      h+='<button type="button" class="scale-alt-chip'+(on?' on':'')+'" data-pick="'+sugs.indexOf(x)+
+        '" title="'+x.why.replace(/"/g,'&quot;')+'">'+pcName(x.root)+' '+SCALES[x.scale].name+
+        (on?' <span class="alt-keep">keep?</span>':'')+'</button>';
+    });
+    h+='</div>';
+    // Compacting the list does not cost the copy that helps someone choose --
+    // the one being considered still shows its own description.
+    const described=scalePreview?others.find(x=>x.root===scalePreview.root&&x.scale===scalePreview.scale):null;
+    if(described)h+='<p class="scale-alt-why">'+described.why+'</p>';
+  }
+  if(shown&&SCALES[shown.scale]){
+    const S=SCALES[shown.scale];
+    h+='<p class="key-chord-intro scale-notes-head">'+
+      (previewing?'Previewing <b>'+pcName(shown.root)+' '+S.name+'</b>':'The notes you\u2019re working with')+'</p>';
     h+='<div class="scale-notes-line">';
     S.intervals.forEach((iv,i)=>{
-      h+='<span class="lg-note lg-'+scaleDegreeClass(iv)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,i)+
-        '<sub>'+scaleDegreeLabel(scaleActive.scale,i)+'</sub></span>';
+      h+='<span class="lg-note lg-'+scaleDegreeClass(iv)+'">'+scaleNoteName(shown.root,shown.scale,i)+
+        '<sub>'+scaleDegreeLabel(shown.scale,i)+'</sub></span>';
     });
     h+='</div><div class="scale-legend">'+
       '<span class="lg-item"><span class="lg-dot lg-sroot"></span>Root</span>'+
@@ -5589,8 +5643,6 @@ function scalePickerMarkup(){
       '<span class="lg-item"><span class="lg-dot lg-sseventh"></span>7th</span>'+
       '<span class="lg-item"><span class="lg-dot lg-stension"></span>passing tone</span>'+
       '<span class="lg-hint">Land on the coloured tones \u00b7 pass through the greys.</span></div>';
-    // Position boxes read here in their original form; the fretboard shows only
-    // their effect (shaded box, lit fret numbers, dimmed outside notes).
     const boxes=computeScaleBoxes();
     if(boxes.length){
       h+='<div class="scale-boxes"><span class="lg-boxes-label">Position boxes:</span>'+
@@ -5604,15 +5656,6 @@ function scalePickerMarkup(){
       h+='</div>';
     }
   }
-  const others=sugs.filter(x=>!(scaleActive&&x.root===scaleActive.root&&x.scale===scaleActive.scale));
-  if(others.length){
-    h+='<p class="key-chord-intro" style="margin-top:12px">'+(scaleActive?'Or try':'For soloing')+
-      ' <span class="key-chord-degrees">tap one to show it on the fretboard</span></p>';
-    others.forEach(x=>{
-      h+='<button type="button" class="sb-alt" data-pick="'+sugs.indexOf(x)+'"><b>'+pcName(x.root)+' '+SCALES[x.scale].name+
-        '</b><span>'+x.why+'</span></button>';
-    });
-  }
   return h+'</div>';
 }
 function wireScalesChip(host){
@@ -5622,8 +5665,16 @@ function wireScalesChip(host){
   const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
   host.querySelectorAll('[data-pick]').forEach(btn=>btn.addEventListener('click',()=>{
     const pick=sugs[+btn.dataset.pick];if(!pick)return;
-    setActiveScale(pick.root,pick.scale);
+    if(!scaleActive){setActiveScale(pick.root,pick.scale);return;}   // nothing to preview against yet
+    if(scalePreview&&scalePreview.root===pick.root&&scalePreview.scale===pick.scale){
+      scalePreview=null;setActiveScale(pick.root,pick.scale);return; // second tap keeps it
+    }
+    scalePreview={root:pick.root,scale:pick.scale};scaleBoxIdx=null; // first tap auditions it
+    render();renderKeyChips();
   }));
+  host.querySelector('[data-cancel-preview]')?.addEventListener('click',()=>{
+    scalePreview=null;scaleBoxIdx=null;render();renderKeyChips();
+  });
   host.querySelector('[data-clear-scale]')?.addEventListener('click',clearActiveScale);
   host.querySelectorAll('[data-box]').forEach(btn=>btn.addEventListener('click',()=>{
     const v=btn.dataset.box;

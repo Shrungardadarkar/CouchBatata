@@ -489,9 +489,8 @@
     background:var(--mint-soft);border:2px solid var(--ink);border-radius:10px;padding:6px 9px;
     box-shadow:1.5px 1.5px 0 var(--ink)}
   .scale-bar[hidden]{display:none}
-  .sb-name{font:inherit;font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:.76rem;
-    color:var(--ink);display:inline-flex;align-items:center;gap:5px;background:none;border:0;padding:2px 0;cursor:pointer}
-  .sb-caret{font-size:.62rem;opacity:.65}
+  .sb-name{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:.76rem;
+    color:var(--ink);display:inline-flex;align-items:center;gap:5px}
   .sb-divider{width:1.5px;height:16px;background:rgba(90,47,62,.3);flex:0 0 auto}
   .sb-note{font:900 .6rem/1.3 "Courier New",monospace;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em}
   .sb-box{font:900 .62rem/1 "Courier New",monospace;color:var(--ink-dim);background:var(--paper);
@@ -546,6 +545,8 @@
   .key-palette{flex-basis:100%;margin-top:9px;background:var(--paper);border:2px dashed var(--ink);
     border-radius:10px;padding:11px 12px}
   .key-palette .guidance{margin-top:0;margin-bottom:12px}
+  .key-palette .scale-notes-line{margin-top:6px}
+  .key-palette .scale-legend{border-top-color:var(--ink-faint)}
 
   .key-chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
   .key-chip-row[hidden]{display:none}
@@ -2407,7 +2408,6 @@ const LEAD_CONNECTION_LABEL={p:'Pull-off',h:'Hammer-on',slide:'Slide'};
 let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
 let scalePreview=null;   // {root,scale} auditioned on the board but not committed
-let scaleAltsOpen=false; // the scale bar's own disclosure, not persisted
 let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
 let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
 // Plain-language degree names for the long-press tip, so the colour code
@@ -5569,7 +5569,7 @@ function renderChordKeyChips(){
   if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
   html+=scalesChipMarkup();
   if(chordPaletteOpen&&hasMore)html+=palette;
-  if(scalePickerOpen&&!scaleActive)html+=scalePickerMarkup();
+  if(scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
   document.getElementById('chipAlsoInKey')?.addEventListener('click',()=>{loadSuggestedChord(sug);});
@@ -5588,7 +5588,7 @@ function renderSoloKeyChip(){
   let html='';
   if(sug)html+='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>';
   html+=scalesChipMarkup('Solo');
-  if(scalePickerOpen&&!scaleActive)html+=scalePickerMarkup();
+  if(scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
   document.getElementById('chipSoloScaleIdea')?.addEventListener('click',()=>{if(sug)setActiveScale(sug.root,sug.scale);});
@@ -5598,16 +5598,43 @@ function renderSoloKeyChip(){
 // once a scale is on, the bar above the board owns it, so there is never a
 // second door to the same room.
 function scalesChipMarkup(){
-  if(scaleActive)return '';
-  return '<button type="button" class="mini-key-chip'+(scalePickerOpen?' on':'')+'" data-scales-chip title="Choose a scale for the fretboard">scales <span class="key-chip-x">'+(scalePickerOpen?'▴':'▾')+'</span></button>';
+  // Stays available whether or not a scale is on: with none it is the way in,
+  // with one it is where that scale's notes and alternates are read.
+  const label=scaleActive?'scale details':'scales';
+  return '<button type="button" class="mini-key-chip'+(scalePickerOpen?' on':'')+'" data-scales-chip title="'+
+    (scaleActive?'The notes in this scale, and others to try':'Choose a scale for the fretboard')+'">'+label+
+    ' <span class="key-chip-x">'+(scalePickerOpen?'▴':'▾')+'</span></button>';
 }
 function scalePickerMarkup(){
   const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
-  if(!sugs.length)return '';
-  let h='<div class="key-palette"><p class="key-chord-intro">For soloing <span class="key-chord-degrees">tap one to show it on the fretboard</span></p>';
-  sugs.forEach((s,i)=>{
-    h+='<button type="button" class="sb-alt" data-pick="'+i+'"><b>'+pcName(s.root)+' '+SCALES[s.scale].name+'</b><span>'+s.why+'</span></button>';
-  });
+  let h='<div class="key-palette">';
+  if(scaleActive&&SCALES[scaleActive.scale]){
+    // Original treatment: colour-blocked note pills keyed to the same degree
+    // palette the fretboard dots use, with the legend that decodes them.
+    const S=SCALES[scaleActive.scale];
+    h+='<p class="key-chord-intro">The notes you\u2019re working with</p><div class="scale-notes-line">';
+    S.intervals.forEach((iv,i)=>{
+      h+='<span class="lg-note lg-'+scaleDegreeClass(iv)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,i)+
+        '<sub>'+scaleDegreeLabel(scaleActive.scale,i)+'</sub></span>';
+    });
+    h+='</div><div class="scale-legend">'+
+      '<span class="lg-item"><span class="lg-dot lg-sroot"></span>Root</span>'+
+      '<span class="lg-item"><span class="lg-dot lg-sthird"></span>3rd</span>'+
+      '<span class="lg-item"><span class="lg-dot lg-sfifth"></span>5th</span>'+
+      '<span class="lg-item"><span class="lg-dot lg-sseventh"></span>7th</span>'+
+      '<span class="lg-item"><span class="lg-dot lg-stension"></span>passing tone</span>'+
+      '<span class="lg-hint">Land on the coloured tones \u00b7 pass through the greys.</span></div>';
+  }
+  const others=sugs.filter(x=>!(scaleActive&&x.root===scaleActive.root&&x.scale===scaleActive.scale));
+  if(others.length){
+    h+='<p class="key-chord-intro" style="margin-top:12px">'+(scaleActive?'Or try':'For soloing')+
+      ' <span class="key-chord-degrees">tap one to show it on the fretboard</span></p>';
+    others.forEach(x=>{
+      const idx=sugs.indexOf(x);
+      h+='<button type="button" class="sb-alt" data-pick="'+idx+'"><b>'+pcName(x.root)+' '+SCALES[x.scale].name+
+        '</b><span>'+x.why+'</span></button>';
+    });
+  }
   return h+'</div>';
 }
 function wireScalesChip(host){
@@ -5617,7 +5644,7 @@ function wireScalesChip(host){
   const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
   host.querySelectorAll('[data-pick]').forEach(btn=>btn.addEventListener('click',()=>{
     const pick=sugs[+btn.dataset.pick];if(!pick)return;
-    scalePickerOpen=false;setActiveScale(pick.root,pick.scale);
+    setActiveScale(pick.root,pick.scale);
   }));
 }
 function setActiveScale(root,scale){
@@ -5637,42 +5664,21 @@ function maybeShowScaleAdvice(){
 // scaleActive is shared, global, cross-mode state -- clearing it un-biases the
 // Suggestions row and drops the board overlay in both modes at once.
 function clearActiveScale(){
-  scaleActive=null;scaleBoxIdx=null;scalePreview=null;scaleAltsOpen=false;
+  scaleActive=null;scaleBoxIdx=null;scalePreview=null;scalePickerOpen=false;
   render();renderChordSuggestions();renderKeyChips();save();
-}
-// Alternates, each auditionable on the board before committing.
-function scaleAltsMarkup(){
-  const S=SCALES[scaleActive.scale];
-  let h='<div class="sb-alts"><div class="sb-alt-lbl">The notes you\'re working with</div><div class="sb-notes">';
-  S.intervals.forEach((iv,i)=>{
-    h+='<span class="sb-note-pill '+scaleDegreeClass(iv)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,i)+
-      '<sub>'+scaleDegreeLabel(scaleActive.scale,i)+'</sub></span>';
-  });
-  h+='</div>';
-  const others=(suggestScales(currentKeyInfo?.tonic??scaleActive.root)||[])
-    .filter(s=>!(s.root===scaleActive.root&&s.scale===scaleActive.scale));
-  if(others.length){
-    h+='<div class="sb-alt-lbl">Or try — tap to preview, tap again to keep</div>';
-    others.forEach((s,i)=>{
-      const previewing=scalePreview&&scalePreview.root===s.root&&scalePreview.scale===s.scale;
-      h+='<button type="button" class="sb-alt'+(previewing?' previewing':'')+'" data-alt="'+i+'">'+
-        '<b>'+pcName(s.root)+' '+SCALES[s.scale].name+'</b><span>'+s.why+'</span>'+
-        (previewing?'<span class="sb-pv">tap again to keep</span>':'')+'</button>';
-    });
-  }
-  return h+'</div>';
 }
 function renderScaleBar(){
   const bar=document.getElementById('scaleBar');
   if(!bar)return;
   if(!scaleActive||!SCALES[scaleActive.scale]){
-    bar.hidden=true;bar.innerHTML='';scaleAltsOpen=false;scalePreview=null;return;
+    bar.hidden=true;bar.innerHTML='';scalePreview=null;return;
   }
+  // Live context only -- what is on the board right now. The notes list,
+  // legend and alternates are exploration, so they live with the other
+  // exploratory surfaces beside "more in key", not stacked over the fretboard.
   const shown=scalePreview||scaleActive;
-  let html='<button type="button" class="sb-name" id="sbName" title="Other scales, and the notes in this one">🎯 '+
-    pcName(shown.root)+' '+SCALES[shown.scale].name+' <span class="sb-caret">'+(scaleAltsOpen?'▴':'▾')+'</span></button>';
+  let html='<span class="sb-name">🎯 '+pcName(shown.root)+' '+SCALES[shown.scale].name+'</span>';
   if(boardMode==='solo'){
-    // Positions are a soloing concern, so the box chips only appear in Solo.
     const boxes=computeScaleBoxes();
     if(boxes.length){
       html+='<span class="sb-divider"></span><button type="button" class="sb-box'+(scaleBoxIdx===null?' on':'')+'" data-box="all" title="Show the whole neck">All</button>';
@@ -5685,28 +5691,12 @@ function renderScaleBar(){
     html+='<span class="sb-divider"></span><span class="sb-note">biasing suggestions</span>';
   }
   html+='<button type="button" class="sb-x" id="sbClear" title="Clear this scale" aria-label="Clear this scale">✕</button>';
-  if(scaleAltsOpen)html+=scaleAltsMarkup();
   bar.innerHTML=html;bar.hidden=false;
-  document.getElementById('sbName').addEventListener('click',()=>{
-    scaleAltsOpen=!scaleAltsOpen;
-    if(!scaleAltsOpen&&scalePreview){scalePreview=null;render();}
-    renderScaleBar();
-  });
   document.getElementById('sbClear').addEventListener('click',clearActiveScale);
   bar.querySelectorAll('.sb-box').forEach(btn=>btn.addEventListener('click',()=>{
     const v=btn.dataset.box;
     scaleBoxIdx=v==='all'?null:+v;
     render();renderScaleBar();save();
-  }));
-  const others=(suggestScales(currentKeyInfo?.tonic??scaleActive.root)||[])
-    .filter(s=>!(s.root===scaleActive.root&&s.scale===scaleActive.scale));
-  bar.querySelectorAll('.sb-alt').forEach(btn=>btn.addEventListener('click',()=>{
-    const alt=others[+btn.dataset.alt];if(!alt)return;
-    if(scalePreview&&scalePreview.root===alt.root&&scalePreview.scale===alt.scale){
-      scaleAltsOpen=false;setActiveScale(alt.root,alt.scale);return;   // second tap keeps it
-    }
-    scalePreview={root:alt.root,scale:alt.scale};   // first tap auditions it
-    render();renderScaleBar();
   }));
 }
 function renderKeyChips(){

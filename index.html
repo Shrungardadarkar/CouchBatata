@@ -106,7 +106,6 @@
      reading order (Key & Scales, Fretboard, Chord/Solo, Tab builder, Tab
      preview), independent of where each panel now physically sits in the
      markup for the desktop grid below. */
-  #scalePanel{order:1}
   #tabPanel{order:2}
   #leadPanel{order:3}
   #builderPanel{order:4}
@@ -501,7 +500,10 @@
   @media (hover:hover){.sb-box:hover{border-color:var(--ink);color:var(--ink);transform:translateY(-1px)}}
   .sb-box.on{color:var(--ink);border-color:var(--ink);background:var(--sun);box-shadow:1.5px 1.5px 0 var(--ink)}
   .sb-rt{color:var(--tomato-dk)}
-  .sb-x{margin-left:auto;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;
+  /* Sits right after the bar's content rather than being flung to the far
+     edge by margin-left:auto -- on a wide desktop bar that stranded the
+     clear button half a screen from the thing it clears. */
+  .sb-x{width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;
     display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;
     background:var(--paper);color:var(--ink);cursor:pointer;flex:0 0 auto;font-family:inherit}
   @media (hover:hover){.sb-x:hover{background:var(--tomato);color:var(--cream)}}
@@ -531,6 +533,19 @@
   .degree-tip{position:absolute;z-index:70;background:var(--ink);color:var(--cream);
     font-size:.62rem;font-weight:800;padding:5px 9px;border-radius:6px;white-space:nowrap;
     box-shadow:2px 2px 0 rgba(90,47,62,.35);pointer-events:none;transform:translate(-50%,-115%)}
+
+  /* Key is a property of the song, like its title -- so it reads next to the
+     title rather than heading a card of its own. */
+  .song-key{font-weight:800;font-size:.82rem;color:var(--ink-dim);white-space:nowrap}
+  .song-key b{color:var(--tomato-dk)}
+  .song-key .song-key-fit{font-family:"Courier New",monospace;font-size:.66rem;font-weight:900;
+    color:var(--ink);background:var(--sun-soft);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin-left:5px}
+  .song-key[hidden]{display:none}
+  /* The in-key palette, revealed from the chord chip rather than standing in
+     its own panel: the chip is the one answer, this is the exploration. */
+  .key-palette{flex-basis:100%;margin-top:9px;background:var(--paper);border:2px dashed var(--ink);
+    border-radius:10px;padding:11px 12px}
+  .key-palette .guidance{margin-top:0;margin-bottom:12px}
 
   .key-chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
   .key-chip-row[hidden]{display:none}
@@ -928,24 +943,6 @@
   .hint{color:var(--ink-dim);font-size:.84rem;margin-top:12px;line-height:1.6;font-weight:600}
 
   /* Collapsible key/scale panel — key always visible, rest expands on demand */
-  .scale-panel{padding:0;overflow:visible}
-  .scale-panel > *{margin-left:0;margin-right:0}
-  .scale-panel-header{width:100%;display:flex;align-items:center;gap:12px;
-    background:none;border:0;color:inherit;font-family:inherit;cursor:pointer;
-    padding:22px 22px 18px;text-align:left;border-radius:16px}
-  @media (hover:hover){.scale-panel-header:hover{background:var(--cream-2)}}
-  .scale-panel-chevron{color:var(--ink);font-size:1rem;font-weight:900;transition:transform .3s var(--ease-out-back);flex-shrink:0}
-  .scale-panel-header[aria-expanded="true"] .scale-panel-chevron{transform:rotate(180deg)}
-  .scale-panel-header.key-coach-ready{background:linear-gradient(90deg,rgba(142,207,168,.28),transparent 68%)}
-  .key-coach-cue{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;padding:4px 8px;border:2px solid var(--ink);border-radius:999px;
-    background:var(--mint);color:var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);font-size:.72rem;font-weight:900;line-height:1.15;white-space:nowrap}
-  @media (prefers-reduced-motion:no-preference){.key-coach-cue{animation:keyCoachPulse 1.5s var(--ease-spring) 3}.scale-panel-header.key-coach-ready{animation:keyPanelGlow 1.5s ease-in-out 3}@keyframes keyCoachPulse{50%{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}@keyframes keyPanelGlow{50%{background:linear-gradient(90deg,rgba(142,207,168,.52),transparent 75%)}}}
-  .scale-panel.forced-open .scale-panel-header{cursor:default}
-  .scale-panel.forced-open .scale-panel-chevron{opacity:.35}
-  .scale-panel-forced-note{font-size:.72rem;color:var(--tomato);font-style:italic;font-weight:800;
-    flex-shrink:0;white-space:nowrap}
-  .scale-panel-body{padding:0 22px 22px}
-  .scale-panel-body .guidance{margin-top:0}
 
   /* muted strings — the nut is the sole mute control and marker */
   .str-lbl{color:var(--ink);font-family:"Arial Black",Arial,sans-serif;
@@ -1151,9 +1148,6 @@
     .acc-opt{font-size:1.05rem}
     .acc-knob{width:28px}
     .toggle.flats .acc-knob{transform:translateX(29px)}
-    .scale-panel{padding:0}
-    .scale-panel-header{padding:22px 15px 16px}
-    .scale-panel-body{padding-left:15px;padding-right:15px}
     .btn-row{gap:9px}
     .scale-chip{min-width:140px}
     .board-outer{min-width:720px}
@@ -1190,7 +1184,7 @@
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
     .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
-    .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,.scale-panel-chevron,
+    .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,
     #toast,.board-sticker,.modal-dialog,.song-shelf-dialog,.help-fab,.help-panel,.help-close,
     .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
@@ -1253,6 +1247,7 @@
       <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
     </button>
   </div>
+  <span class="song-key" id="songKey" hidden aria-live="polite"></span>
   <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
 </div>
 
@@ -1422,17 +1417,6 @@
   <p class="hint">Your song auto-saves. Drag chords or section handles to rearrange; open Help for the rest.</p>
 </div>
 
-<div class="panel scale-panel win-mint" data-win="Key & Scales" id="scalePanel" hidden>
-  <button class="scale-panel-header" id="scalePanelHeader" aria-expanded="false">
-    <div class="key-line" id="keyLine"></div>
-    <span class="scale-panel-chevron" id="scalePanelChevron" aria-hidden="true">▾</span>
-  </button>
-  <div class="scale-panel-body" id="scalePanelBody" hidden>
-    <div class="guidance" id="guidance" hidden></div>
-    <div class="suggest" id="suggestOut" hidden></div>
-    <div class="scale-suggest" id="scaleSuggest" hidden></div>
-  </div>
-</div>
 </div>
 </div>
 
@@ -2424,6 +2408,7 @@ let scaleActive=null;    // {root:pc, scale:key} | null
 let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
 let scalePreview=null;   // {root,scale} auditioned on the board but not committed
 let scaleAltsOpen=false; // the scale bar's own disclosure, not persisted
+let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
 // Plain-language degree names for the long-press tip, so the colour code
 // explains itself on demand instead of via a permanent legend.
 const SCALE_DEGREE_NAMES={sroot:'the root — home',sthird:'the 3rd — the colour',
@@ -2434,11 +2419,9 @@ let currentOutlierMap=new Map(); // sectionId → Set of local chord idxs that a
 let currentCoveringMode=null;    // {root, scale} that covers all chords incl. outliers, or null
 let keyContextCount=0;
 let keyContextIncludesBoard=false;
-let scalePanelExpanded=false;    // manual open/closed state, persisted
 // The optional last pair of diatonic chords is a small drawer within the
 // already-open key panel. Keep its state while loading one of its chords so a
 // click does not feel like it has collapsed the options the player was using.
-let keyMoreChordsOpen=false;
 let _hadOutliers=false;          // tracks outlier presence to auto-open once on appearance
 let _popChip=null;               // {sectionId,chordIdx} of a chip to pop-in animate once
 const KEY_COACH_SEEN_KEY='couch-batata.key-coach.v1.seen';
@@ -2718,7 +2701,6 @@ function projectSnapshot(){
     useFlats,
     scaleActive:scaleActive?{root:scaleActive.root,scale:scaleActive.scale}:null,
     scaleBoxIdx,
-    scalePanelExpanded,
     nextId:_nextId,nextLeadId:_nextLeadId
   };
 }
@@ -2805,7 +2787,6 @@ function restoreProject(d){
   scaleActive=d.scaleActive&&Number.isInteger(d.scaleActive.root)&&SCALES[d.scaleActive.scale]
     ?{root:((d.scaleActive.root%12)+12)%12,scale:d.scaleActive.scale}:null;
   scaleBoxIdx=Number.isInteger(d.scaleBoxIdx)&&d.scaleBoxIdx>=0?d.scaleBoxIdx:null;
-  scalePanelExpanded=!!d.scalePanelExpanded;
   _nextId=Math.max(maxId+1,Number.isInteger(d.nextId)?d.nextId:1);
   _nextLeadId=Math.max(_nextLeadId,Number.isInteger(d.nextLeadId)&&d.nextLeadId>0?d.nextLeadId:1);
   return true;
@@ -2865,7 +2846,7 @@ async function flushCurrentProject(){
 function blankProjectSnapshot(){
   return {
     app:'Couch Batata',version:1,songName:'',sections:[],activeSectionId:null,
-    useFlats,scaleActive:null,scaleBoxIdx:null,scalePanelExpanded:false,nextId:1,nextLeadId:1
+    useFlats,scaleActive:null,scaleBoxIdx:null,nextId:1,nextLeadId:1
   };
 }
 function resetProjectEditingState(){
@@ -5546,30 +5527,14 @@ function startsLike(diatonicSuf,playedSuf){
 function keyCoachHasBeenSeen(){
   try{return localStorage.getItem(KEY_COACH_SEEN_KEY)==='1';}catch{return true;}
 }
+// The panel this cue used to point at is gone; the flag is kept only so the
+// one-time nudge never returns for someone who already saw it.
 function markKeyCoachSeen(){
   if(!keyCoachNudgeActive)return;
   try{localStorage.setItem(KEY_COACH_SEEN_KEY,'1');}catch{}
   keyCoachNudgeActive=false;
-  const header=document.getElementById('scalePanelHeader');
-  header?.classList.remove('key-coach-ready');
-  header?.querySelector('.key-coach-cue')?.remove();
 }
-function syncKeyCoachCue(eligible){
-  const header=document.getElementById('scalePanelHeader');
-  if(!header)return;
-  keyCoachNudgeActive=!!eligible&&!keyCoachHasBeenSeen();
-  let cue=header.querySelector('.key-coach-cue');
-  if(keyCoachNudgeActive){
-    header.classList.add('key-coach-ready');
-    if(!cue){
-      cue=document.createElement('span');cue.className='key-coach-cue';cue.textContent='Chords in your key ↓';
-      header.insertBefore(cue,document.getElementById('scalePanelChevron'));
-    }
-  }else{
-    header.classList.remove('key-coach-ready');
-    cue?.remove();
-  }
-}
+
 // One unused diatonic triad to surface inline in the Chord live-strip --
 // deliberately only ever suggests one, not the full in-key palette the
 // Key & Scales panel shows, matching the same "lead with one answer"
@@ -5593,11 +5558,22 @@ function renderChordKeyChips(){
   const host=document.getElementById('chordKeyChips');
   if(!host)return;
   const sug=suggestedInKeyChord();
+  const palette=renderChordPalette();
+  const hasMore=!!palette;
   // The active scale is no longer a chip here -- the bar above the board shows
-  // it for both modes at once.
-  host.innerHTML=sug?'<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>':'';
-  host.hidden=!sug;
+  // it for both modes at once. The chip is one answer; its caret opens the
+  // full palette that used to need a standing panel.
+  let html='';
+  if(sug)html+='<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>';
+  if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
+  if(chordPaletteOpen&&hasMore)html+=palette;
+  host.innerHTML=html;
+  host.hidden=!html;
   document.getElementById('chipAlsoInKey')?.addEventListener('click',()=>{loadSuggestedChord(sug);});
+  document.getElementById('chipMoreInKey')?.addEventListener('click',()=>{
+    chordPaletteOpen=!chordPaletteOpen;renderChordKeyChips();
+  });
+  wireChordPalette(host);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
@@ -5615,7 +5591,7 @@ function renderSoloKeyChip(){
 function setActiveScale(root,scale){
   scaleActive={root,scale};scaleBoxIdx=null;scalePreview=null;
   maybeShowScaleAdvice();
-  render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+  render();renderChordSuggestions();renderKeyChips();save();
 }
 // The one genuine playing instruction from the old scale-detail block. Shown
 // once ever, as a board sticker, then never again -- it orients, it doesn't nag.
@@ -5630,7 +5606,7 @@ function maybeShowScaleAdvice(){
 // Suggestions row and drops the board overlay in both modes at once.
 function clearActiveScale(){
   scaleActive=null;scaleBoxIdx=null;scalePreview=null;scaleAltsOpen=false;
-  render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+  render();renderChordSuggestions();renderKeyChips();save();
 }
 // Alternates, each auditionable on the board before committing.
 function scaleAltsMarkup(){
@@ -5688,7 +5664,7 @@ function renderScaleBar(){
   bar.querySelectorAll('.sb-box').forEach(btn=>btn.addEventListener('click',()=>{
     const v=btn.dataset.box;
     scaleBoxIdx=v==='all'?null:+v;
-    render();renderScaleSuggest(currentKeyInfo?.tonic??0);renderScaleBar();save();
+    render();renderScaleBar();save();
   }));
   const others=(suggestScales(currentKeyInfo?.tonic??scaleActive.root)||[])
     .filter(s=>!(s.root===scaleActive.root&&s.scale===scaleActive.scale));
@@ -5706,246 +5682,111 @@ function renderKeyChips(){
   renderSoloKeyChip();
   renderScaleBar();
 }
+// Key now reads in the working bar beside the song title -- it is a property
+// of the song, not a heading for a card. The in-key palette and the borrowed-
+// chord guidance live behind the chord chip's disclosure in the live-strip.
 function renderKey(){
-  const panel=document.getElementById('scalePanel'),
-        kl=document.getElementById('keyLine'),
-        gd=document.getElementById('guidance'),
-        sg=document.getElementById('suggestOut'),
-        sh=document.getElementById('scaleSuggest');
   const cs=allChords();
   const keyInfo=currentKeyInfo;
+  const songKey=document.getElementById('songKey');
   if(keyContextCount<1||!keyInfo){
-    panel.hidden=true;
-    _hadOutliers=false;
-    syncKeyCoachCue(false);
+    songKey.hidden=true;songKey.innerHTML='';
+    _hadOutliers=false;chordPaletteOpen=false;
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
-  panel.hidden=false;
   const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,dominantContext}=keyInfo;
   const rel=(tonic+9)%12;
+  const tentative=keyContextCount<2;
+  let html='';
   if(dominantContext){
-    kl.innerHTML='Tonal center: <strong>'+pcName(tonic)+' dominant blues</strong> '
-      +'<span style="color:var(--ink-dim)">(I7 / IV7 / V7 — follow the chord changes; no single Mixolydian scale contains every chord tone)</span>';
+    html='Tonal center: <b>'+pcName(tonic)+' dominant blues</b>';
   } else if(keyInfo.keyMode==='minor'&&isPerfectFit){
-    const scaleName=SCALES[keyInfo.keyScale]?.name||'minor';
-    kl.innerHTML=(keyContextCount<2?'Tentative key: ':'Key: ')+'<strong>'+pcName(tonic)+' '+scaleName.toLowerCase()+'</strong>';
+    html=(tentative?'Tentative key: ':'Key: ')+'<b>'+pcName(tonic)+' '+(SCALES[keyInfo.keyScale]?.name||'minor').toLowerCase()+'</b>';
   } else if(isPerfectFit){
-    let others='';
-    if(alsoFits.length){
-      others=' <span style="color:var(--ink-faint);font-size:.85rem">(also fits: '+
-        alsoFits.map(k=>pcName(k)+' major').join(', ')+')</span>';
-    }
-    kl.innerHTML=(keyContextCount<2?'Tentative key: ':'Key: ')+'<strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+others;
+    html=(tentative?'Tentative key: ':'Key: ')+'<b>'+pcName(tonic)+' major</b> / '+pcName(rel)+' minor';
   } else {
-    kl.innerHTML=(keyContextCount<2?'Tentative closest key: ':'Closest key: ')+'<strong>'+pcName(tonic)+' major</strong> <span style="color:var(--ink-dim)">/ '+pcName(rel)+' minor</span>'+
-      '<span class="fit-badge">'+inChords+' of '+totalChords+' fit · '+outIdxs.size+' borrowed</span>';
+    html=(tentative?'Tentative key: ':'Key: ')+'<b>'+pcName(tonic)+' major</b> / '+pcName(rel)+' minor'+
+      '<span class="song-key-fit">'+inChords+'/'+totalChords+' fit · '+outIdxs.size+' borrowed</span>';
   }
+  songKey.innerHTML=html;songKey.hidden=false;
 
-  // Contextual guidance belongs here rather than in a repeated toast after
-  // every added chord. We wait for a stable, perfect-fit key; then surface the
-  // familiar I / IV / V (or i / iv / V) movement before the wider palette.
-  const hasStableKey=keyContextCount>=2&&isPerfectFit&&!dominantContext;
-  syncKeyCoachCue(hasStableKey);
-  if(!hasStableKey){
-    sg.hidden=true;
-    keyMoreChordsOpen=false;
-  } else {
+  // Announce borrowed chords once per transition, where every other board-
+  // contextual message already appears, instead of springing a panel open.
+  const hasOutliers=!isPerfectFit&&!dominantContext;
+  if(hasOutliers&&!_hadOutliers){
+    const first=[...outIdxs].sort((a,b)=>a-b).map(chordAtGlobalIdx).find(Boolean);
+    if(first){
+      showBoardSticker(pcName(first.chord.root)+first.chord.suf+' sits outside '+pcName(tonic)+' major — hear how it colours the song',{
+        timeout:5200,action:{text:'Options',onClick:()=>{chordPaletteOpen=true;renderKeyChips();}}
+      });
+    }
+  }
+  _hadOutliers=hasOutliers;
+  renderKeyChips();
+  render();
+}
+
+// The full in-key palette, plus borrowed-chord guidance when there is any.
+// Only reachable from the chord chip's disclosure, so the single suggestion
+// stays the default and this stays the deliberate step past it.
+function renderChordPalette(){
+  const keyInfo=currentKeyInfo;
+  if(!keyInfo)return '';
+  const {tonic,isPerfectFit,dominantContext}=keyInfo;
+  const cs=allChords();
+  let html='<div class="key-palette">';
+  if(!isPerfectFit&&!dominantContext)html+=guidanceMarkup(keyInfo);
+  if(keyContextCount>=2&&isPerfectFit&&!dominantContext){
     const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo));
     const isUsed=t=>cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf));
-    // Keep the panel deliberately small: tonic/subdominant/dominant are a
-    // useful starting point, ii and vi are common songwriting partners, and
-    // the remaining diatonic triads stay available without being presented as
-    // equally central in every style.
-    const startHere=tris.filter((_,index)=>[0,3,4].includes(index));
-    const commonMoves=tris.filter((_,index)=>[1,5].includes(index));
-    const colourAndTension=tris.filter((_,index)=>[2,6].includes(index));
     const chip=t=>{
       const used=isUsed(t),label=pcName(t.root)+t.suf;
       return '<button class="key-chord-chip'+(used?' is-used':'')+'" type="button" data-key-root="'+t.root+'" data-key-suf="'+t.suf+'" aria-label="'+label+' '+t.rn+(used?' — already in your song':'')+'" title="'+(used?'Already in your song — load '+label+' again':'Load '+label+' onto the fretboard')+'">'+label+' <span class="key-chord-rn">'+t.rn+'</span></button>';
     };
-    sg.hidden=false;
-    const group=(title,items)=>'<div class="key-chord-group"><p class="key-chord-intro">'+title+' <span class="key-chord-degrees">'+items.map(item=>item.rn).join(' · ')+'</span></p><div class="key-chord-row">'+items.map(chip).join('')+'</div></div>';
-    sg.innerHTML=group('Start here',startHere)+group('Common moves',commonMoves)
-      +(colourAndTension.length?'<details class="key-more-chords"'+(keyMoreChordsOpen?' open':'')+'><summary>More in-key options</summary><div class="key-chord-row">'+colourAndTension.map(chip).join('')+'</div></details>':'')
-      +'<p class="key-chord-degrees" style="margin-top:9px">✓ already in your song — every chord stays reusable.</p>';
-    sg.querySelector('.key-more-chords')?.addEventListener('toggle',event=>{
-      keyMoreChordsOpen=event.currentTarget.open;
-    });
-    sg.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',event=>{
-      // The key-panel header has its own collapse control. This is a chord
-      // action inside its body, so keep the panel and this drawer open.
-      event.stopPropagation();
-      markKeyCoachSeen();
-      loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});
-    }));
+    const group=(title,items)=>'<div class="key-chord-group"><p class="key-chord-intro">'+title+' <span class="key-chord-degrees">'+items.map(i=>i.rn).join(' · ')+'</span></p><div class="key-chord-row">'+items.map(chip).join('')+'</div></div>';
+    html+=group('Start here',tris.filter((_,i)=>[0,3,4].includes(i)))
+      +group('Common moves',tris.filter((_,i)=>[1,5].includes(i)))
+      +group('Colour & tension',tris.filter((_,i)=>[2,6].includes(i)))
+      +'<p class="key-chord-degrees">✓ already in your song — every chord stays reusable.</p>';
   }
-
-  // Guidance panel — only when we have outliers (not for dominant context)
-  const hasOutliers=!isPerfectFit;
-  if(hasOutliers){
-    renderGuidance(keyInfo);
-    gd.hidden=false;
-  } else {
-    gd.hidden=true;
-  }
-
-  renderScaleSuggest(tonic);
-  // Auto-open the panel the moment an outlier first appears, so the guidance is
-  // surfaced — but only on that transition, so the user can collapse it afterward.
-  if(hasOutliers && !_hadOutliers){scalePanelExpanded=true;}
-  _hadOutliers=hasOutliers;
-  syncScalePanelUI(hasOutliers);
-  render();
+  return html+'</div>';
+}
+function wireChordPalette(host){
+  host.querySelectorAll('[data-key-root]').forEach(button=>button.addEventListener('click',event=>{
+    event.stopPropagation();
+    markKeyCoachSeen();
+    loadSuggestedChord({root:Number(button.dataset.keyRoot),suf:button.dataset.keySuf||''});
+  }));
+  host.querySelectorAll('.repl-btn').forEach(btn=>btn.addEventListener('click',()=>{
+    replaceChord(+btn.dataset.sec,+btn.dataset.idx,+btn.dataset.root,btn.dataset.suf);
+  }));
 }
 
-// Keeps the collapsible panel's open/closed visual state in sync with
-// scalePanelExpanded (the user's manual preference). A newly-appearing outlier
-// chord auto-opens the panel once so the guidance isn't missed — but the user
-// can always collapse it again; we never lock it open.
-function syncScalePanelUI(hasOutliers){
-  const panel=document.getElementById('scalePanel'),
-        header=document.getElementById('scalePanelHeader'),
-        body=document.getElementById('scalePanelBody');
-  const visuallyOpen=scalePanelExpanded;
-  body.hidden=!visuallyOpen;
-  header.setAttribute('aria-expanded',String(visuallyOpen));
-  // Show a small note (only while open + outlier present) explaining the auto-open,
-  // but the header stays fully clickable so the panel can be collapsed.
-  let note=header.querySelector('.scale-panel-forced-note');
-  if(hasOutliers && visuallyOpen){
-    if(!note){
-      note=document.createElement('span');
-      note.className='scale-panel-forced-note';
-      header.insertBefore(note,header.lastElementChild);
-    }
-    note.textContent='auto-opened — borrowed chord to review';
-  } else if(note){
-    note.remove();
-  }
-}
-document.getElementById('scalePanelHeader').addEventListener('click',()=>{
-  markKeyCoachSeen();
-  scalePanelExpanded=!scalePanelExpanded;
-  const hasOutliers=currentKeyInfo&&!currentKeyInfo.isPerfectFit;
-  syncScalePanelUI(!!hasOutliers);
-  save();
-});
-
-function renderGuidance(keyInfo){
-  const gd=document.getElementById('guidance');
+function guidanceMarkup(keyInfo){
   const {tonic,outIdxs}=keyInfo;
   const tonicNote=pcName(tonic);
-  let html='<h3>Musical guidance</h3>';
-
-  // Per-outlier: name it, suggest a replacement, show location
-  const items=[];
+  let html='<div class="guidance"><h3>Borrowed chords</h3>';
   [...outIdxs].sort((a,b)=>a-b).forEach(gIdx=>{
     const loc=chordAtGlobalIdx(gIdx);
     if(!loc)return;
     const {chord,sec}=loc;
     const label=pcName(chord.root)+chord.suf;
     const repl=findReplacement(chord,tonic);
-    const replLabel=pcName(repl.root)+repl.suf;
-    items.push(
-      '<div class="guidance-item">'
-      + '<b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+'</span> is outside '+tonicNote+' major. '
-      + 'Replace with <button class="repl-btn" data-sec="'+sec.id+'" data-idx="'+loc.cIdx+'" data-root="'+repl.root+'" data-suf="'+repl.suf+'">'+replLabel+' <span style="opacity:.7;font-size:.72rem">'+repl.rn+'</span></button>'
-      + '</div>'
-    );
+    html+='<div class="guidance-item"><b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+'</span> is outside '+tonicNote+' major. '
+      +'Replace with <button class="repl-btn" data-sec="'+sec.id+'" data-idx="'+loc.cIdx+'" data-root="'+repl.root+'" data-suf="'+repl.suf+'">'
+      +pcName(repl.root)+repl.suf+' <span style="opacity:.7;font-size:.72rem">'+repl.rn+'</span></button></div>';
   });
-  html+=items.join('');
-
-  // Blanket suggestion — one scale that covers everything
   if(currentCoveringMode){
     const cm=currentCoveringMode;
-    const S=SCALES[cm.scale];
-    html+='<div class="cover-note">'
-      +'Or embrace the borrowed chords: <b>'+pcName(cm.root)+' '+S.name+'</b> covers every note in every chord — including the borrowed ones. It\u2019s already promoted (★) in the scale picker below.'
-      +'</div>';
-  } else {
-    html+='<div class="cover-note">'
-      +'No single scale covers every chord — you\u2019re modulating. Try the safe <b>'+pcName((tonic+9)%12)+' minor pentatonic</b> or lean into it with rest points on shared notes.'
-      +'</div>';
+    html+='<div class="cover-note">Or embrace them: <b>'+pcName(cm.root)+' '+SCALES[cm.scale].name+
+      '</b> covers every note in every chord, including the borrowed ones.</div>';
+  }else{
+    html+='<div class="cover-note">No single scale covers every chord — you\u2019re modulating. Try the safe <b>'+
+      pcName((tonic+9)%12)+' minor pentatonic</b>, or lean in with rest points on shared notes.</div>';
   }
-
-  gd.innerHTML=html;
-
-  // Wire replacement buttons
-  gd.querySelectorAll('.repl-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const secId=+btn.dataset.sec;
-      const cIdx=+btn.dataset.idx;
-      const newRoot=+btn.dataset.root;
-      const newSuf=btn.dataset.suf;
-      replaceChord(secId,cIdx,newRoot,newSuf);
-    });
-  });
+  return html+'</div>';
 }
 
-function renderScaleSuggest(primary){
-  const host=document.getElementById('scaleSuggest');
-  host.hidden=false;
-  const sugs=suggestScales(primary);
-  host.innerHTML='<h3>For soloing — try one of these scales:</h3>';
-  const row=document.createElement('div');row.className='scale-chips';
-  sugs.forEach(sug=>{
-    const S=SCALES[sug.scale];
-    const chip=document.createElement('button');
-    chip.className='scale-chip'+(isScaleActive(sug)?' on':'');
-    chip.innerHTML='<b>'+pcName(sug.root)+' '+S.name+'</b><span class="why">'+sug.why+'</span>';
-    chip.title='Click to overlay this scale on the fretboard';
-    chip.addEventListener('click',()=>{
-      if(isScaleActive(sug)){clearActiveScale();renderScaleSuggest(primary);return;}
-      setActiveScale(sug.root,sug.scale);renderScaleSuggest(primary);
-    });
-    row.appendChild(chip);
-  });
-  host.appendChild(row);
-  if(scaleActive){
-    const S=SCALES[scaleActive.scale];
-    // Build a color-coded notes list — each note tagged with its scale degree
-    const notesColored=S.intervals.map((iv,index)=>{
-      const cls=scaleDegreeClass(iv);
-      return '<span class="lg-note lg-'+cls.slice(1)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,index)+
-        '<sub>'+scaleDegreeLabel(scaleActive.scale,index)+'</sub></span>';
-    }).join(' ');
-    // Compute position boxes for this scale
-    const boxes=computeScaleBoxes();
-    let boxesHtml='';
-    if(boxes.length>0){
-      boxesHtml='<div class="scale-boxes"><span class="lg-boxes-label">Position boxes:</span>'+
-        '<button class="box-chip'+(scaleBoxIdx===null?' on':'')+'" data-box="all" title="Show the whole neck at once">All frets</button>';
-      boxes.forEach((b,i)=>{
-        boxesHtml+='<button class="box-chip'+(scaleBoxIdx===i?' on':'')+(b.isRoot?' is-root':'')+
-          '" data-box="'+i+'" title="Focus on frets '+b.startFret+'–'+b.endFret+' (starts on '+b.startNote+' on the low E)'+(b.isRoot?' — the root position':'')+'">'+
-          b.label+(b.isRoot?' <span class="root-tag">root</span>':'')+' <span class="box-frets">'+b.startFret+'–'+b.endFret+'</span></button>';
-      });
-      boxesHtml+='</div>';
-    }
-    const info=document.createElement('div');info.className='scale-info';
-    info.innerHTML='<b>'+pcName(scaleActive.root)+' '+S.name+'</b> — '+S.desc+
-      '<div class="scale-notes-line">'+notesColored+'</div>'+
-      '<div class="scale-legend">'+
-        '<span class="lg-item"><span class="lg-dot lg-sroot"></span>Root</span>'+
-        '<span class="lg-item"><span class="lg-dot lg-sthird"></span>3rd</span>'+
-        '<span class="lg-item"><span class="lg-dot lg-sfifth"></span>5th</span>'+
-        '<span class="lg-item"><span class="lg-dot lg-sseventh"></span>7th</span>'+
-        '<span class="lg-item"><span class="lg-dot lg-stension"></span>passing tone</span>'+
-        '<span class="lg-hint">Land on the coloured tones · pass through the greys.</span>'+
-      '</div>'+
-      boxesHtml;
-    host.appendChild(info);
-    // Wire box chip clicks
-    info.querySelectorAll('.box-chip').forEach(chip=>{
-      chip.addEventListener('click',()=>{
-        const v=chip.dataset.box;
-        scaleBoxIdx=(v==='all')?null:+v;
-        renderScaleSuggest(primary);
-        render();save();
-      });
-    });
-  }
-}
 function isScaleActive(sug){
   return scaleActive!==null && scaleActive.root===sug.root && scaleActive.scale===sug.scale;
 }

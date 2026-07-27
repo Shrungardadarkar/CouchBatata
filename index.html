@@ -2409,6 +2409,7 @@ let scaleBoxIdx=null;    // null = show whole neck, integer = focus on this box
 let scalePreview=null;   // {root,scale} auditioned on the board but not committed
 let scaleAltsOpen=false; // the scale bar's own disclosure, not persisted
 let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
+let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
 // Plain-language degree names for the long-press tip, so the colour code
 // explains itself on demand instead of via a permanent legend.
 const SCALE_DEGREE_NAMES={sroot:'the root — home',sthird:'the 3rd — the colour',
@@ -5566,7 +5567,9 @@ function renderChordKeyChips(){
   let html='';
   if(sug)html+='<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>';
   if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
+  html+=scalesChipMarkup();
   if(chordPaletteOpen&&hasMore)html+=palette;
+  if(scalePickerOpen&&!scaleActive)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
   document.getElementById('chipAlsoInKey')?.addEventListener('click',()=>{loadSuggestedChord(sug);});
@@ -5574,6 +5577,7 @@ function renderChordKeyChips(){
     chordPaletteOpen=!chordPaletteOpen;renderChordKeyChips();
   });
   wireChordPalette(host);
+  wireScalesChip(host);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
@@ -5581,12 +5585,40 @@ function renderSoloKeyChip(){
   // Only the *suggestion* lives down here, near the actions. Once accepted it
   // hands off to the bar on top, so active state never sits in two places.
   const sug=scaleActive?null:primarySuggestedScale();
-  host.innerHTML=sug?'<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>':'';
-  host.hidden=!sug;
-  document.getElementById('chipSoloScaleIdea')?.addEventListener('click',()=>{
-    if(!sug)return;
-    setActiveScale(sug.root,sug.scale);
+  let html='';
+  if(sug)html+='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>';
+  html+=scalesChipMarkup('Solo');
+  if(scalePickerOpen&&!scaleActive)html+=scalePickerMarkup();
+  host.innerHTML=html;
+  host.hidden=!html;
+  document.getElementById('chipSoloScaleIdea')?.addEventListener('click',()=>{if(sug)setActiveScale(sug.root,sug.scale);});
+  wireScalesChip(host);
+}
+// The way *into* scales from either mode. Only shown while nothing is active --
+// once a scale is on, the bar above the board owns it, so there is never a
+// second door to the same room.
+function scalesChipMarkup(){
+  if(scaleActive)return '';
+  return '<button type="button" class="mini-key-chip'+(scalePickerOpen?' on':'')+'" data-scales-chip title="Choose a scale for the fretboard">scales <span class="key-chip-x">'+(scalePickerOpen?'▴':'▾')+'</span></button>';
+}
+function scalePickerMarkup(){
+  const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
+  if(!sugs.length)return '';
+  let h='<div class="key-palette"><p class="key-chord-intro">For soloing <span class="key-chord-degrees">tap one to show it on the fretboard</span></p>';
+  sugs.forEach((s,i)=>{
+    h+='<button type="button" class="sb-alt" data-pick="'+i+'"><b>'+pcName(s.root)+' '+SCALES[s.scale].name+'</b><span>'+s.why+'</span></button>';
   });
+  return h+'</div>';
+}
+function wireScalesChip(host){
+  host.querySelector('[data-scales-chip]')?.addEventListener('click',()=>{
+    scalePickerOpen=!scalePickerOpen;renderKeyChips();
+  });
+  const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
+  host.querySelectorAll('[data-pick]').forEach(btn=>btn.addEventListener('click',()=>{
+    const pick=sugs[+btn.dataset.pick];if(!pick)return;
+    scalePickerOpen=false;setActiveScale(pick.root,pick.scale);
+  }));
 }
 function setActiveScale(root,scale){
   scaleActive={root,scale};scaleBoxIdx=null;scalePreview=null;

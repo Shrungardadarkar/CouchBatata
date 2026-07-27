@@ -108,7 +108,7 @@
      markup for the desktop grid below. */
   #scalePanel{order:1}
   #tabPanel{order:2}
-  #chordPanel,#leadPanel{order:3}
+  #leadPanel{order:3}
   #builderPanel{order:4}
   #exportPanel{order:5}
   .col-main,.col-rail{display:contents}
@@ -186,7 +186,8 @@
   .switch-toggle.solo .switch-label.last,.switch-toggle.tab .switch-label.last{color:var(--ink)}
   .switch-knob{position:absolute;top:2.5px;left:2.5px;width:calc(50% - 4px);height:calc(100% - 5px);border:2px solid var(--ink);border-radius:999px;background:var(--sun);z-index:1;transition:transform .28s var(--ease-out-back),background .15s}
   .switch-toggle.solo .switch-knob,.switch-toggle.tab .switch-knob{transform:translateX(calc(100% + 3px));background:var(--mint)}
-  body.solo-mode #chordPanel{display:none}
+  body.solo-mode #chordLiveStrip{display:none}
+  body:not(.solo-mode) #soloLiveStrip{display:none}
   body:not(.solo-mode) #leadPanel{display:none}
   .toggle{position:relative;display:inline-flex;align-items:center;
     width:72px;height:36px;padding:0;
@@ -451,15 +452,26 @@
   .strum-btn.ringing .strum-icon{animation:bobblehead 1.9s ease-in-out}
   @media (hover:hover){.strum-btn:hover{background:var(--sun)}}
 
-  .shape-nav{display:grid;grid-template-columns:46px minmax(0,260px) 46px;gap:10px;align-items:center;width:min(100%,372px);margin-top:13px}
+  /* Compact so it can sit beside the chord name in .live-strip-main instead of
+     its own full-width control row -- was a 372px-wide grid when the Chord
+     panel was a separate card with room to spare. */
+  .shape-nav{display:inline-grid;grid-template-columns:26px minmax(0,150px) 26px;gap:5px;align-items:center;flex:0 0 auto}
   .shape-nav[hidden]{display:none}
-  .shape-nav .btn{display:grid;place-items:center;justify-self:center;width:42px;height:38px;padding:0;border-radius:9px;font-size:.82rem}
-  .shape-label{display:flex;align-items:center;justify-content:center;min-width:0;min-height:38px;padding:6px 11px;background:var(--cream);
-    border:2px solid var(--ink);border-radius:9px;color:var(--ink-dim);font-size:.78rem;font-weight:850;box-shadow:var(--shadow-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .shape-nav .btn{display:grid;place-items:center;justify-self:center;width:26px;height:26px;padding:0;border-radius:7px;font-size:.66rem;box-shadow:1.5px 1.5px 0 var(--ink)}
+  .shape-label{display:flex;align-items:center;justify-content:center;min-width:0;min-height:26px;padding:3px 8px;background:var(--cream);
+    border:2px solid var(--ink);border-radius:7px;color:var(--ink-dim);font-size:.66rem;font-weight:850;box-shadow:1.5px 1.5px 0 var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .shape-label.shape-slide-forward{animation:shapeLabelForward .28s var(--ease-out-back)}
   .shape-label.shape-slide-back{animation:shapeLabelBack .28s var(--ease-out-back)}
   @keyframes shapeLabelForward{from{opacity:.2;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
   @keyframes shapeLabelBack{from{opacity:.2;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+
+  /* ===== unified live-strip: chord/solo readout inline in the Fretboard panel,
+     replacing the separate Chord card and the top of the Solo card. ===== */
+  .live-strip{margin-top:16px;padding-top:14px;border-top:2px dashed var(--ink-faint)}
+  .live-strip-main{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .live-strip-main #chordOut{flex:1 1 220px;min-width:0}
+  .live-strip .btn-row{margin-top:14px}
+  .solo-live-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
 
   /* solo / arpeggio recorder */
   .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
@@ -1258,32 +1270,36 @@
       </div>
     </div>
   </div>
-</div>
 
-<div class="panel win-sky" data-win="Chord" id="chordPanel">
-  <h2>Chord</h2>
-  <div id="chordOut"><p class="placeholder">Every string starts open. Tap a fret to move that string’s note, or tap its nut to mute it.</p></div>
-  <div class="btn-row">
-    <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
-    <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
+  <div class="live-strip chord-live-strip" id="chordLiveStrip">
+    <div class="live-strip-main">
+      <div id="chordOut"><p class="placeholder">Every string starts open. Tap a fret to move that string’s note, or tap its nut to mute it.</p></div>
+      <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
+        <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>
+        <span class="shape-label" id="shapeLabel" aria-live="polite"></span>
+        <button class="btn" id="btnNextShape" title="Next chord shape" aria-label="Next chord shape">▶</button>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
+      <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
+    </div>
   </div>
-  <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
-    <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>
-    <span class="shape-label" id="shapeLabel" aria-live="polite"></span>
-    <button class="btn" id="btnNextShape" title="Next chord shape" aria-label="Next chord shape">▶</button>
+
+  <div class="live-strip solo-live-strip" id="soloLiveStrip">
+    <div class="lead-toolbar">
+      <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
+    </div>
+    <button class="btn primary" id="btnLeadCreate" type="button">Create solo</button>
   </div>
 </div>
 
 <div class="panel win-lilac" data-win="Solo / Arpeggio" id="leadPanel">
   <h2>Solo / Arpeggio recorder</h2>
   <p class="lead-intro">Choose one or more notes on the fretboard, then use the technique strip below it to add a note, chord hit, or connected phrase to this solo draft.</p>
-  <div class="lead-toolbar">
-    <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
-  </div>
   <div class="lead-sequence" id="leadSequence" aria-live="polite"></div>
   <div class="lead-phrase-editor" id="leadPhraseEditor" hidden aria-label="Edit solo phrase"></div>
   <div class="btn-row">
-    <button class="btn primary" id="btnLeadCreate" type="button">Create solo</button>
     <button class="btn" id="btnLeadClearSelection" type="button">Clear selection</button>
     <button class="btn ghost" id="btnLeadClear" type="button">Clear solo</button>
   </div>
@@ -4234,7 +4250,7 @@ function buildSectionCard(sec,idx,primary){
     edit.title='Edit this solo';edit.addEventListener('click',e=>{
       e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;leadDraftEditIndex=null;leadPhraseEdit=null;activeSectionId=sec.id;
       setBoardMode('solo');renderSong();renderLead();
-      document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
+      document.getElementById('tabPanel').scrollIntoView({behavior:'smooth',block:'start'});
       flash('Editing solo in '+sec.name);
     });
     summary.appendChild(edit);
@@ -4295,7 +4311,7 @@ function buildSectionCard(sec,idx,primary){
         playLeadPhrasePreview(phrase);
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
-        document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
+        document.getElementById('tabPanel').scrollIntoView({behavior:'smooth',block:'start'});
       });
       event.addEventListener('keydown',e=>{
         if(e.target!==event||(e.key!=='Enter'&&e.key!==' '))return;
@@ -4310,7 +4326,7 @@ function buildSectionCard(sec,idx,primary){
         playLeadPhrasePreview(phrase);
         leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;activeSectionId=sec.id;
         setBoardMode('solo');selectLeadDraftPhrase(phrase.start);renderSong();
-        document.getElementById('leadPanel').scrollIntoView({behavior:'smooth',block:'start'});
+        document.getElementById('tabPanel').scrollIntoView({behavior:'smooth',block:'start'});
       });
       event.appendChild(eventRemove);attachSavedLeadDrag(event,sec,phrase.start);events.appendChild(event);
     });

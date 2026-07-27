@@ -54,7 +54,7 @@ assert.match(html, /chord-suggest-row\{display:flex[^}]*overflow-x:auto[^}]*scro
 assert.match(html, /chord-suggest-row\.can-scroll-left\.can-scroll-right/);
 assert.match(html, /chord-suggestion\{flex:0 0 auto;scroll-snap-align:start/);
 assert.match(html, /suggestion-spectrum-arrow/);
-assert.match(html, /shape-nav\{display:grid;grid-template-columns:46px minmax\(0,260px\) 46px/);
+assert.match(html, /shape-nav\{display:inline-grid;grid-template-columns:26px minmax\(0,150px\) 26px/);
 assert.match(html, /shape-label\.shape-slide-forward/);
 assert.match(html, /@keyframes shapeLabelForward/);
 assert.match(html, /function loadShape\(direction=0\)/);

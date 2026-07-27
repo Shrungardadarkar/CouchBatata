@@ -152,8 +152,11 @@
   .song-name-input-wrap{flex:1;min-width:0;display:none}
   .song-name-input-wrap.active{display:block}
   .song-title-input{width:100%;background:var(--cream);color:var(--ink);border:2px solid var(--tomato);border-radius:7px;padding:4px 7px;
-    font-family:"Arial Black",Arial,sans-serif;font-size:.95rem;font-weight:900;line-height:1.25;box-shadow:inset 1.5px 1.5px 0 rgba(26,24,21,.08)}
-  .song-title-input:focus{outline:none;box-shadow:inset 1.5px 1.5px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
+    font-family:"Arial Black",Arial,sans-serif;font-size:.95rem;font-weight:900;line-height:1.25;box-shadow:inset 1.5px 1.5px 0 rgba(90,47,62,.08)}
+  /* No ring of its own: the global `--focus` outline already marks this field,
+     and the old tomato box-shadow ring painted a second, differently-coloured
+     ring concentric with it. */
+  .song-title-input:focus{box-shadow:inset 1.5px 1.5px 0 rgba(90,47,62,.08)}
   .song-title-input::placeholder{color:var(--ink-faint);font-weight:700}
   .song-name-btn{flex:0 0 auto;width:26px;height:26px;display:grid;place-items:center;background:none;border:0;border-radius:6px;color:var(--ink-faint);cursor:pointer;padding:0;
     transition:color .12s,background .12s,transform .18s var(--ease-spring)}
@@ -176,14 +179,14 @@
   .switch-toggle{position:relative;display:inline-flex;align-items:center;height:36px;padding:0;background:var(--paper);border:var(--outline);border-radius:999px;box-shadow:2.5px 2.5px 0 var(--ink);cursor:pointer;font-family:inherit;overflow:hidden;flex:0 0 auto;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
   @media (hover:hover){.switch-toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}}
   .switch-toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
-  .switch-toggle:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .switch-toggle:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .board-mode{width:226px}
   .lead-view-toggle{width:118px}
-  .switch-label{flex:1;display:flex;align-items:center;justify-content:center;padding:0 9px;color:var(--ink-faint);font-size:.76rem;font-weight:900;line-height:1;white-space:nowrap;z-index:2;pointer-events:none;transition:color .15s}
+  .switch-label{flex:1;display:flex;align-items:center;justify-content:center;padding:0 9px;color:var(--ink-faint);font-size:.76rem;font-weight:900;line-height:1;white-space:nowrap;z-index:2;pointer-events:none;transition:color .12s}
   .switch-label.first{color:var(--ink)}
   .switch-toggle.solo .switch-label.first,.switch-toggle.tab .switch-label.first{color:var(--ink-faint)}
   .switch-toggle.solo .switch-label.last,.switch-toggle.tab .switch-label.last{color:var(--ink)}
-  .switch-knob{position:absolute;top:2.5px;left:2.5px;width:calc(50% - 4px);height:calc(100% - 5px);border:2px solid var(--ink);border-radius:999px;background:var(--sun);z-index:1;transition:transform .28s var(--ease-out-back),background .15s}
+  .switch-knob{position:absolute;top:2.5px;left:2.5px;width:calc(50% - 4px);height:calc(100% - 5px);border:2px solid var(--ink);border-radius:999px;background:var(--sun);z-index:1;transition:transform .28s var(--ease-out-back),background .12s}
   .switch-toggle.solo .switch-knob,.switch-toggle.tab .switch-knob{transform:translateX(calc(100% + 3px));background:var(--mint)}
   body.solo-mode #chordLiveStrip{display:none}
   body:not(.solo-mode) #soloLiveStrip{display:none}
@@ -195,11 +198,11 @@
     font-family:inherit;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring);overflow:hidden}
   @media (hover:hover){.toggle:hover{transform:translate(-2px,-2px) rotate(-2deg);box-shadow:4px 4px 0 var(--ink)}}
   .toggle:active{transform:translate(1px,1px);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
-  .toggle:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .toggle:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   /* the two icons, always visible, one per half */
   .acc-opt{flex:1;display:flex;align-items:center;justify-content:center;
     font-size:1.15rem;font-weight:900;line-height:1;z-index:2;
-    transition:color .15s;pointer-events:none}
+    transition:color .12s;pointer-events:none}
   .acc-sharp{color:var(--ink)}            /* sharps active by default → dark */
   .acc-flat{color:var(--ink-faint)}       /* inactive → faded */
   .toggle.flats .acc-sharp{color:var(--ink-faint)}
@@ -208,7 +211,7 @@
   .acc-knob{position:absolute;top:2.5px;left:2.5px;
     width:32px;height:calc(100% - 5px);border-radius:999px;
     background:var(--sun);border:2px solid var(--ink);z-index:1;
-    transition:transform .28s var(--ease-out-back),background .15s}
+    transition:transform .28s var(--ease-out-back),background .12s}
   .toggle.flats .acc-knob{transform:translateX(31px);background:var(--mint)}
 
   /* ---------- fretboard — sunflower yellow, black grid ---------- */
@@ -236,7 +239,7 @@
   .board-sticker .bs-close{pointer-events:auto;position:absolute;top:-10px;right:-10px;width:24px;height:24px;
     display:grid;place-items:center;border:2px solid var(--ink);border-radius:999px;background:var(--paper);
     color:var(--ink);font-size:.85rem;line-height:1;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);
-    transition:transform .14s var(--ease-spring)}
+    transition:transform .16s var(--ease-spring)}
   @media (hover:hover){.board-sticker .bs-close:hover{background:var(--sun);transform:scale(1.12) rotate(-6deg)}}
   .board-sticker .bs-close:active{transform:scale(.92);transition-duration:.05s}
   .board-outer{min-width:820px;position:relative;user-select:none}
@@ -251,7 +254,7 @@
   .row{display:grid;grid-template-columns:56px repeat(12,1fr);position:relative}
   .row{grid-template-columns:56px 1.35fr 1.28fr 1.22fr 1.16fr 1.1fr 1.05fr 1fr .96fr .92fr .88fr .85fr .82fr}
   .cell{position:relative;cursor:pointer}
-  .cell:focus-visible{outline:3px solid var(--tomato);outline-offset:-3px;border-radius:4px}
+  .cell:focus-visible{outline:3px solid var(--focus);outline-offset:-3px;border-radius:4px}
   .cell.nut{background:var(--cream);border-right:3px solid var(--ink)}
   /* fret wires — light metal lines that read on the taupe board */
   .cell:not(.nut)::after{content:"";position:absolute;right:0;top:0;bottom:0;width:2px;
@@ -281,20 +284,24 @@
     overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;
     touch-action:pan-x;padding:6px 8px 8px;scroll-padding-inline:8px;scrollbar-width:none;-ms-overflow-style:none}
   .chord-suggest-row::-webkit-scrollbar{display:none}
-  .chord-suggest-row.can-scroll-left{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 100%)}
-  .chord-suggest-row.can-scroll-right{-webkit-mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%)}
-  .chord-suggest-row.can-scroll-left.can-scroll-right{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+  /* Shared edge-fade affordance for every horizontal scroller, not just the
+     suggestion row: .fret-controls and .lead-techniques scroll too and used to
+     crop their last control against a hard edge with nothing to say more was
+     there.  Keyed off [data-edge-fade] so the idiom is opt-in by markup. */
+  [data-edge-fade].can-scroll-left{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 100%)}
+  [data-edge-fade].can-scroll-right{-webkit-mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%);mask-image:linear-gradient(to left,transparent 0,#000 16px,#000 100%)}
+  [data-edge-fade].can-scroll-left.can-scroll-right{-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
   .chord-scroll-btn{display:grid;place-items:center;flex:0 0 auto;width:36px;height:36px;padding:0;border:2.5px solid var(--ink);border-radius:9px;background:var(--cream);box-shadow:2px 2px 0 var(--ink);color:var(--ink);font:900 .8rem/1 inherit;cursor:pointer;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   @media (hover:hover){.chord-scroll-btn:hover{background:var(--sun);transform:translateY(-1px) rotate(-2deg);box-shadow:3px 3px 0 var(--ink)}}
   .chord-scroll-btn:active{transform:translateY(1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .chord-scroll-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
-  .chord-scroll-btn:disabled{opacity:.32;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.35)}
+  .chord-scroll-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .chord-scroll-btn:disabled{opacity:.32;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(90,47,62,.35)}
   .chord-scroll-btn[hidden]{display:none}
-  .chord-suggest-row:focus-visible{outline:3px solid var(--tomato);outline-offset:3px;border-radius:8px}
+  .chord-suggest-row:focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:8px}
   .chord-suggestion{flex:0 0 auto;scroll-snap-align:start;min-height:32px;padding:5px 9px;border:2px solid var(--ink);border-radius:999px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.76rem;font-weight:900;line-height:1;cursor:pointer;white-space:nowrap;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   @media (hover:hover){.chord-suggestion:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .chord-suggestion:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .chord-suggestion:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .chord-suggestion:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .chord-suggestion.neutral{background:var(--cream);color:var(--ink)}
   .chord-suggestion.rank-0{background:var(--mint);color:var(--ink)}
   .chord-suggestion.rank-1{background:#b8d99a;color:var(--ink)}
@@ -316,7 +323,7 @@
     border:2.5px dashed var(--tomato);box-shadow:none;z-index:3;opacity:.95}
   .dot-note.scale{width:25px;height:25px;background:var(--cream);border:2.5px solid;
     font-size:.6rem;opacity:1;z-index:2;transition:opacity .2s ease;
-    box-shadow:1.5px 1.5px 0 rgba(26,24,21,.5)}
+    box-shadow:1.5px 1.5px 0 rgba(90,47,62,.5)}
   .dot-note.scale.out-of-box{opacity:.16;box-shadow:none}
   .cell{transition:background .2s ease}
   .cell.in-box{background:rgba(246,241,230,.28)}
@@ -416,12 +423,12 @@
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   @media (hover:hover){.btn:hover{transform:translate(-2px,-2px) rotate(-1deg);box-shadow:5px 5px 0 var(--ink)}}
   .btn:active{transform:translate(2px,2px) rotate(0deg);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .btn.primary{background:var(--sun);color:var(--ink);font-weight:900}
   @media (hover:hover){.btn.primary:hover{background:var(--gold)}}
   .btn.ghost{background:var(--mint)}
-  .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(26,24,21,.4)}
-  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:38px;height:36px;padding:0;font-size:1rem;transition:background .15s}
+  .btn:disabled{opacity:.4;cursor:default;pointer-events:none;box-shadow:2px 2px 0 rgba(90,47,62,.4)}
+  .sound-toggle{display:grid;place-items:center;flex:0 0 auto;width:38px;height:36px;padding:0;font-size:1rem;transition:background .12s}
   .sound-toggle .sound-icon{position:relative;display:inline-block;width:24px;height:24px}
   .sound-toggle .note-mark{fill:var(--ink)}
   .sound-icon .note-on-mark,.sound-icon .note-off-mark{
@@ -453,12 +460,17 @@
 
   /* Compact so it can sit beside the chord name in .live-strip-main instead of
      its own full-width control row -- was a 372px-wide grid when the Chord
-     panel was a separate card with room to spare. */
-  .shape-nav{display:inline-grid;grid-template-columns:26px minmax(0,150px) 26px;gap:5px;align-items:center;flex:0 0 auto}
+     panel was a separate card with room to spare.  The counter reads "Shape 2/5"
+     and nothing else: the position ("around fret 5") lives in the tooltip and
+     the aria-live sibling, because the full sentence needed a 150px track that
+     dwarfed the two arrows framing it.  Track is now `auto` -- the widest the
+     pill ever gets is "Shape 10/12". */
+  .shape-nav{display:inline-grid;grid-template-columns:26px auto 26px;gap:5px;align-items:center;flex:0 0 auto}
   .shape-nav[hidden]{display:none}
   .shape-nav .btn{display:grid;place-items:center;justify-self:center;width:26px;height:26px;padding:0;border-radius:7px;font-size:.66rem;box-shadow:1.5px 1.5px 0 var(--ink)}
   .shape-label{display:flex;align-items:center;justify-content:center;min-width:0;min-height:26px;padding:3px 8px;background:var(--cream);
-    border:2px solid var(--ink);border-radius:7px;color:var(--ink-dim);font-size:.66rem;font-weight:850;box-shadow:1.5px 1.5px 0 var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    border:2px solid var(--ink);border-radius:7px;color:var(--ink-dim);font-size:.66rem;font-weight:850;letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;box-shadow:1.5px 1.5px 0 var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .shape-label.shape-slide-forward{animation:shapeLabelForward .28s var(--ease-out-back)}
   .shape-label.shape-slide-back{animation:shapeLabelBack .28s var(--ease-out-back)}
   @keyframes shapeLabelForward{from{opacity:.2;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
@@ -549,8 +561,8 @@
   @media (hover:hover){.lead-tech:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .lead-tech.armed{background:var(--tomato);color:var(--cream);border-color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
   .lead-tech:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .lead-tech:disabled{opacity:.38;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(26,24,21,.4)}
-  .lead-tech:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .lead-tech:disabled{opacity:.38;cursor:default;pointer-events:none;box-shadow:1px 1px 0 rgba(90,47,62,.4)}
+  .lead-tech:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .lead-sequence{display:flex;gap:7px;flex-wrap:wrap;min-height:38px;margin:8px 0 10px;padding:8px;background:var(--cream);border:2px solid var(--ink);border-radius:9px}
   .lead-event{display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.78rem;font-weight:900;color:var(--ink);background:var(--mint);border:2px solid var(--ink);border-radius:8px;padding:5px 6px 5px 7px;cursor:grab;box-shadow:1.5px 1.5px 0 var(--ink);touch-action:pan-y;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .lead-event.selected{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}
@@ -580,7 +592,7 @@
   .lead-step-btn.active{background:var(--explore);box-shadow:2px 2px 0 var(--ink)}
   @media (hover:hover){.lead-step-btn:hover{background:var(--explore-pale);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
   @media (hover:hover){.lead-step-btn.active:hover{background:var(--explore)}}
-  .lead-step-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .lead-step-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .dot-note.phrase-step{width:auto;min-width:28px;padding:0 5px;border-style:dashed;background:rgba(246,241,230,.9);color:var(--ink);font-size:.66rem}
   .lead-summary{display:flex;align-items:center;gap:7px;margin-top:9px;color:var(--ink-dim);font-size:.78rem;font-weight:800}
   .lead-summary-x{display:grid;place-items:center;width:22px;height:22px;padding:0;border:2px solid var(--ink);border-radius:50%;background:var(--cream);color:var(--ink);font:inherit;font-weight:900;cursor:pointer}
@@ -632,7 +644,7 @@
     transition:transform .18s var(--ease-spring),box-shadow .18s var(--ease-spring),background .12s}
   @media (hover:hover){.help-fab:hover{background:var(--mint);transform:translate(-2px,-2px) rotate(-6deg);box-shadow:6px 6px 0 var(--ink)}}
   .help-fab:active{transform:translate(2px,2px) rotate(0);box-shadow:1.5px 1.5px 0 var(--ink);transition-duration:.05s}
-  .help-fab:focus-visible{outline:3px solid var(--tomato);outline-offset:3px}
+  .help-fab:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
   .help-fab.help-nudge{animation:helpNudge .75s var(--ease-bounce) 2}
   @keyframes helpNudge{0%,100%{transform:rotate(0)}35%{transform:rotate(-10deg) scale(1.08)}70%{transform:rotate(9deg) scale(1.05)}}
   .help-panel{position:fixed;right:max(16px,env(safe-area-inset-right));bottom:76px;z-index:80;width:min(365px,calc(100% - 28px));max-height:min(640px,calc(100vh - 104px));overflow:auto;
@@ -675,7 +687,7 @@
   .picker.open .picker-trigger{background:var(--sun);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
   .picker.open .picker-trigger::after{transform:rotate(180deg)}
   @media (hover:hover){.picker:not(.open) .picker-trigger:hover{background:var(--sun);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
-  .picker-trigger:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .picker-trigger:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .picker-menu{position:absolute;top:calc(100% + 7px);left:0;z-index:50;min-width:max(100%,150px);max-width:min(280px,calc(100vw - 36px));max-height:min(340px,55vh);overflow-y:auto;padding:6px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
   .picker-menu[hidden]{display:none}
   .picker-option{display:flex;width:100%;border:0;border-radius:6px;background:transparent;color:var(--ink);padding:7px 9px;text-align:left;cursor:pointer;font:800 .8rem/1.2 "Helvetica Neue",Arial,sans-serif}
@@ -700,7 +712,7 @@
     padding:12px 12px 14px;cursor:pointer;box-shadow:var(--shadow-sm);
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   @media (hover:hover){.song-sect:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}}
-  .song-sect:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-sect:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .song-sect.active{background:var(--sun);
     box-shadow:4px 4px 0 var(--ink)}
   .song-sect.menu-open{position:relative;z-index:30}
@@ -718,7 +730,7 @@
     background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 L6 6.5 L11 1.5' fill='none' stroke='%235a2f3e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
   @media (hover:hover){.sect-name:hover{background-color:var(--mint-dk)}}
-  .sect-name:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .sect-name:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   /* Active section → tomato fill needs a LIGHT (cream) chevron for contrast */
   .song-sect.active .sect-name{background-color:var(--tomato);color:var(--cream);
     background-repeat:no-repeat;background-position:right 11px center;background-size:13px 9px;
@@ -757,7 +769,7 @@
   .song-sect.active .active-badge{color:var(--cream);border-color:var(--ink);
     background:var(--ink)}
   .active-badge .pip{display:inline-block;width:6px;height:6px;border-radius:50%;
-    background:var(--ink-faint);margin-right:6px;vertical-align:middle;transition:background .15s}
+    background:var(--ink-faint);margin-right:6px;vertical-align:middle;transition:background .12s}
   .song-sect.active .active-badge .pip{background:var(--cream)}
 
   .sect-bar-sp{flex:1;min-width:8px}
@@ -805,8 +817,8 @@
   .sect-lyrics{margin-top:10px}
   .sect-lyrics textarea{width:100%;resize:vertical;background:var(--cream);color:var(--ink);
     border:2.5px solid var(--ink);border-radius:8px;padding:9px 11px;font-family:inherit;
-    font-size:.88rem;line-height:1.5;font-weight:600;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
-  .sect-lyrics textarea:focus{outline:none;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08),0 0 0 2.5px var(--tomato)}
+    font-size:.88rem;line-height:1.5;font-weight:600;box-shadow:inset 2px 2px 0 rgba(90,47,62,.08)}
+  .sect-lyrics textarea:focus{box-shadow:inset 2px 2px 0 rgba(90,47,62,.08)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
   .song-shelf-trigger{grid-column:2;grid-row:1 / span 2;align-self:center;display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
@@ -815,7 +827,7 @@
   .song-shelf-trigger[hidden]{display:none}
   .song-shelf-trigger:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
   .song-shelf-trigger[aria-expanded="true"]{background:var(--sun);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
-  .song-shelf-trigger:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-shelf-trigger:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   @media (hover:hover){.song-shelf-trigger:not([aria-expanded="true"]):hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .song-shelf-count{display:grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border:1.5px solid var(--ink);border-radius:999px;background:var(--paper);font:900 .67rem/1 Arial,sans-serif}
 
@@ -840,7 +852,7 @@
   .song-shelf-close{flex:0 0 auto;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--ink);font:inherit;font-size:1.3rem;font-weight:900;cursor:pointer;
     transition:transform .18s var(--ease-spring),background .12s}
   @media (hover:hover){.song-shelf-close:hover{background:var(--tomato);color:var(--cream);transform:rotate(90deg)}}
-  .song-shelf-close:focus-visible,.song-shelf-more:focus-visible,.song-shelf-action:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-shelf-close:focus-visible,.song-shelf-more:focus-visible,.song-shelf-action:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   /* The list scrolls, but its rows and the secondary “more” control still
      need room to lift. The generous gutter prevents cropped shadows/focus
      rings at every edge; row overflow stays visible for its icon feedback. */
@@ -849,7 +861,7 @@
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .song-shelf-item.active{background:var(--sun-soft);box-shadow:2px 2px 0 var(--ink)}
   @media (hover:hover){.song-shelf-item:hover{background:var(--cream-2);transform:translate(-2px,-2px) rotate(-.35deg);box-shadow:4px 4px 0 var(--ink)}.song-shelf-item.active:hover{background:var(--sun)}}
-  .song-shelf-item:focus-within{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-shelf-item:focus-within{outline:3px solid var(--focus);outline-offset:2px}
   .song-shelf-open{min-width:0;border:0;background:transparent;color:var(--ink);padding:10px 3px 10px 11px;text-align:left;font-family:inherit;cursor:pointer}
   .song-shelf-open:focus-visible{outline:none}
   .song-shelf-copy{display:block;min-width:0}
@@ -882,19 +894,19 @@
   .section-add-control .picker-menu{top:auto;bottom:calc(100% + 8px)}
   .section-add-control .picker.menu-below .picker-menu{top:calc(100% + 8px);bottom:auto}
   .song-clear-btn{border:0;background:transparent;color:var(--tomato);padding:8px 3px;font:850 .78rem/1 inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:5px}
-  .song-clear-btn:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
+  .song-clear-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
   /* File actions stay together in a small upward menu so opening it never
      rearranges the builder below someone’s song. */
   .song-tools{position:relative}.song-tools summary{display:inline-flex;align-items:center;gap:7px;min-height:44px;border:2.5px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:10px 17px;box-shadow:var(--shadow-sm);font-size:.9rem;font-weight:850;cursor:pointer;list-style:none}
   @media (hover:hover){.song-tools:not([open]) summary:hover{background:var(--mint-soft);transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .song-tools summary::-webkit-details-marker{display:none}.song-tools summary::after{content:'▾';font-size:.72rem;transition:transform .16s var(--ease-spring)}
   .song-tools[open] summary{transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}.song-tools[open] summary::after{transform:rotate(180deg)}
-  .song-tools summary:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .song-tools summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .song-tools-menu{position:absolute;bottom:calc(100% + 8px);right:0;z-index:50;display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:224px;padding:9px;background:var(--paper);border:2.5px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink)}
   .song-tools-menu .btn{text-align:left}
   #exportPre{white-space:pre;overflow-x:auto;font-family:"Courier New",monospace;
     font-size:.8rem;line-height:1.5;color:var(--ink);background:var(--cream);
-    border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(26,24,21,.08)}
+    border:2.5px solid var(--ink);border-radius:8px;padding:14px;box-shadow:inset 2px 2px 0 rgba(90,47,62,.08)}
   .key-line{font-size:1rem;flex:1;min-width:0;text-align:left;font-weight:700;color:var(--ink)}
   .key-line strong{color:var(--tomato);font-family:"Arial Black",Arial,sans-serif;font-size:1.2rem;font-weight:900}
   .suggest{margin-top:10px;color:var(--ink-dim);font-size:.9rem;line-height:1.55;font-weight:600}
@@ -907,16 +919,16 @@
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   @media (hover:hover){.key-chord-chip:hover{background:var(--mint);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
   .key-chord-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
-  .key-chord-chip:focus-visible{outline:3px solid var(--tomato);outline-offset:2px}
+  .key-chord-chip:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .key-chord-chip.is-used{background:var(--mint-soft);box-shadow:none}
   .key-chord-chip.is-used::before{content:'✓';font-weight:950;color:var(--mint-dk)}
   .key-chord-rn{color:var(--amber);font-size:.75rem}
   .key-more-chords{margin-top:10px}
   .key-more-chords summary{display:inline-flex;align-items:center;gap:7px;cursor:pointer;list-style:none;color:var(--ink-dim);font-size:.8rem;font-weight:850;
-    padding:2px 0 3px;border-bottom:2px solid var(--mint-soft);transition:color .14s, border-color .14s}
+    padding:2px 0 3px;border-bottom:2px solid var(--mint-soft);transition:color .12s, border-color .12s}
   .key-more-chords summary::-webkit-details-marker{display:none}
   .key-more-chords summary::after{content:'▾';display:grid;place-items:center;width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;
-    background:var(--paper);color:var(--ink);box-shadow:1px 1px 0 var(--ink);font:900 .78rem/1 Arial,sans-serif;transition:transform .2s var(--ease-spring),background .14s,box-shadow .14s}
+    background:var(--paper);color:var(--ink);box-shadow:1px 1px 0 var(--ink);font:900 .78rem/1 Arial,sans-serif;transition:transform .2s var(--ease-spring),background .12s,box-shadow .12s}
   @media (hover:hover){.key-more-chords summary:hover{color:var(--ink);border-color:var(--sun)}.key-more-chords summary:hover::after{background:var(--sun);box-shadow:2px 2px 0 var(--ink)}}
   .key-more-chords[open] summary{margin-bottom:6px;color:var(--ink);border-color:var(--sun)}
   .key-more-chords[open] summary::after{background:var(--sun);transform:rotate(180deg);box-shadow:2px 2px 0 var(--ink)}
@@ -960,7 +972,7 @@
   .sect-bar{cursor:grab;touch-action:none;user-select:none;position:relative;padding-left:22px}
   .sect-bar::before{content:"⋮⋮";position:absolute;left:2px;top:50%;transform:translateY(-50%);
     color:var(--ink);font-size:1rem;letter-spacing:-2px;line-height:1;font-weight:900;
-    transition:color .15s}
+    transition:color .12s}
   @media (hover:hover){.sect-bar:hover::before{color:var(--ink-dim)}}
   .song-sect.dragging .sect-bar{cursor:grabbing}
   .chip.dragging,.song-sect.dragging{opacity:.25}
@@ -1163,12 +1175,23 @@
      strip the springy rotations/scales and playful keyframes, keep simple state changes. */
   @media (prefers-reduced-motion:reduce){
     *{animation:none !important}
-    .btn,.box-chip,.alts button,.scale-chip,.repl-btn,.toggle,.switch-toggle,.switch-knob,.board-tech-drawer,.song-sect,.chip,
-    .active-badge,.chip-x,.sect-dup,.song-name-btn,.picker-trigger,.acc-knob,
-    #toast,.board-sticker,.modal-dialog,.song-shelf-dialog,.help-fab,.help-panel,.help-close,
-    .note-on-mark,.note-off-mark{transition-duration:.12s !important;transition-timing-function:ease !important}
+    /* Universal rather than an enumerated class list: the old list named ~25
+       components and silently missed every one added after it was written
+       (suggestions, lead controls, key chips, scale alternates, the song
+       shelf).  Duration and easing are safe to flatten globally -- neither
+       affects layout -- so this is the one rule that can't go stale. */
+    *,*::before,*::after{transition-duration:.12s !important;transition-timing-function:ease !important}
+    /* Transforms still need naming: some are decoration (hover lift/tilt),
+       others are load-bearing positioning (.switch-knob, .board-sticker,
+       #toast).  Only the decorative hover ones get flattened.  Extend this
+       list when adding a component with a hover lift. */
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
-    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover{transform:none !important}
+    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover,
+    .switch-toggle:hover,.song-sect:hover,.chord-scroll-btn:hover,.chord-suggestion:hover,
+    .key-chord-chip:hover,.mini-key-chip:hover,.scale-alt-chip:hover,
+    .lead-tech:hover,.lead-edit:hover,.lead-event:hover,.lead-event-copy:hover,.lead-step-btn:hover,
+    .song-shelf-item:hover,.song-shelf-close:hover,.song-shelf-more:hover,
+    .toast-action:hover,.bs-close:hover{transform:none !important}
     #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     /* .board-sticker's translate(-50%,-50%) is load-bearing centering, not
@@ -1233,7 +1256,7 @@
 
 <div class="col-main">
 <div class="panel win-sun" data-win="Fretboard" id="tabPanel">
-  <div class="fret-controls" aria-label="Fretboard controls">
+  <div class="fret-controls" data-edge-fade aria-label="Fretboard controls">
     <button class="switch-toggle board-mode" id="btnBoardMode" type="button" role="switch" aria-checked="false" aria-label="Fretboard mode: Chord">
       <span class="switch-knob" aria-hidden="true"></span>
       <span class="switch-label first" aria-hidden="true">Chord</span>
@@ -1287,7 +1310,7 @@
   <div class="board-tech-drawer" id="boardTechDrawer" aria-label="Solo techniques" aria-hidden="true">
     <div class="board-tech-inner">
       <span class="board-tech-label" id="leadTechLabel">Apply to selected notes</span>
-      <div class="lead-techniques" id="leadTechniques" aria-label="Save selected notes with an action">
+      <div class="lead-techniques" id="leadTechniques" data-edge-fade aria-label="Save selected notes with an action">
         <button class="lead-tech" type="button" data-tech="" data-label="Clean">Clean</button>
         <button class="lead-tech" type="button" data-tech="b" data-label="Bend">Bend</button>
         <button class="lead-tech" type="button" data-tech="r" data-label="Release">Release</button>
@@ -1304,7 +1327,7 @@
       <span class="chord-suggest-label" id="chordSuggestLabel">Suggestions</span>
       <div class="chord-suggest-scroll" id="chordSuggestScroll">
         <button class="chord-scroll-btn" id="chordScrollPrev" type="button" aria-label="Scroll suggestions left" title="Earlier suggestions" hidden>◀</button>
-        <div class="chord-suggest-row" id="chordSuggestRow" tabindex="0" role="region" aria-label="Chord suggestions. Scroll, swipe, or use the arrow buttons/arrow keys to explore."></div>
+        <div class="chord-suggest-row" id="chordSuggestRow" data-edge-fade tabindex="0" role="region" aria-label="Chord suggestions. Scroll, swipe, or use the arrow buttons/arrow keys to explore."></div>
         <button class="chord-scroll-btn" id="chordScrollNext" type="button" aria-label="Scroll suggestions right" title="More suggestions" hidden>▶</button>
       </div>
     </div>
@@ -1315,8 +1338,9 @@
       <div id="chordOut"><p class="placeholder">Every string starts open. Tap a fret to move that string’s note, or tap its nut to mute it.</p></div>
       <div class="shape-nav" id="shapeNav" hidden aria-label="Chord shape navigator">
         <button class="btn" id="btnPrevShape" title="Previous chord shape" aria-label="Previous chord shape">◀</button>
-        <span class="shape-label" id="shapeLabel" aria-live="polite"></span>
+        <span class="shape-label" id="shapeLabel"></span>
         <button class="btn" id="btnNextShape" title="Next chord shape" aria-label="Next chord shape">▶</button>
+        <span class="sr-status" id="shapeLabelSr" aria-live="polite"></span>
       </div>
     </div>
     <div class="key-chip-row" id="chordKeyChips" hidden aria-label="Key and scale context"></div>
@@ -2194,19 +2218,28 @@ function renderChordSuggestions(){
 const chordSuggestionRow=document.getElementById('chordSuggestRow');
 const chordScrollPrevBtn=document.getElementById('chordScrollPrev');
 const chordScrollNextBtn=document.getElementById('chordScrollNext');
+// Fade only the edge that actually has more content hiding past it, so a
+// fully-visible first/last item is never shown as if it were cropped.
+// Shared by every [data-edge-fade] scroller; the suggestion row layers its
+// arrow buttons on top of this, the others rely on the fade alone.
+function syncEdgeFade(el){
+  const scrollable=el.scrollWidth-el.clientWidth>4;
+  const atStart=el.scrollLeft<=4;
+  const atEnd=el.scrollLeft>=el.scrollWidth-el.clientWidth-4;
+  el.classList.toggle('can-scroll-left',scrollable&&!atStart);
+  el.classList.toggle('can-scroll-right',scrollable&&!atEnd);
+  return {scrollable,atStart,atEnd};
+}
+function syncAllEdgeFades(){document.querySelectorAll('[data-edge-fade]').forEach(syncEdgeFade);}
+document.querySelectorAll('[data-edge-fade]').forEach(el=>{
+  el.addEventListener('scroll',()=>syncEdgeFade(el),{passive:true});
+});
 function updateChordSuggestionNav(){
-  const row=chordSuggestionRow;
-  const scrollable=row.scrollWidth-row.clientWidth>4;
-  const atStart=row.scrollLeft<=4;
-  const atEnd=row.scrollLeft>=row.scrollWidth-row.clientWidth-4;
+  const {scrollable,atStart,atEnd}=syncEdgeFade(chordSuggestionRow);
   chordScrollPrevBtn.hidden=!scrollable;
   chordScrollNextBtn.hidden=!scrollable;
   chordScrollPrevBtn.disabled=!scrollable||atStart;
   chordScrollNextBtn.disabled=!scrollable||atEnd;
-  // Fade only the edge that actually has more chips hiding past it, so a
-  // fully-visible first/last chip is never shown as if it were cropped.
-  row.classList.toggle('can-scroll-left',scrollable&&!atStart);
-  row.classList.toggle('can-scroll-right',scrollable&&!atEnd);
 }
 function scrollChordSuggestions(direction){
   const row=chordSuggestionRow;
@@ -2217,8 +2250,18 @@ function scrollChordSuggestions(direction){
 chordSuggestionRow.addEventListener('scroll',updateChordSuggestionNav);
 window.addEventListener('resize',()=>{
   clearTimeout(updateChordSuggestionNav.resizeTimer);
-  updateChordSuggestionNav.resizeTimer=setTimeout(updateChordSuggestionNav,120);
+  updateChordSuggestionNav.resizeTimer=setTimeout(()=>{
+    syncAllEdgeFades();updateChordSuggestionNav();
+  },120);
 });
+// .lead-techniques lives inside a collapsed drawer, so its scrollWidth is
+// meaningless until the drawer opens -- re-measure once it has a real width.
+if(window.ResizeObserver){
+  const fadeObserver=new ResizeObserver(entries=>{
+    entries.forEach(entry=>{if(entry.target.clientWidth>0)syncEdgeFade(entry.target);});
+  });
+  document.querySelectorAll('[data-edge-fade]').forEach(el=>fadeObserver.observe(el));
+}
 chordSuggestionRow.addEventListener('keydown',event=>{
   if(event.key==='ArrowRight'){event.preventDefault();scrollChordSuggestions(1);}
   else if(event.key==='ArrowLeft'){event.preventDefault();scrollChordSuggestions(-1);}
@@ -3906,14 +3949,19 @@ function showChord(){
 // overflows this single-line pill even for a short section name -- the pill
 // centers its text, and CSS text-overflow:ellipsis doesn't truncate
 // centered flex content cleanly, it clips from both ends instead (losing
-// the leading and trailing characters with no ellipsis at all). Keep the
-// save confirmation reachable via hover/long-press instead of forcing it
-// into a string that doesn't reliably fit.
+// the leading and trailing characters with no ellipsis at all). So the pill
+// carries the counter alone ("Shape 2/5") and everything that used to fight
+// it for space -- position, save confirmation -- moves to the tooltip.
+// #shapeLabelSr is the aria-live region, so screen readers still hear the
+// whole sentence on every arrow press even though nothing renders it.
 function applyShapeLabel(el,v){
   const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
-  el.textContent='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName;
+  el.textContent='Shape '+(shapeIdx+1)+'/'+shapes.length;
   const sec=activeChip&&findSection(activeChip.sectionId);
-  el.title=sec?'Saved to '+sec.name:'';
+  const full='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName;
+  el.title=full+(sec?' · Saved to '+sec.name:'');
+  const sr=document.getElementById('shapeLabelSr');
+  if(sr)sr.textContent=full;
 }
 function syncShapeNavigator(){
   const nav=document.getElementById('shapeNav');

@@ -4454,7 +4454,7 @@ function buildSectionCard(sec,idx,primary){
     const leadWrap=document.createElement('div');leadWrap.className='sect-lead';
     const summary=document.createElement('div');summary.className='lead-summary';
     const phraseCount=leadPhraseGroups(sec.lead).length;
-    const label=document.createElement('span');label.textContent='🎸 Solo · '+phraseCount+' phrase'+(phraseCount===1?'':'s');summary.appendChild(label);
+    const label=document.createElement('span');label.textContent='Solo · '+phraseCount+' phrase'+(phraseCount===1?'':'s');summary.appendChild(label);
     const edit=document.createElement('button');edit.type='button';edit.className='lead-edit';edit.textContent='Edit solo';
     edit.title='Edit this solo';edit.addEventListener('click',e=>{
       e.stopPropagation();leadDraft=copyLeadEvents(sec.lead);leadDraftSourceSectionId=sec.id;leadDraftEditIndex=null;leadPhraseEdit=null;activeSectionId=sec.id;
@@ -5621,7 +5621,7 @@ function renderSoloKeyChip(){
   const isSoloMode=boardMode==='solo';
   const sug=scaleActive||!isSoloMode?null:primarySuggestedScale();
   let html='';
-  if(sug)html+='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>';
+  if(sug)html+='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">scale idea: '+pcName(sug.root)+' '+SCALES[sug.scale].name+'</button>';
   if(isSoloMode)html+=scalesChipMarkup();
   if(isSoloMode&&scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
@@ -5637,7 +5637,7 @@ function scalesChipMarkup(){
   // about scales sits over the fretboard any more -- the board shows only the
   // result: coloured degrees, and the box shading when a position is picked.
   const label=scaleActive&&SCALES[scaleActive.scale]
-    ? '🎯 '+pcName(scaleActive.root)+' '+SCALES[scaleActive.scale].name
+    ? pcName(scaleActive.root)+' '+SCALES[scaleActive.scale].name
     : 'scales';
   return '<button type="button" class="mini-key-chip'+(scaleActive||scalePickerOpen?' on':'')+'" data-scales-chip title="'+
     (scaleActive?'Change the scale, its position, or clear it':'Choose a scale for the fretboard')+'">'+label+

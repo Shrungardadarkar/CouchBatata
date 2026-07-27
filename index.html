@@ -471,7 +471,27 @@
   .live-strip-main{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
   .live-strip-main #chordOut{flex:1 1 220px;min-width:0}
   .live-strip .btn-row{margin-top:14px}
-  .solo-live-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .solo-live-strip{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+  .solo-live-left{flex:1 1 220px;min-width:0}
+
+  /* Key & Scales surfaced inline instead of a separate card: one chip
+     suggesting an unused in-key chord (Chord mode), one chip suggesting or
+     showing the active scale (Solo mode). scaleActive is shared global state
+     read by both modes -- chordSuggestionCandidates() biases off it too, so
+     an active scale needs to stay visible in Chord mode as well, not just
+     where it was set, otherwise the reordered Suggestions row looks like an
+     unexplained bug instead of a deliberate, still-live choice. */
+  .key-chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .key-chip-row[hidden]{display:none}
+  .mini-key-chip{font:inherit;display:inline-flex;align-items:center;gap:5px;background:var(--cream);
+    border:2px solid var(--ink);border-radius:999px;padding:5px 12px;font-weight:800;font-size:.76rem;
+    color:var(--ink);box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  @media (hover:hover){.mini-key-chip:hover{transform:translate(-1px,-1px) rotate(-1deg);box-shadow:3px 3px 0 var(--ink)}}
+  .mini-key-chip.on{background:var(--sun-soft)}
+  .key-chip-rn{color:var(--tomato-dk);font-weight:900;font-size:.68rem}
+  .key-chip-x{opacity:.6;margin-left:1px}
+  .suggestion-scale-bias{color:var(--tomato-dk)}
 
   /* solo / arpeggio recorder */
   .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
@@ -1280,6 +1300,7 @@
         <button class="btn" id="btnNextShape" title="Next chord shape" aria-label="Next chord shape">▶</button>
       </div>
     </div>
+    <div class="key-chip-row" id="chordKeyChips" hidden aria-label="Key and scale context"></div>
     <div class="btn-row">
       <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
       <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
@@ -1287,8 +1308,11 @@
   </div>
 
   <div class="live-strip solo-live-strip" id="soloLiveStrip">
-    <div class="lead-toolbar">
-      <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
+    <div class="solo-live-left">
+      <div class="lead-toolbar">
+        <span class="lead-target">Adding to: <b id="leadSectionName">new Solo section</b></span>
+      </div>
+      <div class="key-chip-row" id="soloKeyChips" hidden aria-label="Key and scale context"></div>
     </div>
     <button class="btn primary" id="btnLeadCreate" type="button">Create solo</button>
   </div>
@@ -2147,7 +2171,17 @@ function renderChordSuggestions(){
   if(!show)return;
   const data=chordSuggestionCandidates();
   if(data.state==='bootstrap')label.textContent='Suggestions';
-  else label.innerHTML='Suggestions <span class="suggestion-spectrum">· core <span class="suggestion-spectrum-arrow" aria-hidden="true">←</span><span class="suggestion-spectrum-arrow" aria-hidden="true">→</span> colourful</span>';
+  else{
+    let html='Suggestions <span class="suggestion-spectrum">· core <span class="suggestion-spectrum-arrow" aria-hidden="true">←</span><span class="suggestion-spectrum-arrow" aria-hidden="true">→</span> colourful</span>';
+    // suggestionContext() (feeding chordSuggestionCandidates above) reads
+    // scaleActive before falling back to the plain key -- so a scale picked
+    // in Solo mode silently reorders this row too. Name it here instead of
+    // letting the reorder look like an unexplained bug.
+    if(scaleActive&&SCALES[scaleActive.scale]){
+      html+=' <span class="suggestion-scale-bias">· biased by '+pcName(scaleActive.root)+' '+SCALES[scaleActive.scale].name+'</span>';
+    }
+    label.innerHTML=html;
+  }
   chordSuggestionItems=data.items.map(item=>({...item,neutral:data.state==='bootstrap'}));
   const row=document.getElementById('chordSuggestRow');
   row.innerHTML='';
@@ -3751,6 +3785,7 @@ function syncChordContextUI(){
   refreshKeyContext();
   renderKey();
   renderChordSuggestions();
+  renderKeyChips();
 }
 
 function showChord(){
@@ -4161,6 +4196,7 @@ function renderSong(){
     refreshKeyContext();
     renderKey();
     renderChordSuggestions();
+    renderKeyChips();
     renderLead();
     updateAddBtn();
     return;
@@ -4177,6 +4213,7 @@ function renderSong(){
 
   renderKey();
   renderChordSuggestions();
+  renderKeyChips();
   renderLead();
   updateAddBtn();
   save();
@@ -5375,6 +5412,75 @@ function syncKeyCoachCue(eligible){
     cue?.remove();
   }
 }
+// One unused diatonic triad to surface inline in the Chord live-strip --
+// deliberately only ever suggests one, not the full in-key palette the
+// Key & Scales panel shows, matching the same "lead with one answer"
+// disclosure used for scales below.
+function suggestedInKeyChord(){
+  if(!currentKeyInfo||keyContextCount<2||!currentKeyInfo.isPerfectFit||currentKeyInfo.dominantContext)return null;
+  const tris=diatonicTriadsFor(currentKeyInfo.tonic,keyIntervals(currentKeyInfo));
+  const cs=allChords();
+  const used=t=>cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf));
+  return tris.find(t=>!used(t))||null;
+}
+// The top-ranked scale suggestion for the current key -- same source
+// suggestScales() feeds the full Key & Scales panel with, just the first
+// result instead of the whole list.
+function primarySuggestedScale(){
+  if(!currentKeyInfo)return null;
+  const sugs=suggestScales(currentKeyInfo.tonic);
+  return sugs&&sugs.length?sugs[0]:null;
+}
+function renderChordKeyChips(){
+  const host=document.getElementById('chordKeyChips');
+  if(!host)return;
+  const parts=[];
+  const sug=suggestedInKeyChord();
+  if(sug)parts.push('<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>');
+  if(scaleActive&&SCALES[scaleActive.scale]){
+    const S=SCALES[scaleActive.scale];
+    parts.push('<button type="button" class="mini-key-chip on" id="chipClearScaleFromChord" title="Clear this scale">🎯 scale: '+pcName(scaleActive.root)+' '+S.name+' <span class="key-chip-x">✕</span></button>');
+  }
+  host.innerHTML=parts.join('');
+  host.hidden=!parts.length;
+  document.getElementById('chipAlsoInKey')?.addEventListener('click',()=>{loadSuggestedChord(sug);});
+  document.getElementById('chipClearScaleFromChord')?.addEventListener('click',clearActiveScale);
+}
+function renderSoloKeyChip(){
+  const host=document.getElementById('soloKeyChips');
+  if(!host)return;
+  let html='';
+  if(scaleActive&&SCALES[scaleActive.scale]){
+    const S=SCALES[scaleActive.scale];
+    html='<button type="button" class="mini-key-chip on" id="chipClearScaleFromSolo" title="Clear this scale">🎯 scale: '+pcName(scaleActive.root)+' '+S.name+' <span class="key-chip-x">✕</span></button>';
+  } else {
+    const sug=primarySuggestedScale();
+    if(sug){
+      const S=SCALES[sug.scale];
+      html='<button type="button" class="mini-key-chip" id="chipSoloScaleIdea" title="Overlay this scale on the fretboard">🎯 scale idea: '+pcName(sug.root)+' '+S.name+'</button>';
+    }
+  }
+  host.innerHTML=html;
+  host.hidden=!html;
+  document.getElementById('chipSoloScaleIdea')?.addEventListener('click',()=>{
+    const sug=primarySuggestedScale();
+    if(!sug)return;
+    scaleActive={root:sug.root,scale:sug.scale};scaleBoxIdx=null;
+    render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+  });
+  document.getElementById('chipClearScaleFromSolo')?.addEventListener('click',clearActiveScale);
+}
+// scaleActive is shared, global, cross-mode state (see the note above
+// renderChordSuggestions' label) -- clearing it from either live-strip
+// un-biases Suggestions and drops the board overlay from both modes at once.
+function clearActiveScale(){
+  scaleActive=null;scaleBoxIdx=null;
+  render();renderChordSuggestions();renderScaleSuggest(currentKeyInfo?.tonic??0);renderKeyChips();save();
+}
+function renderKeyChips(){
+  renderChordKeyChips();
+  renderSoloKeyChip();
+}
 function renderKey(){
   const panel=document.getElementById('scalePanel'),
         kl=document.getElementById('keyLine'),
@@ -5567,7 +5673,7 @@ function renderScaleSuggest(primary){
     chip.addEventListener('click',()=>{
       scaleActive=isScaleActive(sug)?null:{root:sug.root,scale:sug.scale};
       scaleBoxIdx=null;  // reset to full-neck view whenever the scale changes
-      renderScaleSuggest(primary);render();renderChordSuggestions();save();
+      renderScaleSuggest(primary);render();renderChordSuggestions();renderKeyChips();save();
     });
     row.appendChild(chip);
   });

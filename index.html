@@ -3151,7 +3151,9 @@ function renderLead(){
   clearSelectionButton.textContent=leadTechniquePending?'Cancel '+LEAD_CONNECTION_LABEL[leadTechniquePending.action]:'Clear selection';
   const phraseOverview=leadPhraseEdit&&!leadTechniquePending&&!Number.isInteger(leadDraftEditIndex);
   document.getElementById('leadTechLabel').textContent=leadTechniquePending
-    ?(leadTechniquePending.editTargetId?'Editing ':'')+LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' — dashed source, selected destination; save when ready'
+    ?(leadTechniquePending.extendPhrase&&!leadTechniquePending.editTargetId
+        ?LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' chaining — tap the next fret to extend, or '+LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' to finish'
+        :(leadTechniquePending.editTargetId?'Editing ':'')+LEAD_CONNECTION_LABEL[leadTechniquePending.action]+' — dashed source, selected destination; save when ready')
     :phraseOverview?'Phrase selected — choose a numbered step below or add a destination':'Apply to selected notes';
   document.querySelectorAll('.lead-tech').forEach(button=>{
     const action=button.dataset.tech;
@@ -3159,9 +3161,15 @@ function renderLead(){
     const editingPhraseSource=leadPhraseEdit&&!leadTechniquePending&&leadDraftEditIndex===leadPhraseEdit.start;
     button.classList.toggle('armed',!!isPendingAction);
     if(leadTechniquePending){
-      button.textContent=isPendingAction?'Save '+LEAD_CONNECTION_LABEL[action]:button.dataset.label;
-      button.disabled=!isPendingAction||!hasLeadSelection;
-      button.title=isPendingAction?'Save the chosen destination':'';
+      const chaining=!!leadTechniquePending.extendPhrase;
+      button.textContent=isPendingAction
+        ?(hasLeadSelection?'Save ':'Finish ')+LEAD_CONNECTION_LABEL[action]
+        :button.dataset.label;
+      // Mid-chain the armed button stays live with an empty selection so it can
+      // close the phrase -- otherwise the only way out would be Cancel, which
+      // reads as "discard" rather than "done".
+      button.disabled=!isPendingAction||(!hasLeadSelection&&!chaining);
+      button.title=isPendingAction?(hasLeadSelection?'Save the chosen destination':'Finish this phrase'):'';
     }else{
       button.textContent=button.dataset.label;
       button.disabled=!hasLeadSelection||phraseOverview||(editingPhraseSource&&action!=='');
@@ -3297,7 +3305,33 @@ function toggleLeadNote(s,f){
   // carried chord state no longer needs to reserve this string once it changes.
   if(deselecting&&soloChordReference&&soloChordReference[s]===f)soloChordReference[s]=null;
   if(leadSelection[s]===f)pluck(s,OPEN[s]+f);
+  // Chain mode: the moment the destination covers exactly the same strings as
+  // the armed source, save that leg and stay armed for the next one. Waiting
+  // for the string set to match (rather than committing on the first tap) is
+  // what lets single-note and chord phrases share one gesture -- it's the same
+  // rule validateLeadConnection() already enforces. A failed commit falls
+  // through to the normal render so the user can adjust the selection.
+  if(leadDestinationComplete()&&commitLeadConnection({chain:true}))return;
   render();renderLead();
+}
+// True once the current selection covers the same string set as the armed
+// source -- i.e. this leg is ready to save without a further button press.
+function leadDestinationComplete(){
+  if(!leadTechniquePending)return false;
+  const sourceStrings=new Set(leadTechniquePending.notes.map(note=>note.s));
+  const selected=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[s]:[]);
+  return selected.length===sourceStrings.size&&selected.every(s=>sourceStrings.has(s));
+}
+// Un-arms without saving. Mid-chain this is "done"; straight after arming with
+// nothing chosen it's a plain cancel -- the same button either way, so one
+// control both opens and closes a phrase.
+function finishLeadChain(){
+  const chained=!!leadTechniquePending?.extendPhrase;
+  const label=leadTechniquePending?LEAD_CONNECTION_LABEL[leadTechniquePending.action].toLowerCase():'';
+  leadTechniquePending=null;leadSelection.fill(null);
+  leadSelectionSectionId=activeSection()?.id??null;
+  consumeSoloChordReference();renderSong();render();renderLead();
+  flash(chained?'Finished '+label:'Cancelled '+label);
 }
 // Plays a just-saved solo event the way its technique tag implies. Bend/
 // release/vibrato/mute carry no source pitch in this data model (they're
@@ -3505,12 +3539,15 @@ function validateLeadConnection(sourceNotes,destination,action){
   return {sourceByString,technique,links:moving.map(note=>note.s)};
 }
 
-function commitLeadConnection(){
-  const pending=leadTechniquePending;if(!pending)return;
+// Returns true when a leg was actually saved. opts.chain re-arms the same
+// technique with the just-saved destination as the next source, so a chain
+// extends by tapping frets alone -- no phrase-editor round trip.
+function commitLeadConnection(opts={}){
+  const pending=leadTechniquePending;if(!pending)return false;
   const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
-  if(!destination.length){flash('Choose a destination before saving');return;}
+  if(!destination.length){flash('Choose a destination before saving');return false;}
   const validation=validateLeadConnection(pending.notes,destination,pending.action);
-  if(validation.error){flash(validation.error);return;}
+  if(validation.error){flash(validation.error);return false;}
   const {sourceByString,technique,links}=validation;
   const existingTargetIndex=Number.isInteger(pending.editTargetId)
     ?leadDraft.findIndex(event=>event.id===pending.editTargetId):-1;
@@ -3518,7 +3555,7 @@ function commitLeadConnection(){
   if(following&&hasLeadLink(following)&&following.from===leadDraft[existingTargetIndex]?.id){
     const followingAction=following.t==='/'||following.t==='\\'?'slide':following.t;
     const followingValidation=validateLeadConnection(destination,following.notes,followingAction);
-    if(followingValidation.error){flash('That change would break the next phrase step: '+followingValidation.error.toLowerCase());return;}
+    if(followingValidation.error){flash('That change would break the next phrase step: '+followingValidation.error.toLowerCase());return false;}
   }
   let phraseStart=Number.isInteger(pending.phraseStart)?pending.phraseStart:null;
   const multiNoteConnection=pending.notes.length>1||destination.length>1;
@@ -3526,14 +3563,14 @@ function commitLeadConnection(){
   if(existingTargetIndex>=0){
     const existing=leadDraft[existingTargetIndex];
     const source=leadDraft.find(event=>event.id===existing.from);
-    if(!source){flash('The source event is missing');return;}
+    if(!source){flash('The source event is missing');return false;}
     if(multiNoteConnection)source.play='strum';
     leadDraft[existingTargetIndex]={id:existing.id,notes:destination,t:technique,play:existing.play||(multiNoteConnection?'strum':'note'),from:source.id,links,rep:existing.rep||1};
     savedTargetIndex=existingTargetIndex;_popLeadDraftIndex=existingTargetIndex;
   }else if(Number.isInteger(pending.sourceEventId)){
     const sourceIndex=leadDraft.findIndex(event=>event.id===pending.sourceEventId);
     const existingSource=leadDraft[sourceIndex];
-    if(!existingSource){flash('The source event is missing');return;}
+    if(!existingSource){flash('The source event is missing');return false;}
     // The final destination of an existing phrase becomes the source of its
     // next leg. Keep that event's incoming link, otherwise A→B extended to C
     // would silently become A plus a separate B→C phrase.
@@ -3557,16 +3594,39 @@ function commitLeadConnection(){
   }else leadSelection.fill(null);
   if(Number.isInteger(phraseStart))leadSelection.fill(null);
   leadSelectionSectionId=activeSection()?.id??null;consumeSoloChordReference();
+  // Re-arm for the next leg: the destination just saved becomes the next
+  // source -- the same state extendLeadPhrase() builds, minus the trip through
+  // the phrase-editor drawer. Editing an existing step never chains, since
+  // there the user is revising one leg rather than extending forward.
+  const chaining=!!opts.chain&&existingTargetIndex<0&&savedTargetIndex>=0&&Number.isInteger(phraseStart);
+  if(chaining){
+    const saved=leadDraft[savedTargetIndex];
+    leadTechniquePending={
+      action:pending.action,
+      notes:saved.notes.map(note=>({s:note.s,f:note.f})),
+      sourceEventId:saved.id,phraseStart,extendPhrase:true
+    };
+    if(leadPhraseEdit)leadPhraseEdit={...leadPhraseEdit,active:leadPhraseEdit.end};
+  }
   renderSong();render();renderLead();
   const phrase=Number.isInteger(phraseStart)?leadPhraseAt(leadDraft,phraseStart):null;
   const kind=phrase&&phrase.events.length>2?' chain':links.length>1?' multi-note phrase':'';
-  flash((existingTargetIndex>=0?'Updated ':'Added ')+LEAD_CONNECTION_LABEL[pending.action].toLowerCase()+kind);
+  const label=LEAD_CONNECTION_LABEL[pending.action];
+  flash(chaining
+    ?'Added '+label.toLowerCase()+kind+' — tap the next fret to keep going, or '+label+' to finish'
+    :(existingTargetIndex>=0?'Updated ':'Added ')+label.toLowerCase()+kind);
+  return true;
 }
 document.getElementById('leadTechniques').addEventListener('click',event=>{
   const button=event.target.closest('.lead-tech');if(!button)return;
   const action=button.dataset.tech;
   if(LEAD_CONNECTION_ACTIONS.has(action)){
-    if(leadTechniquePending?.action===action)commitLeadConnection();
+    if(leadTechniquePending?.action===action){
+      // With a destination chosen this saves it; with nothing chosen it closes
+      // the phrase. One control opens, extends and finishes a chain.
+      if(leadSelection.some(Number.isInteger))commitLeadConnection();
+      else finishLeadChain();
+    }
     else if(!leadTechniquePending)beginLeadConnection(action);
     return;
   }
@@ -3687,7 +3747,13 @@ function render(){
     // musician changes one string: it reads as a stale note, not a guide.
     const editedPhrase=leadPhraseEdit?leadPhraseAt(leadDraft,leadPhraseEdit.start):null;
     const activePhraseStep=editedPhrase?editedPhrase.indexes.indexOf(leadPhraseEdit.active):-1;
-    const pendingSourceStep=activePhraseStep>0?activePhraseStep-1:-1;
+    // Editing a step in place re-picks its destination, so the step before it
+    // is the source and is drawn as technique-source instead of a numbered
+    // marker. Chaining forward is different: there the active step *is* the
+    // armed source, so nothing precedes it to hide -- without this distinction
+    // the second-to-last note of a chain would silently lose its marker.
+    const chainingForward=!!leadTechniquePending?.extendPhrase;
+    const pendingSourceStep=(!chainingForward&&activePhraseStep>0)?activePhraseStep-1:-1;
     if(editedPhrase){
       const references=new Map();
       editedPhrase.indexes.forEach((eventIndex,stepIndex)=>{

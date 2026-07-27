@@ -480,51 +480,11 @@
      an active scale needs to stay visible in Chord mode as well, not just
      where it was set, otherwise the reordered Suggestions row looks like an
      unexplained bug instead of a deliberate, still-live choice. */
-  /* ===== scale bar: all scale context sits ABOVE the board, so the space
-     below it stays free for the technique strip and Create solo. Above the
-     board = context you read; below = actions you take. Because it hangs off
-     the board (shared by both modes) rather than either live-strip, one bar
-     covers Chord and Solo at once. ===== */
-  .scale-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:11px;
-    background:var(--mint-soft);border:2px solid var(--ink);border-radius:10px;padding:6px 9px;
-    box-shadow:1.5px 1.5px 0 var(--ink)}
-  .scale-bar[hidden]{display:none}
-  .sb-name{font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:.76rem;
-    color:var(--ink);display:inline-flex;align-items:center;gap:5px}
-  .sb-divider{width:1.5px;height:16px;background:rgba(90,47,62,.3);flex:0 0 auto}
-  .sb-note{font:900 .6rem/1.3 "Courier New",monospace;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.04em}
-  .sb-box{font:900 .62rem/1 "Courier New",monospace;color:var(--ink-dim);background:var(--paper);
-    border:1.5px solid var(--ink-faint);border-radius:6px;padding:5px 8px;cursor:pointer;
-    transition:transform .14s var(--ease-spring),box-shadow .14s var(--ease-spring),background .12s}
-  @media (hover:hover){.sb-box:hover{border-color:var(--ink);color:var(--ink);transform:translateY(-1px)}}
-  .sb-box.on{color:var(--ink);border-color:var(--ink);background:var(--sun);box-shadow:1.5px 1.5px 0 var(--ink)}
-  .sb-rt{color:var(--tomato-dk)}
-  /* Sits right after the bar's content rather than being flung to the far
-     edge by margin-left:auto -- on a wide desktop bar that stranded the
-     clear button half a screen from the thing it clears. */
-  .sb-x{width:20px;height:20px;border:1.5px solid var(--ink);border-radius:50%;
-    display:inline-flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:900;
-    background:var(--paper);color:var(--ink);cursor:pointer;flex:0 0 auto;font-family:inherit}
-  @media (hover:hover){.sb-x:hover{background:var(--tomato);color:var(--cream)}}
-  .sb-alts{flex-basis:100%;margin-top:7px;background:var(--paper);border:2px dashed var(--ink);
-    border-radius:9px;padding:9px 10px}
-  .sb-alt-lbl{font:900 .58rem/1 "Courier New",monospace;text-transform:uppercase;letter-spacing:.05em;
-    color:var(--ink-dim);margin-bottom:6px}
-  .sb-notes{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
-  .sb-note-pill{display:inline-flex;align-items:baseline;gap:2px;background:var(--cream);border:2px solid var(--ink-faint);
-    border-radius:7px;padding:4px 8px;font-family:"Arial Black",Arial,sans-serif;font-weight:900;font-size:.68rem;color:var(--ink)}
-  .sb-note-pill sub{font-family:"Courier New",monospace;font-size:.52rem;font-weight:900;opacity:.7}
-  .sb-note-pill.sroot{border-color:var(--lilac-dk)}
-  .sb-note-pill.sthird{border-color:var(--sky)}
-  .sb-note-pill.sfifth{border-color:var(--mint-dk)}
-  .sb-note-pill.sseventh{border-color:var(--lilac)}
   .sb-alt{display:flex;align-items:baseline;gap:7px;width:100%;text-align:left;padding:6px 9px;
     background:var(--cream);border:2px solid var(--ink);border-radius:8px;margin-bottom:5px;
     box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;font:inherit}
   .sb-alt b{font-size:.7rem;color:var(--ink)}
   .sb-alt span{font-size:.62rem;color:var(--ink-dim);font-style:italic}
-  .sb-alt.previewing{background:var(--sun-soft)}
-  .sb-alt .sb-pv{margin-left:auto;font:900 .54rem/1 "Courier New",monospace;color:var(--tomato-dk);text-transform:uppercase;font-style:normal}
   /* Box focus reads on the fret numbers themselves — no extra bracket row. */
   .fret-nums div.in-box-range{color:var(--ink);background:var(--sun-soft);border-radius:4px;font-weight:900}
   /* Long-press a scale dot to have it name its own degree, which is why no
@@ -546,6 +506,9 @@
     border-radius:10px;padding:11px 12px}
   .key-palette .guidance{margin-top:0;margin-bottom:12px}
   .key-palette .scale-notes-line{margin-top:6px}
+  .scale-detail-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .scale-clear-btn{padding:5px 11px;font-size:.74rem;font-family:inherit;font-weight:800}
+  .key-palette .scale-boxes{border-top-color:var(--ink-faint)}
   .key-palette .scale-legend{border-top-color:var(--ink-faint)}
 
   .key-chip-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
@@ -1297,7 +1260,6 @@
       </span>
     </button>
   </div>
-  <div class="scale-bar" id="scaleBar" hidden aria-label="Active scale"></div>
   <div class="board-wrap">
     <div class="board-outer">
       <div class="string-labels" id="stringLabels"></div>
@@ -5598,21 +5560,24 @@ function renderSoloKeyChip(){
 // once a scale is on, the bar above the board owns it, so there is never a
 // second door to the same room.
 function scalesChipMarkup(){
-  // Stays available whether or not a scale is on: with none it is the way in,
-  // with one it is where that scale's notes and alternates are read.
-  const label=scaleActive?'scale details':'scales';
-  return '<button type="button" class="mini-key-chip'+(scalePickerOpen?' on':'')+'" data-scales-chip title="'+
-    (scaleActive?'The notes in this scale, and others to try':'Choose a scale for the fretboard')+'">'+label+
+  // The chip is where the active scale is named, chosen, and swapped. Nothing
+  // about scales sits over the fretboard any more -- the board shows only the
+  // result: coloured degrees, and the box shading when a position is picked.
+  const label=scaleActive&&SCALES[scaleActive.scale]
+    ? '🎯 '+pcName(scaleActive.root)+' '+SCALES[scaleActive.scale].name
+    : 'scales';
+  return '<button type="button" class="mini-key-chip'+(scaleActive||scalePickerOpen?' on':'')+'" data-scales-chip title="'+
+    (scaleActive?'Change the scale, its position, or clear it':'Choose a scale for the fretboard')+'">'+label+
     ' <span class="key-chip-x">'+(scalePickerOpen?'▴':'▾')+'</span></button>';
 }
 function scalePickerMarkup(){
   const sugs=suggestScales(currentKeyInfo?.tonic??0)||[];
   let h='<div class="key-palette">';
   if(scaleActive&&SCALES[scaleActive.scale]){
-    // Original treatment: colour-blocked note pills keyed to the same degree
-    // palette the fretboard dots use, with the legend that decodes them.
     const S=SCALES[scaleActive.scale];
-    h+='<p class="key-chord-intro">The notes you\u2019re working with</p><div class="scale-notes-line">';
+    h+='<div class="scale-detail-head"><p class="key-chord-intro" style="margin:0">The notes you\u2019re working with</p>'+
+      '<button type="button" class="btn ghost scale-clear-btn" data-clear-scale title="Remove this scale from the fretboard">Clear scale</button></div>';
+    h+='<div class="scale-notes-line">';
     S.intervals.forEach((iv,i)=>{
       h+='<span class="lg-note lg-'+scaleDegreeClass(iv)+'">'+scaleNoteName(scaleActive.root,scaleActive.scale,i)+
         '<sub>'+scaleDegreeLabel(scaleActive.scale,i)+'</sub></span>';
@@ -5624,14 +5589,27 @@ function scalePickerMarkup(){
       '<span class="lg-item"><span class="lg-dot lg-sseventh"></span>7th</span>'+
       '<span class="lg-item"><span class="lg-dot lg-stension"></span>passing tone</span>'+
       '<span class="lg-hint">Land on the coloured tones \u00b7 pass through the greys.</span></div>';
+    // Position boxes read here in their original form; the fretboard shows only
+    // their effect (shaded box, lit fret numbers, dimmed outside notes).
+    const boxes=computeScaleBoxes();
+    if(boxes.length){
+      h+='<div class="scale-boxes"><span class="lg-boxes-label">Position boxes:</span>'+
+        '<button type="button" class="box-chip'+(scaleBoxIdx===null?' on':'')+'" data-box="all" title="Show the whole neck at once">All frets</button>';
+      boxes.forEach((b,i)=>{
+        h+='<button type="button" class="box-chip'+(scaleBoxIdx===i?' on':'')+(b.isRoot?' is-root':'')+
+          '" data-box="'+i+'" title="Focus on frets '+b.startFret+'\u2013'+b.endFret+' (starts on '+b.startNote+' on the low E)'+
+          (b.isRoot?' \u2014 the root position':'')+'">'+b.label+(b.isRoot?' <span class="root-tag">root</span>':'')+
+          ' <span class="box-frets">'+b.startFret+'\u2013'+b.endFret+'</span></button>';
+      });
+      h+='</div>';
+    }
   }
   const others=sugs.filter(x=>!(scaleActive&&x.root===scaleActive.root&&x.scale===scaleActive.scale));
   if(others.length){
     h+='<p class="key-chord-intro" style="margin-top:12px">'+(scaleActive?'Or try':'For soloing')+
       ' <span class="key-chord-degrees">tap one to show it on the fretboard</span></p>';
     others.forEach(x=>{
-      const idx=sugs.indexOf(x);
-      h+='<button type="button" class="sb-alt" data-pick="'+idx+'"><b>'+pcName(x.root)+' '+SCALES[x.scale].name+
+      h+='<button type="button" class="sb-alt" data-pick="'+sugs.indexOf(x)+'"><b>'+pcName(x.root)+' '+SCALES[x.scale].name+
         '</b><span>'+x.why+'</span></button>';
     });
   }
@@ -5645,6 +5623,12 @@ function wireScalesChip(host){
   host.querySelectorAll('[data-pick]').forEach(btn=>btn.addEventListener('click',()=>{
     const pick=sugs[+btn.dataset.pick];if(!pick)return;
     setActiveScale(pick.root,pick.scale);
+  }));
+  host.querySelector('[data-clear-scale]')?.addEventListener('click',clearActiveScale);
+  host.querySelectorAll('[data-box]').forEach(btn=>btn.addEventListener('click',()=>{
+    const v=btn.dataset.box;
+    scaleBoxIdx=v==='all'?null:+v;
+    render();renderKeyChips();save();
   }));
 }
 function setActiveScale(root,scale){
@@ -5667,42 +5651,9 @@ function clearActiveScale(){
   scaleActive=null;scaleBoxIdx=null;scalePreview=null;scalePickerOpen=false;
   render();renderChordSuggestions();renderKeyChips();save();
 }
-function renderScaleBar(){
-  const bar=document.getElementById('scaleBar');
-  if(!bar)return;
-  if(!scaleActive||!SCALES[scaleActive.scale]){
-    bar.hidden=true;bar.innerHTML='';scalePreview=null;return;
-  }
-  // Live context only -- what is on the board right now. The notes list,
-  // legend and alternates are exploration, so they live with the other
-  // exploratory surfaces beside "more in key", not stacked over the fretboard.
-  const shown=scalePreview||scaleActive;
-  let html='<span class="sb-name">🎯 '+pcName(shown.root)+' '+SCALES[shown.scale].name+'</span>';
-  if(boardMode==='solo'){
-    const boxes=computeScaleBoxes();
-    if(boxes.length){
-      html+='<span class="sb-divider"></span><button type="button" class="sb-box'+(scaleBoxIdx===null?' on':'')+'" data-box="all" title="Show the whole neck">All</button>';
-      boxes.forEach((b,i)=>{
-        html+='<button type="button" class="sb-box'+(scaleBoxIdx===i?' on':'')+'" data-box="'+i+'" title="Frets '+
-          b.startFret+'–'+b.endFret+(b.isRoot?' — the root position':'')+'">'+(i+1)+(b.isRoot?' <span class="sb-rt">rt</span>':'')+'</button>';
-      });
-    }
-  }else{
-    html+='<span class="sb-divider"></span><span class="sb-note">biasing suggestions</span>';
-  }
-  html+='<button type="button" class="sb-x" id="sbClear" title="Clear this scale" aria-label="Clear this scale">✕</button>';
-  bar.innerHTML=html;bar.hidden=false;
-  document.getElementById('sbClear').addEventListener('click',clearActiveScale);
-  bar.querySelectorAll('.sb-box').forEach(btn=>btn.addEventListener('click',()=>{
-    const v=btn.dataset.box;
-    scaleBoxIdx=v==='all'?null:+v;
-    render();renderScaleBar();save();
-  }));
-}
 function renderKeyChips(){
   renderChordKeyChips();
   renderSoloKeyChip();
-  renderScaleBar();
 }
 // Key now reads in the working bar beside the song title -- it is a property
 // of the song, not a heading for a card. The in-key palette and the borrowed-

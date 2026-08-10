@@ -53,10 +53,19 @@ assert.match(html, /id="chordScrollNext"/);
 assert.match(html, /function scrollChordSuggestions\(direction\)/);
 assert.match(html, /function updateChordSuggestionNav\(/);
 assert.match(html, /chord-suggest-row\{display:flex[^}]*overflow-x:auto[^}]*scroll-snap-type:x proximity/);
-assert.match(html, /chord-suggest-row\.can-scroll-left\.can-scroll-right/);
+// Edge fade is a shared [data-edge-fade] idiom now, not a suggestion-row
+// special case: the fretboard controls and technique rows scroll too.
+assert.match(html, /\[data-edge-fade\]\.can-scroll-left\.can-scroll-right/);
+assert.match(html, /function syncEdgeFade\(el\)/);
+assert.match(html, /class="fret-controls" data-edge-fade/);
+assert.match(html, /class="lead-techniques" id="leadTechniques" data-edge-fade/);
 assert.match(html, /chord-suggestion\{flex:0 0 auto;scroll-snap-align:start/);
 assert.match(html, /suggestion-spectrum-arrow/);
-assert.match(html, /shape-nav\{display:inline-grid;grid-template-columns:26px minmax\(0,150px\) 26px/);
+// Counter-only pill ("Shape 2/5"); the sentence lives in the tooltip and the
+// aria-live sibling, so the middle track no longer needs a fixed 150px.
+assert.match(html, /shape-nav\{display:inline-grid;grid-template-columns:26px auto 26px/);
+assert.match(html, /el\.textContent='Shape '\+\(shapeIdx\+1\)\+'\/'\+shapes\.length/);
+assert.match(html, /id="shapeLabelSr"/);
 assert.match(html, /shape-label\.shape-slide-forward/);
 assert.match(html, /@keyframes shapeLabelForward/);
 assert.match(html, /function loadShape\(direction=0\)/);

@@ -3489,7 +3489,7 @@ function previewSoloPick(){
   if(leadTechniquePending){
     const pending=leadTechniquePending;
     const sourceByString=new Map(pending.notes.map(note=>[note.s,note]));
-    const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+    const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
     if(!destination.length){
       pending.notes.forEach(({s,f})=>pluck(s,OPEN[s]+f));
       return;
@@ -3514,12 +3514,12 @@ function previewSoloPick(){
     playLeadPhrasePreview(leadPhraseAt(leadDraft,leadPhraseEdit.start));
     return;
   }
-  let notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  let notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
   if(!notes.length&&soloChordReference){
-    notes=soloChordReference.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+    notes=soloChordReference.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
   }
   if(!notes.length&&boardMode==='solo'){
-    notes=selection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+    notes=selection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
   }
   if(!notes.length)return;
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
@@ -3527,7 +3527,7 @@ function previewSoloPick(){
 }
 
 function saveLeadEvent(t){
-  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
   if(!notes.length){flash('Select one or more notes first');return;}
   const editing=Number.isInteger(leadDraftEditIndex)&&leadDraft[leadDraftEditIndex];
   const carriedChord=!!soloChordReference&&notes.length>1&&notes.every(note=>soloChordReference[note.s]===note.f);
@@ -3566,7 +3566,7 @@ function saveLeadEvent(t){
 }
 
 function beginLeadConnection(action){
-  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  const notes=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
   if(!notes.length){flash('Choose the source notes first');return;}
   const sourceEvent=Number.isInteger(leadDraftEditIndex)?leadDraft[leadDraftEditIndex]:null;
   leadTechniquePending={action,notes,sourceEventId:sourceEvent?.id||null};
@@ -3603,7 +3603,7 @@ function validateLeadConnection(sourceNotes,destination,action){
 // extends by tapping frets alone -- no phrase-editor round trip.
 function commitLeadConnection(opts={}){
   const pending=leadTechniquePending;if(!pending)return false;
-  const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]);
+  const destination=leadSelection.flatMap((f,s)=>Number.isInteger(f)?[{s,f}]:[]).reverse();
   if(!destination.length){flash('Choose a destination before saving');return false;}
   const validation=validateLeadConnection(pending.notes,destination,pending.action);
   if(validation.error){flash(validation.error);return false;}
@@ -4831,7 +4831,15 @@ function leadSafeInsertIndex(events,index){
 
 function attachChipDrag(chip,sec,cIdx){
   chip.addEventListener('pointerdown',e=>{
-    if(e.target.closest('.repeat-picker, .chip-x'))return;
+    // The repeat-picker ("x1"/"x4" badge) sits in the visual middle of a
+    // compact chip -- excluding it here used to mean any grab that landed on
+    // it silently failed to start a drag. It's safe to let pointerdown
+    // through: a plain tap never crosses the movement threshold, so
+    // drag.started stays false and the picker's own click still opens its
+    // dropdown normally; only a real drag gesture suppresses that click (see
+    // _suppressNextClick below). Only .chip-x (delete) stays excluded, since
+    // an accidental delete is costlier than an accidental drag graze.
+    if(e.target.closest('.chip-x'))return;
     if(e.pointerType==='mouse' && e.button!==0)return;
     const rect=chip.getBoundingClientRect();
     drag={
@@ -4916,6 +4924,15 @@ document.addEventListener('pointerup',e=>{
   if(e.pointerId!==drag.pointerId)return;
   if(drag.started){
     _suppressNextClick=true;
+    // Every pointermove during a drag calls preventDefault(), which makes the
+    // browser skip synthesizing the trailing click it would otherwise fire on
+    // release -- so nothing here ever flips the flag back off. Left alone,
+    // that stale `true` silently eats the *next, unrelated* click anywhere in
+    // the app (a picker, a delete button, a different chip). Self-clear
+    // shortly after in case that trailing click never arrives; a real one
+    // still lands synchronously before this fires, so it resets the flag via
+    // the normal path first and this is just a harmless no-op then.
+    setTimeout(()=>{_suppressNextClick=false;},0);
     commitDrop();
   }
   cleanupDrag();

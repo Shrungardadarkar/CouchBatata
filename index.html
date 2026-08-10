@@ -1236,6 +1236,27 @@
   <button class="install-dismiss" id="btnUpdateDismiss" type="button" aria-label="Dismiss update message">×</button>
 </aside>
 
+<!-- A direct child of body, not of .col-rail: .col-rail is `position:sticky`
+     at the desktop breakpoint, which unconditionally opens its own stacking
+     context (true for sticky/fixed regardless of z-index). Nested here, this
+     overlay's z-index only ever wins against other things *inside* that
+     context -- any sibling elsewhere on the page with its own explicit
+     z-index (the accidental toggle, fretboard note dots, ...) painted over it
+     regardless of how high this overlay's own z-index was set. Keep this
+     element out here so its z-index is compared at the root, where it
+     actually means something. -->
+<div class="song-shelf-overlay" id="songShelfOverlay" hidden aria-hidden="true">
+  <section class="song-shelf-dialog" id="songShelfDialog" role="dialog" aria-modal="true" aria-labelledby="songShelfTitle" tabindex="-1">
+    <div class="song-shelf-head">
+      <div class="song-shelf-head-copy"><span class="song-shelf-kicker">Your songs</span><h3 class="song-shelf-title" id="songShelfTitle">Pick up an idea</h3></div>
+      <button class="btn primary song-shelf-new" id="btnNewSong" type="button">+ New song</button>
+      <button class="song-shelf-close" id="btnSongShelfClose" type="button" aria-label="Close songs">×</button>
+    </div>
+    <div class="song-shelf-list" id="songShelfList" role="list"></div>
+    <p class="song-shelf-foot">Everything stays on this device. Switching saves the song you are leaving.</p>
+  </section>
+</div>
+
 <div class="wrap" inert>
 <div class="song-context" aria-label="Current song">
   <span class="song-context-kicker">Working on</span>
@@ -1382,18 +1403,6 @@
 <div class="panel win-tomato" data-win="Tab builder" id="builderPanel">
   <h2>Tab builder</h2>
   <div id="song"></div>
-
-  <div class="song-shelf-overlay" id="songShelfOverlay" hidden aria-hidden="true">
-    <section class="song-shelf-dialog" id="songShelfDialog" role="dialog" aria-modal="true" aria-labelledby="songShelfTitle" tabindex="-1">
-      <div class="song-shelf-head">
-        <div class="song-shelf-head-copy"><span class="song-shelf-kicker">Your songs</span><h3 class="song-shelf-title" id="songShelfTitle">Pick up an idea</h3></div>
-        <button class="btn primary song-shelf-new" id="btnNewSong" type="button">+ New song</button>
-        <button class="song-shelf-close" id="btnSongShelfClose" type="button" aria-label="Close songs">×</button>
-      </div>
-      <div class="song-shelf-list" id="songShelfList" role="list"></div>
-      <p class="song-shelf-foot">Everything stays on this device. Switching saves the song you are leaving.</p>
-    </section>
-  </div>
 
   <div class="song-actions" aria-label="Song actions">
     <div class="song-action-group">

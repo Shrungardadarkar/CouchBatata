@@ -808,6 +808,22 @@
   @media (hover:hover){.chip-x:hover{color:var(--tomato);transform:rotate(90deg) scale(1.2)}}
   .chip.active .chip-x{color:var(--cream)}
   @media (hover:hover){.chip.active .chip-x:hover{color:var(--ink)}}
+  /* Always-works fallback for reordering: a single tap, no gesture to get
+     right. Sits alongside press-and-hold drag rather than replacing it. */
+  .chip-move{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:.85rem;font-weight:900;
+    width:20px;height:20px;border-radius:50%;line-height:1;padding:0;
+    transition:color .12s,background .12s}
+  @media (hover:hover){.chip-move:not(:disabled):hover{color:var(--ink);background:var(--cream-2)}}
+  .chip-move:disabled{opacity:.28;cursor:default}
+  .chip.active .chip-move{color:var(--cream)}
+  .chip.active .chip-move:disabled{opacity:.4}
+  @media (hover:hover){.chip.active .chip-move:not(:disabled):hover{color:var(--ink);background:var(--cream)}}
+  /* Press-and-hold drag lift: a deliberate hold (not a graze) has just armed
+     the chip for dragging, before any movement has happened yet. Distinct
+     from .dragging (which takes over once the ghost is actually following
+     the pointer) so the hold has its own moment of "yes, this is grabbed." */
+  .chip.armed{transform:scale(1.08) rotate(-2deg);box-shadow:3px 3px 0 var(--ink);
+    transition:transform .18s var(--ease-spring),box-shadow .18s var(--ease-spring)}
   .sect-dup{background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:.95rem;
     width:28px;height:28px;border-radius:6px;line-height:1;font-family:inherit;font-weight:800;
     transition:color .12s,background .12s,transform .18s var(--ease-spring)}
@@ -1186,7 +1202,7 @@
        #toast).  Only the decorative hover ones get flattened.  Extend this
        list when adding a component with a hover lift. */
     .btn:hover,.box-chip:hover,.alts button:hover,.scale-chip:hover,.repl-btn:hover,
-    .toggle:hover,.chip:hover,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover,
+    .toggle:hover,.chip:hover,.chip.armed,.active-badge:hover,.chip-x:hover,.sect-dup:hover,.song-name-btn:hover,.picker-trigger:hover,
     .switch-toggle:hover,.song-sect:hover,.chord-scroll-btn:hover,.chord-suggestion:hover,
     .key-chord-chip:hover,.mini-key-chip:hover,.scale-alt-chip:hover,
     .lead-tech:hover,.lead-edit:hover,.lead-event:hover,.lead-event-copy:hover,.lead-step-btn:hover,
@@ -4584,7 +4600,7 @@ function buildChip(sec,cIdx,c,primary){
   if(isPop)_popChip=null;  // consume so it only animates once
   chip.title=isOutlier
     ? "Borrowed chord — outside the current key. See Musical guidance below."
-    : 'Drag to reorder or move to another section';
+    : 'Press and hold to drag, or use ‹ › to reorder';
   attachChipDrag(chip,sec,cIdx);
   let rn='';
   if(primary!==null){
@@ -4598,8 +4614,36 @@ function buildChip(sec,cIdx,c,primary){
   nameBtn.addEventListener('click',e=>{e.stopPropagation();toggleChip(sec,cIdx);});
   chip.appendChild(nameBtn);
   chip.appendChild(repSelect(c));
+  chip.appendChild(chipMoveBtn(sec,cIdx,-1));
+  chip.appendChild(chipMoveBtn(sec,cIdx,1));
   chip.appendChild(chordDelBtn(sec,cIdx));
   return chip;
+}
+
+// Tap-only fallback for reordering, alongside press-and-hold drag: swaps this
+// chord with its immediate neighbor. No gesture to get wrong, works
+// identically on mouse/touch/keyboard, and disables itself at either end of
+// the section instead of wrapping.
+function chipMoveBtn(sec,cIdx,dir){
+  const b=document.createElement('button');
+  b.type='button';b.className='chip-move';
+  b.textContent=dir<0?'‹':'›';
+  const targetIdx=cIdx+dir;
+  const inRange=targetIdx>=0&&targetIdx<sec.chords.length;
+  b.disabled=!inRange;
+  b.setAttribute('aria-label',dir<0?'Move earlier in the section':'Move later in the section');
+  b.title=inRange?(dir<0?'Move earlier in the section':'Move later in the section'):'';
+  if(inRange)b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const chords=sec.chords;
+    [chords[cIdx],chords[targetIdx]]=[chords[targetIdx],chords[cIdx]];
+    if(activeChip&&activeChip.sectionId===sec.id){
+      if(activeChip.chordIdx===cIdx)activeChip.chordIdx=targetIdx;
+      else if(activeChip.chordIdx===targetIdx)activeChip.chordIdx=cIdx;
+    }
+    renderSong();
+  });
+  return b;
 }
 
 function repSelect(c){
@@ -4843,12 +4887,13 @@ function attachChipDrag(chip,sec,cIdx){
     // The repeat-picker ("x1"/"x4" badge) sits in the visual middle of a
     // compact chip -- excluding it here used to mean any grab that landed on
     // it silently failed to start a drag. It's safe to let pointerdown
-    // through: a plain tap never crosses the movement threshold, so
+    // through: a plain tap never crosses the movement/hold threshold, so
     // drag.started stays false and the picker's own click still opens its
     // dropdown normally; only a real drag gesture suppresses that click (see
-    // _suppressNextClick below). Only .chip-x (delete) stays excluded, since
-    // an accidental delete is costlier than an accidental drag graze.
-    if(e.target.closest('.chip-x'))return;
+    // _suppressNextClick below). .chip-x (delete) and .chip-move (the ‹ ›
+    // reorder buttons) stay excluded -- those are instant taps and an
+    // accidental delete/move is costlier than an accidental drag graze.
+    if(e.target.closest('.chip-x, .chip-move'))return;
     if(e.pointerType==='mouse' && e.button!==0)return;
     const rect=chip.getBoundingClientRect();
     drag={
@@ -4856,6 +4901,7 @@ function attachChipDrag(chip,sec,cIdx){
       sourceSection:sec.id,
       sourceIdx:cIdx,
       startX:e.clientX,startY:e.clientY,
+      lastX:e.clientX,lastY:e.clientY,
       ghostOffsetX:e.clientX-rect.left,
       ghostOffsetY:e.clientY-rect.top,
       origEl:chip,
@@ -4863,6 +4909,25 @@ function attachChipDrag(chip,sec,cIdx){
       dropSection:null,dropIdx:-1,
       pointerId:e.pointerId,
     };
+    // Touch shares this same gesture with page scrolling (touch-action:pan-y
+    // on .chip), so a plain 6px movement threshold can't tell "reorder this
+    // chip" from "I'm scrolling past it" -- that race is what made touch
+    // drags feel broken. Gate touch behind a deliberate hold instead: only a
+    // pointer that stays still for 350ms arms the drag; any real movement
+    // before then cancels the timer and falls through to native scrolling
+    // (see the pointermove listener below). Mouse/pen keep the immediate
+    // threshold since they don't share this scroll conflict.
+    if(e.pointerType==='touch'){
+      drag.armTimer=setTimeout(()=>{
+        if(!drag||drag.pointerId!==e.pointerId)return;
+        drag.armTimer=null;
+        chip.classList.remove('armed');
+        startDrag();
+        positionGhost({clientX:drag.lastX,clientY:drag.lastY});
+        updateDropTarget({clientX:drag.lastX,clientY:drag.lastY});
+      },350);
+      chip.classList.add('armed');
+    }
   });
 }
 
@@ -4916,7 +4981,20 @@ function attachSectionDrag(bar,card,secIdx){
 document.addEventListener('pointermove',e=>{
   if(!drag)return;
   if(e.pointerId!==drag.pointerId)return;
+  drag.lastX=e.clientX;drag.lastY=e.clientY;
   if(!drag.started){
+    if(drag.armTimer){
+      // Long-press-to-drag (touch chips): only a hold that stays still arms
+      // the drag. Real movement before the hold completes means this is a
+      // scroll, not a reorder -- cancel the pending arm and leave the touch
+      // alone so the browser's native pan-y handling takes it from here.
+      const dx=e.clientX-drag.startX, dy=e.clientY-drag.startY;
+      if(Math.hypot(dx,dy)>10){
+        clearTimeout(drag.armTimer);drag.armTimer=null;
+        drag.origEl?.classList.remove('armed');
+      }
+      return;
+    }
     const dx=e.clientX-drag.startX, dy=e.clientY-drag.startY;
     if(Math.hypot(dx,dy)<6)return;
     startDrag(e);
@@ -5158,6 +5236,8 @@ function commitDrop(){
 
 function cleanupDrag(){
   if(drag){
+    if(drag.armTimer){clearTimeout(drag.armTimer);drag.armTimer=null;}
+    drag.origEl?.classList.remove('armed');
     try{if(drag.origEl?.hasPointerCapture(drag.pointerId))drag.origEl.releasePointerCapture(drag.pointerId);}catch(_){/* already released */}
     if(drag.origEl)drag.origEl.classList.remove('dragging');
     drag.blockEls?.forEach(card=>card.classList.remove('dragging'));

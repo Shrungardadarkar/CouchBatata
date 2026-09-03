@@ -551,6 +551,47 @@
   .key-chip-x{opacity:.6;margin-left:1px}
   .suggestion-scale-bias{color:var(--tomato-dk)}
 
+  /* Related-keys compass — reached from its own chip beside "more in key".
+     Distance from the tonic reads as ring: inner shares the exact key
+     signature, outer is one sharp/flat away. The parallel key sits past
+     both rings, dashed — it shares the tonic, not the signature. */
+  .key-compass{margin-top:10px}
+  .compass-stage{position:relative;aspect-ratio:1/1;max-width:380px;margin:0 auto 8px;
+    background:var(--cream);border:1.5px dashed var(--ink-faint);border-radius:12px}
+  .compass-stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .compass-taglayer{position:absolute;inset:0}
+  .compass-node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+    align-items:center;gap:2px;background:none;border:0;padding:0;cursor:pointer;font:inherit;color:var(--ink)}
+  .compass-bubble{min-width:52px;padding:5px 9px;border:2px solid var(--ink);border-radius:999px;
+    background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);font-family:"Arial Black",Arial,sans-serif;
+    font-size:.72rem;line-height:1;white-space:nowrap;transition:box-shadow .16s var(--ease-spring),background .16s var(--ease-spring)}
+  .compass-rn{display:block;margin-top:2px;font:900 .56rem "Courier New",monospace;color:var(--ink-soft)}
+  @media (hover:hover){.compass-node:not(.home):hover .compass-bubble{box-shadow:3px 3px 0 var(--ink)}}
+  .compass-node[aria-pressed="true"] .compass-bubble{background:var(--mint);color:var(--paper);box-shadow:3px 3px 0 var(--ink)}
+  .compass-node.home{cursor:default}
+  .compass-node.home .compass-bubble{background:var(--tomato);color:var(--paper);font-size:.76rem;padding:7px 12px;box-shadow:2px 2px 0 var(--ink)}
+  .compass-here{display:inline-flex;align-items:center;gap:4px;font:900 .52rem "Courier New",monospace;
+    letter-spacing:.04em;text-transform:uppercase;background:var(--ink);color:var(--paper);
+    border-radius:999px;padding:2px 7px;margin-bottom:3px;white-space:nowrap}
+  .compass-node.borrow .compass-bubble{border-style:dashed}
+  .compass-used{position:absolute;top:-8px;right:-6px;background:var(--sun);color:var(--ink);
+    border:2px solid var(--ink);border-radius:999px;font:900 .52rem "Courier New",monospace;
+    padding:1px 5px;box-shadow:1.5px 1.5px 0 var(--ink);white-space:nowrap}
+  .compass-tag{position:absolute;transform:translate(-50%,-50%);font:900 .54rem "Courier New",monospace;
+    background:var(--paper);color:var(--mint-dk);border:1.5px solid var(--mint-dk);border-radius:999px;
+    padding:1px 6px;white-space:nowrap;pointer-events:none}
+  .compass-tag.borrow{color:var(--ink-soft);border-color:var(--ink-faint)}
+  .compass-legend{font-size:.72rem;color:var(--ink-faint);text-align:center;margin:2px 0 10px}
+  .compass-hint{color:var(--ink-dim);font-size:.84rem;font-weight:650;text-align:center;padding:8px 0}
+  .compass-drawer{background:var(--cream-2);border:2px solid var(--ink);border-radius:10px;padding:12px 14px}
+  .compass-drawer .key-chord-group+.key-chord-group{margin-top:10px}
+  .key-chord-chip.is-bridge{background:var(--sun-soft);border-color:var(--capture-dk)}
+  @media (max-width:480px){
+    .compass-bubble{min-width:44px;padding:4px 7px;font-size:.66rem}
+    .compass-rn{font-size:.5rem}
+    .compass-tag{font-size:.48rem;padding:1px 4px}
+  }
+
   /* solo / arpeggio recorder */
   .lead-intro{color:var(--ink-dim);font-size:.88rem;line-height:1.5;font-weight:650;margin-bottom:12px}
   .lead-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
@@ -2360,6 +2401,61 @@ function findReplacement(chord,tonic){
   return scored[0];
 }
 
+// The five closely-related keys of the song's key, plus its parallel
+// major/minor -- each carrying the chord that pivots (or, for the parallel,
+// the shared dominant that bridges) into it, and -- when one of the song's
+// own outlier chords already belongs there -- which chord, and where.
+const RELATED_KEY_DEFS={
+  major:[
+    {off:7,mode:'major',rn:'V',dist:1},
+    {off:5,mode:'major',rn:'IV',dist:1},
+    {off:9,mode:'minor',rn:'vi',dist:0},
+    {off:2,mode:'minor',rn:'ii',dist:1},
+    {off:4,mode:'minor',rn:'iii',dist:1},
+  ],
+  minor:[
+    {off:7,mode:'minor',rn:'v',dist:1},
+    {off:5,mode:'minor',rn:'iv',dist:1},
+    {off:3,mode:'major',rn:'III',dist:0},
+    {off:8,mode:'major',rn:'VI',dist:1},
+    {off:10,mode:'major',rn:'VII',dist:1},
+  ],
+};
+function relatedKeysFor(keyInfo){
+  if(!keyInfo||keyInfo.dominantContext)return [];
+  const tonic=keyInfo.tonic;
+  const mode=keyInfo.keyMode==='minor'?'minor':'major';
+  // Only genuine outliers count as "borrowed" -- a chord already inside the
+  // song's own key isn't borrowed from anywhere, even if it also happens to
+  // be diatonic to a neighbor.
+  const outlierLocs=keyInfo.isPerfectFit?[]:[...keyInfo.outIdxs].map(chordAtGlobalIdx).filter(Boolean);
+  const build=(off,relMode,rn,dist,borrow)=>{
+    const root=(tonic+off)%12;
+    const tris=diatonicTriadsFor(root,relMode==='major'?MAJ_SCALE:SCALES.minor.intervals);
+    const loc=outlierLocs.find(l=>tris.some(t=>t.root===l.chord.root&&startsLike(t.suf,l.chord.suf)));
+    const entry={
+      root,mode:relMode,rn,dist,tris,
+      name:pcName(root)+(relMode==='minor'?' minor':' major'),
+      used:loc?{root:loc.chord.root,suf:loc.chord.suf,label:pcName(loc.chord.root)+loc.chord.suf,where:loc.sec.name}:null,
+    };
+    if(borrow){
+      // Not a true pivot -- shares the tonic, not the key signature. The
+      // dominant seventh built on the shared 5th degree resolves the same
+      // into either mode (harmonic minor raises the parallel key's leading
+      // tone to match), so it's offered as the way to bridge into it.
+      entry.pivot={type:'borrow',label:'shared tonic',rn:'parallel'};
+      const bRoot=(tonic+7)%12;
+      entry.bridge={root:bRoot,suf:'7',label:pcName(bRoot)+'7'};
+    }else{
+      entry.pivot={type:'pivot',root,suf:relMode==='minor'?'m':'',label:pcName(root)+(relMode==='minor'?'m':''),rn};
+    }
+    return entry;
+  };
+  const list=RELATED_KEY_DEFS[mode].map(d=>build(d.off,d.mode,d.rn,d.dist,false));
+  list.push(build(0,mode==='major'?'minor':'major','parallel',2,true));
+  return list;
+}
+
 // Find a scale/mode that covers every chord tone in the progression
 function findCoveringMode(keyInfo){
   if(!keyInfo||keyInfo.isPerfectFit)return null;
@@ -2462,6 +2558,8 @@ let scalePreview=null;   // {root,scale} auditioned on the board but not committ
 function effectiveScale(){return scalePreview||scaleActive;}
 let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
 let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
+let keyCompassOpen=false;      // the "related keys" chip's disclosure, not persisted
+let keyCompassSelected=null;   // index into relatedKeysFor(currentKeyInfo), or null
 // Plain-language degree names for the long-press tip, so the colour code
 // explains itself on demand instead of via a permanent legend.
 const SCALE_DEGREE_NAMES={sroot:'the root — home',sthird:'the 3rd — the colour',
@@ -5699,15 +5797,21 @@ function renderChordKeyChips(){
   const sug=suggestedInKeyChord();
   const palette=renderChordPalette();
   const hasMore=!!palette;
+  const relKeys=relatedKeysFor(currentKeyInfo);
+  const hasCompass=relKeys.length>0;
+  const compassBorrowing=relKeys.some(k=>k.used);
   // The active scale is no longer a chip here -- the bar above the board shows
   // it for both modes at once. The chip is one answer; its caret opens the
   // full palette that used to need a standing panel.
   let html='';
   if(sug)html+='<button type="button" class="mini-key-chip" id="chipAlsoInKey" title="Load '+pcName(sug.root)+sug.suf+' onto the fretboard">also in key: '+pcName(sug.root)+sug.suf+' <span class="key-chip-rn">'+sug.rn+'</span></button>';
   if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
+  if(hasCompass)html+='<button type="button" class="mini-key-chip'+(keyCompassOpen?' on':'')+'" id="chipRelatedKeys" title="Keys next door to this one">related keys'+
+    (compassBorrowing?' <span class="key-chip-rn">borrowing</span>':'')+' <span class="key-chip-x">'+(keyCompassOpen?'▴':'▾')+'</span></button>';
   const isChordMode=boardMode==='chord';
   if(isChordMode)html+=scalesChipMarkup();
   if(chordPaletteOpen&&hasMore)html+=palette;
+  if(keyCompassOpen&&hasCompass)html+=renderKeyCompass(currentKeyInfo);
   if(isChordMode&&scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
@@ -5715,8 +5819,12 @@ function renderChordKeyChips(){
   document.getElementById('chipMoreInKey')?.addEventListener('click',()=>{
     chordPaletteOpen=!chordPaletteOpen;renderChordKeyChips();
   });
+  document.getElementById('chipRelatedKeys')?.addEventListener('click',()=>{
+    keyCompassOpen=!keyCompassOpen;renderChordKeyChips();
+  });
   wireChordPalette(host);
   wireScalesChip(host);
+  wireKeyCompass(host);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
@@ -5869,7 +5977,7 @@ function renderKey(){
   const songKey=document.getElementById('songKey');
   if(keyContextCount<1||!keyInfo){
     songKey.hidden=true;songKey.innerHTML='';
-    _hadOutliers=false;chordPaletteOpen=false;
+    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
   const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,dominantContext}=keyInfo;
@@ -5937,6 +6045,89 @@ function wireChordPalette(host){
   }));
   host.querySelectorAll('.repl-btn').forEach(btn=>btn.addEventListener('click',()=>{
     replaceChord(+btn.dataset.sec,+btn.dataset.idx,+btn.dataset.root,btn.dataset.suf);
+  }));
+}
+
+// The related-keys compass: song key in the middle, its five closely-related
+// keys and parallel minor/major arranged around it. A separate disclosure
+// from "more in key" -- that one answers "what else fits *this* key", this
+// one answers "where could this key go".
+function renderKeyCompass(keyInfo){
+  const keys=relatedKeysFor(keyInfo);
+  if(!keys.length)return '';
+  let sel=keyCompassSelected;
+  if(sel==null||sel<0||sel>=keys.length){
+    const usedIdx=keys.findIndex(k=>k.used);
+    sel=usedIdx>=0?usedIdx:null;
+  }
+  const cx=50,cy=50,rIn=24,rOut=38,rPar=44;
+  const angles=[0,60,120,180,240,300];
+  let ringSvg='<circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'"/><circle cx="'+cx+'" cy="'+cy+'" r="'+rOut+'"/>';
+  let lineSvg='',tagsHtml='',nodesHtml='';
+  keys.forEach((k,i)=>{
+    const rad=angles[i]*Math.PI/180;
+    const isBorrow=k.pivot.type==='borrow';
+    const r=isBorrow?rPar:(k.dist===0?rIn:rOut);
+    const x=cx+r*Math.sin(rad), y=cy-r*Math.cos(rad);
+    lineSvg+='<line x1="'+cx+'" y1="'+cy+'" x2="'+x+'" y2="'+y+'"'+(isBorrow?' stroke-dasharray="3 2.5"':'')+'/>';
+    const tx=cx+(r*0.56)*Math.sin(rad), ty=cy-(r*0.56)*Math.cos(rad);
+    tagsHtml+='<span class="compass-tag'+(isBorrow?' borrow':'')+'" style="left:'+tx+'%;top:'+ty+'%">'+escapeHtml(k.pivot.label)+'</span>';
+    const cls=['compass-node']; if(isBorrow)cls.push('borrow');
+    const badge=k.used?'<span class="compass-used">'+escapeHtml(k.used.label)+' used</span>':'';
+    const label=escapeHtml(k.name)+', '+escapeHtml(k.rn)+(k.used?', already used via '+escapeHtml(k.used.label):'');
+    nodesHtml+='<button type="button" class="'+cls.join(' ')+'" data-compass-idx="'+i+'" style="left:'+x+'%;top:'+y+'%" aria-pressed="'+(sel===i)+'" aria-label="'+label+'">'+
+      badge+'<span class="compass-bubble">'+escapeHtml(k.name)+'</span><span class="compass-rn">'+escapeHtml(k.rn)+'</span></button>';
+  });
+  const homeName=pcName(keyInfo.tonic)+(keyInfo.keyMode==='minor'?' minor':' major');
+  let html='<div class="key-compass"><div class="compass-stage">'+
+    '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
+      '<g stroke="var(--ink-faint)" stroke-width=".5" stroke-dasharray="1.5 2" fill="none">'+ringSvg+'</g>'+
+      '<g stroke="var(--ink)" stroke-width="1" fill="none">'+lineSvg+'</g></svg>'+
+    '<div class="compass-taglayer">'+tagsHtml+'</div>'+
+    '<button type="button" class="compass-node home" style="left:'+cx+'%;top:'+cy+'%" disabled aria-label="'+escapeHtml(homeName)+' — you are here">'+
+      '<span class="compass-here">&#9679;you are here</span><span class="compass-bubble">'+escapeHtml(homeName)+'</span></button>'+
+    nodesHtml+
+    '</div>'+
+    '<p class="compass-legend">Inner ring shares your key signature &middot; outer ring is one sharp/flat away &middot; dashed = parallel, borrowed not pivoted.</p>';
+  html+=sel!=null?renderCompassDrawer(keys[sel]):'<p class="compass-hint">Tap a key to see its chords and how to get there.</p>';
+  return html+'</div>';
+}
+
+function renderCompassDrawer(k){
+  const isBorrow=k.pivot.type==='borrow';
+  const via=isBorrow
+    ? 'Shares the tonic, not the key signature — a borrow, not a pivot.'
+    : 'Pivot chord: <b>'+escapeHtml(k.pivot.label)+'</b> ('+escapeHtml(k.pivot.rn)+' here, the I/i of '+escapeHtml(k.name)+').';
+  let html='<div class="compass-drawer"><p class="key-chord-intro" style="margin-bottom:3px">Arrive in '+escapeHtml(k.name)+'</p>'+
+    '<p class="key-chord-degrees" style="margin-bottom:9px">'+via+'</p>';
+  if(k.used){
+    html+='<p class="guidance-item" style="margin:0 0 10px"><b>Already here:</b> '+escapeHtml(k.used.where)+' plays <b>'+escapeHtml(k.used.label)+
+      '</b> — that’s borrowed straight from '+escapeHtml(k.name)+', not a hypothetical.</p>';
+  }
+  const groups=[['Start here',[0,3,4]],['Common moves',[1,5]],['Colour & tension',[2,6]]];
+  groups.forEach(([label,idxs])=>{
+    const items=idxs.map(i=>k.tris[i]).filter(Boolean);
+    html+='<div class="key-chord-group"><p class="key-chord-intro">'+label+' <span class="key-chord-degrees">'+items.map(t=>t.rn).join(' · ')+'</span></p><div class="key-chord-row">'+
+      items.map(t=>'<button type="button" class="key-chord-chip" data-compass-root="'+t.root+'" data-compass-suf="'+escapeHtml(t.suf)+'" title="Load '+escapeHtml(pcName(t.root)+t.suf)+' onto the fretboard">'+escapeHtml(pcName(t.root)+t.suf)+' <span class="key-chord-rn">'+t.rn+'</span></button>').join('')+
+      '</div></div>';
+  });
+  if(k.bridge){
+    html+='<div class="key-chord-group"><p class="key-chord-intro">Bridge into it</p><div class="key-chord-row">'+
+      '<button type="button" class="key-chord-chip is-bridge" data-compass-root="'+k.bridge.root+'" data-compass-suf="'+escapeHtml(k.bridge.suf)+'" title="Load '+escapeHtml(k.bridge.label)+' onto the fretboard">'+escapeHtml(k.bridge.label)+'</button></div>'+
+      '<p class="key-chord-degrees" style="margin-top:6px">Same dominant seventh either way — harmonic minor raises the leading tone to match, so it resolves cleanly into either home.</p></div>';
+  }
+  return html+'</div>';
+}
+
+function wireKeyCompass(host){
+  host.querySelectorAll('[data-compass-idx]').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    keyCompassSelected=Number(btn.dataset.compassIdx);
+    renderChordKeyChips();
+  }));
+  host.querySelectorAll('[data-compass-root]').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    loadSuggestedChord({root:Number(btn.dataset.compassRoot),suf:btn.dataset.compassSuf||''});
   }));
 }
 

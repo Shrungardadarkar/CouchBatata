@@ -512,6 +512,15 @@
   .song-key .song-key-fit{font-family:"Courier New",monospace;font-size:.66rem;font-weight:900;
     color:var(--ink);background:var(--sun-soft);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin-left:5px}
   .song-key[hidden]{display:none}
+  /* Same seven notes, different home -- a chord-only analyzer can't pick
+     between them, so this offers the alternate mode reading rather than
+     silently choosing one. Mint/explore-colored: a suggestion, not a fact. */
+  .song-key-alt{font:900 .66rem "Courier New",monospace;color:var(--mint-dk);
+    background:var(--mint-soft);border:1.5px solid var(--mint-dk);border-radius:5px;
+    padding:1px 7px;margin-left:5px;cursor:pointer;white-space:nowrap;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+  @media (hover:hover){.song-key-alt:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
+  .song-key-alt:active{transform:translate(1px,1px);transition-duration:.05s}
   /* The in-key palette, revealed from the chord chip rather than standing in
      its own panel: the chip is the one answer, this is the exploration. */
   .key-palette{flex-basis:100%;margin-top:9px;background:var(--paper);border:2px dashed var(--ink);
@@ -2058,6 +2067,33 @@ function suggestScales(primary){
 
 /* ============ fuzzy key analysis + outlier guidance ============ */
 // Called by renderSong to compute the best-fit key even when no key is perfect
+// A chord-only analyzer cannot tell "G major" from "A Dorian" -- they're the
+// same seven notes. If the progression's opening chord sits on a different
+// scale degree than the detected tonic (but is still fully in-key), that
+// degree names a legitimate alternate reading. Surfaced, never auto-applied:
+// only the ear (or the melody, which this app doesn't see) can say which
+// chord actually feels like home.
+const MODE_BY_DEGREE=['major','dorian','phrygian','lydian','mixo','minor','locrian'];
+function altModeFor(relMajorTonic,tonic,chords){
+  if(!chords.length)return null;
+  const first=chords[0];
+  if(first.root===tonic)return null;
+  const degreeRoots=MAJ_SCALE.map(iv=>(relMajorTonic+iv)%12);
+  const idx=degreeRoots.indexOf(first.root);
+  if(idx<0)return null;
+  const scale=MODE_BY_DEGREE[idx];
+  // The opening chord's own quality has to match what that mode's tonic
+  // triad actually is (Dorian's i is minor, Mixolydian's I is major, etc.)
+  // -- otherwise it's just some other in-key chord starting the progression,
+  // not a real modal-tonic candidate.
+  const expectMinor=[1,2,5].includes(idx); // dorian, phrygian, minor(aeolian)
+  const expectDim=idx===6;                 // locrian
+  const isMinorChord=first.suf.startsWith('m')&&!first.suf.startsWith('maj');
+  const isDimChord=first.suf.includes('dim');
+  if(expectDim!==isDimChord)return null;
+  if(!expectDim&&expectMinor!==isMinorChord)return null;
+  return {root:first.root,scale,name:SCALES[scale].name};
+}
 function analyzeKey(chords=allChords()){
   if(!chords.length)return null;
 
@@ -2078,6 +2114,7 @@ function analyzeKey(chords=allChords()){
       totalChords:chords.length,
       isPerfectFit:true,       // coherent blues context; not a claim of one-scale note coverage
       alsoFits:[],
+      altMode:null,
       dominantContext:true,    // scale suggestions will lead with Mixolydian/Blues
       modeLabel:'Dominant blues'
     };
@@ -2130,6 +2167,7 @@ function analyzeKey(chords=allChords()){
       totalChords:chordPcsList.length,
       isPerfectFit:minorBest.outIdxs.length===0,
       alsoFits:[],
+      altMode:null, // modes of harmonic/melodic minor aren't offered -- a different, murkier topic
       dominantContext:false,
       keyScale:minorBest.keyScale,
       keyMode:'minor'
@@ -2142,6 +2180,7 @@ function analyzeKey(chords=allChords()){
     totalChords:chordPcsList.length,
     isPerfectFit:best.outIdxs.length===0,
     alsoFits,
+    altMode:altModeFor(best.tonic,best.tonic,chords),
     dominantContext:false,
     keyScale:'major',
     keyMode:'major'
@@ -5980,7 +6019,7 @@ function renderKey(){
     _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
-  const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,dominantContext}=keyInfo;
+  const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,altMode,dominantContext}=keyInfo;
   const rel=(tonic+9)%12;
   const tentative=keyContextCount<2;
   let html='';
@@ -5994,7 +6033,12 @@ function renderKey(){
     html=(tentative?'Tentative key: ':'Key: ')+'<b>'+pcName(tonic)+' major</b> / '+pcName(rel)+' minor'+
       '<span class="song-key-fit">'+inChords+'/'+totalChords+' fit · '+outIdxs.size+' borrowed</span>';
   }
+  if(altMode)html+='<button type="button" class="song-key-alt" id="songKeyAltMode" title="Solo in '+pcName(altMode.root)+' '+altMode.name+' instead">also: '+pcName(altMode.root)+' '+altMode.name+'</button>';
   songKey.innerHTML=html;songKey.hidden=false;
+  document.getElementById('songKeyAltMode')?.addEventListener('click',event=>{
+    event.stopPropagation();
+    setActiveScale(altMode.root,altMode.scale);
+  });
 
   // Announce borrowed chords once per transition, where every other board-
   // contextual message already appears, instead of springing a panel open.

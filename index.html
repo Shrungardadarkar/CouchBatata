@@ -834,6 +834,15 @@
     padding:1px 6px;white-space:nowrap}
 
   .sect-chords{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:36px}
+  /* Sits in the gap the flex gap already leaves, so marking a join costs the
+     row no extra height and nothing reflows when one appears. */
+  .join-mark{flex:0 0 auto;width:18px;height:18px;padding:0;display:grid;place-items:center;
+    background:var(--tomato);color:var(--paper);border:2px solid var(--ink);border-radius:50%;
+    font:900 .7rem/1 Arial,sans-serif;cursor:pointer;margin:0 -2px;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+  @media (hover:hover){.join-mark:hover{transform:scale(1.18);box-shadow:2px 2px 0 var(--ink)}}
+  .join-mark:active{transform:scale(.94);transition-duration:.05s}
+  .join-mark:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .empty-sect-hint{color:var(--ink-faint);font-size:.82rem;font-style:italic;padding:6px 2px;font-weight:600}
   .song-sect.active .empty-sect-hint{color:var(--ink-dim);opacity:.85}
 
@@ -4798,6 +4807,25 @@ function renderSong(){
   save();
 }
 
+// A stretch between two chips, marked where it happens. Tapping selects the
+// chord it lands on and opens the connector suggestions for that join, so the
+// mark is a way in rather than only a warning.
+function joinMark(sec,cIdx,prev,c,cost){
+  const b=document.createElement('button');
+  b.type='button';b.className='join-mark';
+  b.textContent='›';
+  const label=songChordLabel(prev)+' to '+songChordLabel(c);
+  b.setAttribute('aria-label','Stretch from '+label+' — see chords that sit between them');
+  b.title=label+' is a stretch for the hand · tap for chords that sit between them';
+  b.addEventListener('click',event=>{
+    event.stopPropagation();
+    const already=activeChip&&activeChip.sectionId===sec.id&&activeChip.chordIdx===cIdx;
+    if(!already)toggleChip(sec,cIdx);
+    joinFixOpen=true;
+    renderChordKeyChips();
+  });
+  return b;
+}
 function buildSectionCard(sec,idx,primary){
   const isActive = sec.id===activeSectionId;
   const card=document.createElement('div');
@@ -4862,6 +4890,14 @@ function buildSectionCard(sec,idx,primary){
     wrap.appendChild(empty);
   } else {
     sec.chords.forEach((c,cIdx)=>{
+      // The row is already the song in order, so the join between two chips
+      // is the natural place to say the move is a stretch. Only reaches are
+      // marked: a mark on every change would be wallpaper.
+      const prev=sec.chords[cIdx-1];
+      if(prev){
+        const cost=connectionScore(prev.frets,c.frets);
+        if(cost!=null&&cost>ROUGH_JOIN)wrap.appendChild(joinMark(sec,cIdx,prev,c,cost));
+      }
       wrap.appendChild(buildChip(sec,cIdx,c,primary));
     });
   }

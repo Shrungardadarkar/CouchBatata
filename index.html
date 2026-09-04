@@ -4823,6 +4823,10 @@ function joinMark(sec,cIdx,prev,c,cost){
     if(!already)toggleChip(sec,cIdx);
     joinFixOpen=true;
     renderChordKeyChips();
+    // The mark is in the Tab Builder; the suggestions render in the chord
+    // panel, which on a wide screen is the other column and usually below the
+    // fold. Without this the click genuinely looks like it did nothing.
+    document.getElementById('chordKeyChips')?.scrollIntoView({behavior:'smooth',block:'center'});
   });
   return b;
 }

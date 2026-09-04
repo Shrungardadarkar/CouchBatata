@@ -4318,13 +4318,24 @@ function applyShapeLabel(el,v){
   // How this shape sits against the chords either side of it, when there are
   // any. Only the two verdicts worth acting on get a dot -- a middling
   // connection says nothing, and the label has no room to waste.
+  // Read live rather than off the shape. The song can change under a selected
+  // chord -- reorder a neighbour, delete one, insert a connector -- and a
+  // verdict baked in when the list was built would still be describing the
+  // old neighbours. Ordering stays as built, so the list never reshuffles
+  // mid-browse; only the reading is current.
+  const ctx=neighbourVoicings();
+  const fit=neighbourFit(v.frets,ctx);
   let fitClass='',fitNote='';
-  if(v.fit!=null){
-    if(v.fit<SMOOTH_JOIN){fitClass='smooth';fitNote=' · connects smoothly to the chords either side';}
-    else if(v.fit>ROUGH_JOIN){fitClass='reach';fitNote=' · a reach from the chords either side';}
+  if(fit!=null){
+    if(fit<SMOOTH_JOIN){fitClass='smooth';fitNote=' · connects smoothly to the chords either side';}
+    else if(fit>ROUGH_JOIN){fitClass='reach';fitNote=' · a reach from the chords either side';}
     else fitNote=' · connects comfortably enough';
-    const best=shapes.reduce((b,s)=>(s.fit!=null&&(b===null||s.fit<b.fit))?s:b,null);
-    if(best&&best!==v&&v.fit-best.fit>0.75)fitNote+=' · shape '+(shapes.indexOf(best)+1)+' connects better';
+    let best=null,bestIdx=-1;
+    shapes.forEach((s,i)=>{
+      const f=neighbourFit(s.frets,ctx);
+      if(f!=null&&(best===null||f<best)){best=f;bestIdx=i;}
+    });
+    if(best!=null&&shapes[bestIdx]!==v&&fit-best>0.75)fitNote+=' · shape '+(bestIdx+1)+' connects better';
   }
   el.innerHTML='';
   if(fitClass){
@@ -6529,6 +6540,10 @@ function insertConnectorChord(secId,idx,root,suf,frets){
   if(activeChip&&activeChip.sectionId===secId&&activeChip.chordIdx>=idx)activeChip.chordIdx++;
   _popChip={sectionId:secId,chordIdx:idx};
   refreshKeyContext();renderSong();renderKey();save();
+  // The selected chord now has a different neighbour, so its connection
+  // verdict has changed. Without this the navigator keeps showing the reading
+  // from before the insert -- stale feedback on the edit just made.
+  syncShapeNavigator();
   flash('Added '+pcName(root)+suf+' between them');
 }
 function wireJoinFix(host){

@@ -471,6 +471,9 @@
   .shape-label{display:flex;align-items:center;justify-content:center;min-width:0;min-height:26px;padding:3px 8px;background:var(--cream);
     border:2px solid var(--ink);border-radius:7px;color:var(--ink-dim);font-size:.66rem;font-weight:850;letter-spacing:.02em;
     font-variant-numeric:tabular-nums;box-shadow:1.5px 1.5px 0 var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .shape-fit{width:7px;height:7px;border-radius:50%;flex:0 0 auto;margin-right:5px;border:1.5px solid var(--ink)}
+  .shape-fit.smooth{background:var(--mint)}
+  .shape-fit.reach{background:var(--tomato)}
   .shape-label.shape-slide-forward{animation:shapeLabelForward .28s var(--ease-out-back)}
   .shape-label.shape-slide-back{animation:shapeLabelBack .28s var(--ease-out-back)}
   @keyframes shapeLabelForward{from{opacity:.2;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
@@ -1814,6 +1817,50 @@ function chordSlashPc(c){
   if(c.slash!=null)return c.slash;
   const bass=bassPcFromFrets(c.frets);
   return bass!=null&&bass!==c.root?bass:null;
+}
+
+/* ---------- voice leading between two voicings ----------
+   This app stores the shape you actually played, not just a chord symbol, so
+   it can measure what really happens between two chords instead of reasoning
+   about them in the abstract. Everything here works on sounding notes. */
+function voicingNotes(frets){
+  const out=[];
+  if(!Array.isArray(frets))return out;
+  for(let s=0;s<Math.min(frets.length,OPEN.length);s++){
+    const f=frets[s];
+    if(typeof f==='number'&&f>=0)out.push(OPEN[s]+f);
+  }
+  return out.sort((a,b)=>a-b);
+}
+// Where the fretting hand sits. Open strings are excluded deliberately: they
+// cost the hand nothing, so counting them as "fret 0" would drag the average
+// toward the nut and hide a real position shift.
+function handPosition(frets){
+  const fretted=(frets||[]).filter(f=>typeof f==='number'&&f>0);
+  return fretted.length?fretted.reduce((a,b)=>a+b,0)/fretted.length:0;
+}
+// Average distance each voice has to travel, measured both directions so a
+// chord with more notes in it doesn't automatically look busier.
+function transitionCost(fretsA,fretsB){
+  const A=voicingNotes(fretsA),B=voicingNotes(fretsB);
+  if(!A.length||!B.length)return null;
+  const oneWay=(X,Y)=>X.reduce((sum,n)=>sum+Math.min(...Y.map(m=>Math.abs(m-n))),0)/X.length;
+  const pcsA=new Set(A.map(n=>n%12));
+  return {
+    voices:(oneWay(A,B)+oneWay(B,A))/2,
+    hand:Math.abs(handPosition(fretsA)-handPosition(fretsB)),
+    // Tracked separately because a thinning voicing can lift the bass a long
+    // way while the hand barely moves -- an F barre into an open C does
+    // exactly that, and a hand-position measure alone reports it as smooth.
+    bass:Math.abs(A[0]-B[0]),
+    common:[...new Set(B.map(n=>n%12))].filter(pc=>pcsA.has(pc)).length,
+  };
+}
+// One number for ranking one voicing against another. Voice motion leads;
+// hand travel counts for half, being comfort rather than sound.
+function connectionScore(fretsA,fretsB){
+  const c=transitionCost(fretsA,fretsB);
+  return c?c.voices+c.hand*0.5:null;
 }
 const songChordLabel=c=>{
   const slash=chordSlashPc(c);
@@ -4193,9 +4240,29 @@ function showChord(){
 // whole sentence on every arrow press even though nothing renders it.
 function applyShapeLabel(el,v){
   const posName=v.asPlayed?'as you played it':(v.minF===0?'open position':'around fret '+v.minF);
-  el.textContent='Shape '+(shapeIdx+1)+'/'+shapes.length;
   const sec=activeChip&&findSection(activeChip.sectionId);
-  const full='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName;
+  // How this shape sits against the chords either side of it, when there are
+  // any. Only the two verdicts worth acting on get a dot -- a middling
+  // connection says nothing, and the label has no room to waste.
+  let fitClass='',fitNote='';
+  if(v.fit!=null){
+    // Bands set against measured progressions rather than picked round
+    // numbers: real voicing transitions in a song cluster around 1.4-5.0, so
+    // under 2 is genuinely smooth and over 3 is a jump you'd feel.
+    if(v.fit<2){fitClass='smooth';fitNote=' · connects smoothly to the chords either side';}
+    else if(v.fit>3){fitClass='reach';fitNote=' · a reach from the chords either side';}
+    else fitNote=' · connects comfortably enough';
+    const best=shapes.reduce((b,s)=>(s.fit!=null&&(b===null||s.fit<b.fit))?s:b,null);
+    if(best&&best!==v&&v.fit-best.fit>0.75)fitNote+=' · shape '+(shapes.indexOf(best)+1)+' connects better';
+  }
+  el.innerHTML='';
+  if(fitClass){
+    const dot=document.createElement('span');
+    dot.className='shape-fit '+fitClass;
+    el.appendChild(dot);
+  }
+  el.appendChild(document.createTextNode('Shape '+(shapeIdx+1)+'/'+shapes.length));
+  const full='Shape '+(shapeIdx+1)+' of '+shapes.length+' · '+posName+fitNote;
   el.title=full+(sec?' · Saved to '+sec.name:'');
   const sr=document.getElementById('shapeLabelSr');
   if(sr)sr.textContent=full;
@@ -4378,9 +4445,47 @@ document.getElementById('btnAccidental').addEventListener('click',()=>setFlats(!
 // Pure: builds the ordered voicing list for a chord without touching any
 // shape-navigator state, so it can be reused for the eager idle-state
 // preview (syncShapeNavigator) as well as the real entry point below.
+// The chords either side of the one being edited, when it lives in a song.
+// Voicings were previously chosen with no idea what came before or after,
+// which is how a progression ends up with avoidable position jumps in it.
+function neighbourVoicings(){
+  if(!activeChip)return null;
+  const sec=findSection(activeChip.sectionId);
+  if(!sec)return null;
+  const prev=sec.chords[activeChip.chordIdx-1];
+  const next=sec.chords[activeChip.chordIdx+1];
+  const frets=c=>c&&Array.isArray(c.frets)?c.frets:null;
+  const before=frets(prev),after=frets(next);
+  return (before||after)?{before,after,prev,next}:null;
+}
+// How well a candidate voicing sits between its neighbours. Null when the
+// chord isn't in a song, or sits alone -- then there's nothing to connect to
+// and the ordinary playability ranking stands.
+function neighbourFit(frets,ctx){
+  if(!ctx)return null;
+  const parts=[];
+  if(ctx.before){const s=connectionScore(ctx.before,frets);if(s!=null)parts.push(s);}
+  if(ctx.after){const s=connectionScore(frets,ctx.after);if(s!=null)parts.push(s);}
+  return parts.length?parts.reduce((a,b)=>a+b,0)/parts.length:null;
+}
 function buildShapesFor(chordObj,playedFrets){
   const ivs=[...new Set(chordObj.pcs.map(p=>((p-chordObj.root)+12)%12))];
   let gen=findVoicings(chordObj.root,ivs);
+  const ctx=neighbourVoicings();
+  if(ctx){
+    // Playability still decides which voicings exist at all -- findVoicings
+    // has already filtered to shapes worth offering. This only reorders what
+    // it returned, so a well-connecting shape is the next one you see rather
+    // than the fourth one you find by accident.
+    gen=gen.map((v,i)=>({v,i,fit:neighbourFit(v.frets,ctx)}))
+      .sort((a,b)=>{
+        if(a.fit==null&&b.fit==null)return a.i-b.i;
+        if(a.fit==null)return 1;
+        if(b.fit==null)return -1;
+        return a.fit-b.fit||a.i-b.i;
+      })
+      .map(x=>Object.assign({},x.v,{fit:x.fit}));
+  }
   let result;
   if(Array.isArray(playedFrets)&&playedFrets.length>0){
     const pf=new Array(6).fill(-1);
@@ -4391,7 +4496,10 @@ function buildShapesFor(chordObj,playedFrets){
     gen=gen.filter(v=>v.frets.join()!==pf.join());
     const fr=pf.filter(f=>f>0);
     const minF=fr.length?Math.min(...fr):0;
-    result=[{frets:pf,minF,asPlayed:true},...gen];
+    // The shape you already have stays first -- browsing should never move you
+    // off your own voicing -- but it is scored like the rest so it can be
+    // compared against them.
+    result=[{frets:pf,minF,asPlayed:true,fit:neighbourFit(pf,ctx)},...gen];
   } else {
     result=gen;
   }

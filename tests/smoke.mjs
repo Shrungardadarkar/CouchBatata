@@ -62,9 +62,13 @@ assert.match(html, /class="lead-techniques" id="leadTechniques" data-edge-fade/)
 assert.match(html, /chord-suggestion\{flex:0 0 auto;scroll-snap-align:start/);
 assert.match(html, /suggestion-spectrum-arrow/);
 // Counter-only pill ("Shape 2/5"); the sentence lives in the tooltip and the
-// aria-live sibling, so the middle track no longer needs a fixed 150px.
+// aria-live sibling, so the middle track no longer needs a fixed 150px. The
+// voice-leading indicator is allowed in front of the counter only as a fixed
+// 7px dot — anything wider is prose creeping back into a track sized for a
+// counter, which is what forced the fixed width the first time.
 assert.match(html, /shape-nav\{display:inline-grid;grid-template-columns:26px auto 26px/);
-assert.match(html, /el\.textContent='Shape '\+\(shapeIdx\+1\)\+'\/'\+shapes\.length/);
+assert.match(html, /createTextNode\('Shape '\+\(shapeIdx\+1\)\+'\/'\+shapes\.length\)/);
+assert.match(html, /\.shape-fit\{width:7px;height:7px/);
 assert.match(html, /id="shapeLabelSr"/);
 assert.match(html, /shape-label\.shape-slide-forward/);
 assert.match(html, /@keyframes shapeLabelForward/);

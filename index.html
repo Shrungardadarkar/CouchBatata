@@ -2075,6 +2075,15 @@ function suggestScales(primary,info=currentKeyInfo,cs=allChords(),covering=curre
   sugs.push({root:rel,scale:'minPent',why:'A forgiving, guitar-shaped starting point inside this key.'});
   sugs.push({root:rel,scale:'blues',why:'Same shapes as minor pent, plus the ♭5 for grit.'});
   sugs.push({root:primary,scale:'major',why:'The parent scale — hits every chord tone.'});
+  // The alternate reading the key line offers, sitting right next to its
+  // note-set twin: same seven notes as the parent scale, resolved somewhere
+  // else. Offering it in the header and then leaving it out of the soloing
+  // list is the app contradicting itself.
+  if(info&&info.altMode){
+    const am=info.altMode;
+    sugs.push({root:am.root,scale:am.scale,
+      why:'Same seven notes as '+pcName(primary)+' Major, resolved to '+pcName(am.root)+' instead — the reading the key line offers.'});
+  }
   sugs.push({root:primary,scale:'majPent',why:'Fewer notes, fewer traps — great for melodies over I / IV / V.'});
   if(minorHeavy)sugs.push({root:rel,scale:'minor',why:'Full natural minor for a darker melodic vocabulary.'});
   // If a covering mode exists for borrowed chords, promote it to the top

@@ -6500,10 +6500,14 @@ function activeChipJoins(){
   if(!sec)return [];
   const i=activeChip.chordIdx;
   const joins=[];
+  // A section holding its own key gets connectors from that key, not the
+  // song's. Offering a chorus in A major the diatonic chords of the song's
+  // C major would suggest chords that are foreign to the part being edited.
+  const key=currentSectionKeys.get(sec.id)||currentKeyInfo;
   [[i-1,i],[i,i+1]].forEach(([aIdx,bIdx])=>{
     const a=sec.chords[aIdx],b=sec.chords[bIdx];
     if(!a||!b)return;
-    const sug=connectorSuggestions(a,b,currentKeyInfo,3);
+    const sug=connectorSuggestions(a,b,key,3);
     if(sug.length)joins.push({sec,bIdx,a,b,sug,cost:sug[0].direct});
   });
   return joins;

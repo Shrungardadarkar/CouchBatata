@@ -598,6 +598,20 @@
   .compass-drawer{background:var(--cream-2);border:2px solid var(--ink);border-radius:10px;padding:12px 14px}
   .compass-drawer .key-chord-group+.key-chord-group{margin-top:10px}
   .key-chord-chip.is-bridge{background:var(--sun-soft);border-color:var(--capture-dk)}
+  /* Two presses, one pill: the name auditions the chord like every other chord
+     chip here, the + is the deliberate step that changes the song. */
+  .conn-chip{display:inline-flex;align-items:stretch;border:2px solid var(--ink);border-radius:7px;
+    background:var(--cream);box-shadow:1.5px 1.5px 0 var(--ink);overflow:hidden;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+  .conn-chip:active{transform:translate(1px,1px);box-shadow:1px 1px 0 var(--ink);transition-duration:.05s}
+  .conn-name,.conn-add{font-family:inherit;background:none;border:0;color:var(--ink);cursor:pointer;
+    font-size:.86rem;font-weight:800;line-height:1.2;padding:4px 10px;transition:background .12s}
+  .conn-add{border-left:2px solid var(--ink);background:var(--sun-soft);padding:4px 9px;font-weight:900}
+  @media (hover:hover){
+    .conn-name:hover{background:var(--mint)}
+    .conn-add:hover{background:var(--sun)}
+  }
+  .conn-name:focus-visible,.conn-add:focus-visible{outline:3px solid var(--focus);outline-offset:-1px}
   @media (max-width:480px){
     .compass-bubble{min-width:44px;padding:4px 7px;font-size:.66rem}
     .compass-rn{font-size:.5rem}
@@ -2792,6 +2806,7 @@ function effectiveScale(){return scalePreview||scaleActive;}
 let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
 let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
 let joinFixOpen=false;         // the "smooth the join" chip's disclosure, not persisted
+let joinFixPin=null;           // the join it is showing, so auditioning a suggestion doesn't close it
 let keyCompassOpen=false;      // the "related keys" chip's disclosure, not persisted
 let keyCompassSelected=null;   // index into relatedKeysFor(currentKeyInfo), or null
 // Plain-language degree names for the long-press tip, so the colour code
@@ -4833,6 +4848,7 @@ function joinMark(sec,cIdx,prev,c,cost){
     const already=activeChip&&activeChip.sectionId===sec.id&&activeChip.chordIdx===cIdx;
     if(!already)toggleChip(sec,cIdx);
     joinFixOpen=true;
+    joinFixPin={sectionId:sec.id,chordIdx:cIdx};
     renderChordKeyChips();
     // The mark is in the Tab Builder; the suggestions render in the chord
     // panel, which on a wide screen is the other column and usually below the
@@ -6185,7 +6201,9 @@ function renderChordKeyChips(){
     keyCompassOpen=!keyCompassOpen;renderChordKeyChips();
   });
   document.getElementById('chipJoinFix')?.addEventListener('click',()=>{
-    joinFixOpen=!joinFixOpen;renderChordKeyChips();
+    joinFixOpen=!joinFixOpen;
+    joinFixPin=joinFixOpen&&activeChip?{sectionId:activeChip.sectionId,chordIdx:activeChip.chordIdx}:null;
+    renderChordKeyChips();
   });
   wireChordPalette(host);
   wireScalesChip(host);
@@ -6343,7 +6361,7 @@ function renderKey(){
   const songKey=document.getElementById('songKey');
   if(keyContextCount<1||!keyInfo){
     songKey.hidden=true;songKey.innerHTML='';
-    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;joinFixOpen=false;
+    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;joinFixOpen=false;joinFixPin=null;
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
   const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,altMode,dominantContext}=keyInfo;
@@ -6495,10 +6513,16 @@ function renderCompassDrawer(k){
 // about. connectorSuggestions() bails cheaply on a join that already moves
 // well, so this stays inexpensive on the common case of nothing being wrong.
 function activeChipJoins(){
-  if(!activeChip)return [];
-  const sec=findSection(activeChip.sectionId);
+  // Auditioning a connector clears the selected chip (loadSuggestedChord puts
+  // the board on the new chord), which would close this panel the instant you
+  // tried to hear one of its suggestions. The pin keeps the join in view; a
+  // genuinely different selection replaces it.
+  if(activeChip&&joinFixPin&&(joinFixPin.sectionId!==activeChip.sectionId||joinFixPin.chordIdx!==activeChip.chordIdx))joinFixPin=null;
+  const ref=activeChip||joinFixPin;
+  if(!ref)return [];
+  const sec=findSection(ref.sectionId);
   if(!sec)return [];
-  const i=activeChip.chordIdx;
+  const i=ref.chordIdx;
   const joins=[];
   // A section holding its own key gets connectors from that key, not the
   // song's. Offering a chorus in A major the diatonic chords of the song's
@@ -6521,9 +6545,14 @@ function renderJoinFix(joins){
       ' <span class="key-chord-degrees">'+(j.cost>ROUGH_JOIN?'a reach':'could move better')+
       ' &mdash; these sit between them</span></p><div class="key-chord-row">';
     j.sug.forEach(s=>{
-      html+='<button type="button" class="key-chord-chip" data-join-sec="'+j.sec.id+'" data-join-idx="'+j.bIdx+
-        '" data-join-root="'+s.root+'" data-join-suf="'+escapeHtml(s.suf)+'" data-join-frets="'+s.frets.join(',')+
-        '" title="'+escapeHtml(s.why)+' — tap to insert it between them">'+escapeHtml(pcName(s.root)+s.suf)+'</button>';
+      const label=escapeHtml(pcName(s.root)+s.suf);
+      const data=' data-conn-root="'+s.root+'" data-conn-suf="'+escapeHtml(s.suf)+'" data-conn-frets="'+s.frets.join(',')+'"';
+      // Tapping the name hears it, the same as every other chord chip in the
+      // app. Putting it into the song is a separate, deliberate press.
+      html+='<span class="conn-chip"><button type="button" class="conn-name"'+data+
+        ' title="'+escapeHtml(s.why)+' — tap to hear it on the fretboard">'+label+'</button>'+
+        '<button type="button" class="conn-add" data-join-sec="'+j.sec.id+'" data-join-idx="'+j.bIdx+'"'+data+
+        ' aria-label="Insert '+label+' between them" title="Insert '+label+' between them">+</button></span>';
     });
     // Names the chord it belongs to: three chips sit above it, and an
     // unattributed rationale reads as though it covers all of them.
@@ -6551,11 +6580,18 @@ function insertConnectorChord(secId,idx,root,suf,frets){
   flash('Added '+pcName(root)+suf+' between them');
 }
 function wireJoinFix(host){
-  host.querySelectorAll('[data-join-root]').forEach(btn=>btn.addEventListener('click',event=>{
+  host.querySelectorAll('.conn-name').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    // The exact voicing that smooths the join, not a fresh one -- the whole
+    // point is to hear the shape that does the work.
+    loadSuggestedChord({root:Number(btn.dataset.connRoot),suf:btn.dataset.connSuf||'',
+      frets:(btn.dataset.connFrets||'').split(',').map(Number)});
+  }));
+  host.querySelectorAll('.conn-add').forEach(btn=>btn.addEventListener('click',event=>{
     event.stopPropagation();
     insertConnectorChord(btn.dataset.joinSec,Number(btn.dataset.joinIdx),
-      Number(btn.dataset.joinRoot),btn.dataset.joinSuf||'',
-      (btn.dataset.joinFrets||'').split(',').map(Number));
+      Number(btn.dataset.connRoot),btn.dataset.connSuf||'',
+      (btn.dataset.connFrets||'').split(',').map(Number));
   }));
 }
 

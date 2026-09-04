@@ -1862,6 +1862,70 @@ function connectionScore(fretsA,fretsB){
   const c=transitionCost(fretsA,fretsB);
   return c?c.voices+c.hand*0.5:null;
 }
+
+// Bands set against measured progressions rather than picked round numbers:
+// real voicing transitions in a song cluster around 1.4-5.0. Shared by the
+// shape navigator's dot and the connector suggestions so "smooth" means the
+// same thing in both places.
+const SMOOTH_JOIN=2, ROUGH_JOIN=3;
+
+/* ---------- connector chords ----------
+   A chord to put between two that don't sit well together. The candidates are
+   deliberately a short, named list rather than a search of everything that
+   fits: "any chord a small step away" returns dozens of voice-leading-smooth
+   options that make no harmonic sense, and picking among those needs taste,
+   not a scoring function. These are the moves that already have names. */
+function connectorCandidates(prev,next,keyInfo){
+  const out=[];
+  const add=(root,suf,why)=>{
+    if(!FORMULAS.some(f=>f.suf===suf))return;
+    if(root===prev.root&&suf===prev.suf)return;
+    if(root===next.root&&suf===next.suf)return;
+    if(out.some(c=>c.root===root&&c.suf===suf))return;
+    out.push({root:((root%12)+12)%12,suf,why});
+  };
+  const nextIsMinor=next.suf.startsWith('m')&&!next.suf.startsWith('maj');
+  // The dominant of where you're going, and the suspension that delays it.
+  add((next.root+7)%12,'7','Dominant of '+pcName(next.root)+' — pulls into it');
+  add(next.root,'sus4','Suspends over '+pcName(next.root)+', then resolves');
+  // Step into the target from a semitone either side, matching its quality.
+  add((next.root+1)%12,nextIsMinor?'m':'','Chromatic step down into '+pcName(next.root));
+  add((next.root+11)%12,nextIsMinor?'m':'','Chromatic step up into '+pcName(next.root));
+  // Borrowed minor iv is the standard darkening move back toward a major home.
+  if(!nextIsMinor)add((next.root+5)%12,'m','Borrowed minor iv — darkens the approach');
+  // Whatever the prevailing key already offers, so the suggestion stays inside
+  // the song's own vocabulary wherever it can.
+  if(keyInfo&&!keyInfo.dominantContext){
+    diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo))
+      .forEach(t=>add(t.root,t.suf,'Diatonic '+t.rn+' — already in the key'));
+  }
+  return out;
+}
+// A connector earns its place only if BOTH halves are easier than the jump it
+// replaces. Something that merely averages well can still hide a lurch.
+function connectorSuggestions(prev,next,keyInfo,limit=3){
+  if(!prev||!next||!Array.isArray(prev.frets)||!Array.isArray(next.frets))return [];
+  const direct=connectionScore(prev.frets,next.frets);
+  // Nothing to fix on a join that already moves well. Without this the app
+  // offers an improvement on every chord change in the song, and advice that
+  // is always present is advice nobody reads.
+  if(direct==null||direct<SMOOTH_JOIN)return [];
+  const scored=[];
+  connectorCandidates(prev,next,keyInfo).forEach(cand=>{
+    const formula=FORMULAS.find(f=>f.suf===cand.suf);
+    if(!formula)return;
+    let best=null;
+    (findVoicings(cand.root,formula.iv)||[]).forEach(v=>{
+      const a=connectionScore(prev.frets,v.frets),b=connectionScore(v.frets,next.frets);
+      if(a==null||b==null)return;
+      const worst=Math.max(a,b);
+      if(!best||worst<best.worst)best={frets:v.frets,worst,into:a,outOf:b};
+    });
+    if(best&&best.worst<direct)scored.push(Object.assign({},cand,best));
+  });
+  scored.sort((a,b)=>a.worst-b.worst);
+  return scored.slice(0,limit).map(s=>Object.assign({},s,{direct}));
+}
 const songChordLabel=c=>{
   const slash=chordSlashPc(c);
   return pcName(c.root)+c.suf+(slash!=null?'/'+pcName(slash):'');
@@ -2718,6 +2782,7 @@ let scalePreview=null;   // {root,scale} auditioned on the board but not committ
 function effectiveScale(){return scalePreview||scaleActive;}
 let chordPaletteOpen=false; // the chord chip's disclosure, not persisted
 let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
+let joinFixOpen=false;         // the "smooth the join" chip's disclosure, not persisted
 let keyCompassOpen=false;      // the "related keys" chip's disclosure, not persisted
 let keyCompassSelected=null;   // index into relatedKeysFor(currentKeyInfo), or null
 // Plain-language degree names for the long-press tip, so the colour code
@@ -4246,11 +4311,8 @@ function applyShapeLabel(el,v){
   // connection says nothing, and the label has no room to waste.
   let fitClass='',fitNote='';
   if(v.fit!=null){
-    // Bands set against measured progressions rather than picked round
-    // numbers: real voicing transitions in a song cluster around 1.4-5.0, so
-    // under 2 is genuinely smooth and over 3 is a jump you'd feel.
-    if(v.fit<2){fitClass='smooth';fitNote=' · connects smoothly to the chords either side';}
-    else if(v.fit>3){fitClass='reach';fitNote=' · a reach from the chords either side';}
+    if(v.fit<SMOOTH_JOIN){fitClass='smooth';fitNote=' · connects smoothly to the chords either side';}
+    else if(v.fit>ROUGH_JOIN){fitClass='reach';fitNote=' · a reach from the chords either side';}
     else fitNote=' · connects comfortably enough';
     const best=shapes.reduce((b,s)=>(s.fit!=null&&(b===null||s.fit<b.fit))?s:b,null);
     if(best&&best!==v&&v.fit-best.fit>0.75)fitNote+=' · shape '+(shapes.indexOf(best)+1)+' connects better';
@@ -6053,10 +6115,14 @@ function renderChordKeyChips(){
   if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
   if(hasCompass)html+='<button type="button" class="mini-key-chip'+(keyCompassOpen?' on':'')+'" id="chipRelatedKeys" title="Keys next door to this one">related keys'+
     (compassBorrowing?' <span class="key-chip-rn">borrowing</span>':'')+' <span class="key-chip-x">'+(keyCompassOpen?'▴':'▾')+'</span></button>';
+  const joins=activeChipJoins();
+  if(joins.length)html+='<button type="button" class="mini-key-chip'+(joinFixOpen?' on':'')+'" id="chipJoinFix" title="A chord to put between these — the move either side of this one is a stretch">smooth the join'+
+    (joins.length>1?' <span class="key-chip-rn">'+joins.length+'</span>':'')+' <span class="key-chip-x">'+(joinFixOpen?'▴':'▾')+'</span></button>';
   const isChordMode=boardMode==='chord';
   if(isChordMode)html+=scalesChipMarkup();
   if(chordPaletteOpen&&hasMore)html+=palette;
   if(keyCompassOpen&&hasCompass)html+=renderKeyCompass(currentKeyInfo);
+  if(joinFixOpen&&joins.length)html+=renderJoinFix(joins);
   if(isChordMode&&scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
   host.hidden=!html;
@@ -6067,9 +6133,13 @@ function renderChordKeyChips(){
   document.getElementById('chipRelatedKeys')?.addEventListener('click',()=>{
     keyCompassOpen=!keyCompassOpen;renderChordKeyChips();
   });
+  document.getElementById('chipJoinFix')?.addEventListener('click',()=>{
+    joinFixOpen=!joinFixOpen;renderChordKeyChips();
+  });
   wireChordPalette(host);
   wireScalesChip(host);
   wireKeyCompass(host);
+  wireJoinFix(host);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
@@ -6222,7 +6292,7 @@ function renderKey(){
   const songKey=document.getElementById('songKey');
   if(keyContextCount<1||!keyInfo){
     songKey.hidden=true;songKey.innerHTML='';
-    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;
+    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;joinFixOpen=false;
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
   const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,altMode,dominantContext}=keyInfo;
@@ -6368,6 +6438,66 @@ function renderCompassDrawer(k){
       '<p class="key-chord-degrees" style="margin-top:6px">Same dominant seventh either way — harmonic minor raises the leading tone to match, so it resolves cleanly into either home.</p></div>';
   }
   return html+'</div>';
+}
+
+// The joins either side of the selected chord that are worth doing something
+// about. connectorSuggestions() bails cheaply on a join that already moves
+// well, so this stays inexpensive on the common case of nothing being wrong.
+function activeChipJoins(){
+  if(!activeChip)return [];
+  const sec=findSection(activeChip.sectionId);
+  if(!sec)return [];
+  const i=activeChip.chordIdx;
+  const joins=[];
+  [[i-1,i],[i,i+1]].forEach(([aIdx,bIdx])=>{
+    const a=sec.chords[aIdx],b=sec.chords[bIdx];
+    if(!a||!b)return;
+    const sug=connectorSuggestions(a,b,currentKeyInfo,3);
+    if(sug.length)joins.push({sec,bIdx,a,b,sug,cost:sug[0].direct});
+  });
+  return joins;
+}
+function renderJoinFix(joins){
+  if(!joins.length)return '';
+  let html='<div class="key-palette">';
+  joins.forEach(j=>{
+    html+='<div class="key-chord-group"><p class="key-chord-intro">'+
+      escapeHtml(songChordLabel(j.a))+' &rarr; '+escapeHtml(songChordLabel(j.b))+
+      ' <span class="key-chord-degrees">'+(j.cost>ROUGH_JOIN?'a reach':'could move better')+
+      ' &mdash; these sit between them</span></p><div class="key-chord-row">';
+    j.sug.forEach(s=>{
+      html+='<button type="button" class="key-chord-chip" data-join-sec="'+j.sec.id+'" data-join-idx="'+j.bIdx+
+        '" data-join-root="'+s.root+'" data-join-suf="'+escapeHtml(s.suf)+'" data-join-frets="'+s.frets.join(',')+
+        '" title="'+escapeHtml(s.why)+' — tap to insert it between them">'+escapeHtml(pcName(s.root)+s.suf)+'</button>';
+    });
+    // Names the chord it belongs to: three chips sit above it, and an
+    // unattributed rationale reads as though it covers all of them.
+    html+='</div><p class="key-chord-degrees" style="margin-top:6px"><b>'+escapeHtml(pcName(j.sug[0].root)+j.sug[0].suf)+
+      '</b> · '+escapeHtml(j.sug[0].why)+' &mdash; the rest are on hover</p></div>';
+  });
+  return html+'</div>';
+}
+// Put a chord between two others. The selected chip follows its own chord
+// rather than staying on an index that now points at the new arrival.
+function insertConnectorChord(secId,idx,root,suf,frets){
+  const sec=findSection(secId);
+  if(!sec)return;
+  const formula=FORMULAS.find(f=>f.suf===suf);
+  if(!formula)return;
+  const pcs=[...new Set(formula.iv.map(iv=>(root+iv)%12))];
+  sec.chords.splice(idx,0,{root,suf,pcs,frets:frets.slice(),rep:1});
+  if(activeChip&&activeChip.sectionId===secId&&activeChip.chordIdx>=idx)activeChip.chordIdx++;
+  _popChip={sectionId:secId,chordIdx:idx};
+  refreshKeyContext();renderSong();renderKey();save();
+  flash('Added '+pcName(root)+suf+' between them');
+}
+function wireJoinFix(host){
+  host.querySelectorAll('[data-join-root]').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    insertConnectorChord(btn.dataset.joinSec,Number(btn.dataset.joinIdx),
+      Number(btn.dataset.joinRoot),btn.dataset.joinSuf||'',
+      (btn.dataset.joinFrets||'').split(',').map(Number));
+  }));
 }
 
 function wireKeyCompass(host){

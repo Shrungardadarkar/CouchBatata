@@ -1792,7 +1792,28 @@ function identify(midis){
   results.sort((a,b)=>b.score-a.score);
   return results;
 }
-const chordLabel=c=>pcName(c.root)+c.suf+(c.slash!==null?'/'+pcName(c.slash):'');
+const chordLabel=c=>pcName(c.root)+c.suf+(c.slash!=null?'/'+pcName(c.slash):'');
+// A saved chord stores its shape, not its bass note -- and browsing shapes
+// rewrites those frets in place, so a stored slash would go stale. Derive it
+// from the voicing instead: the lowest sounding string wins. This also gives
+// songs saved before any of this existed their bass notes back, for free.
+function bassPcFromFrets(frets){
+  if(!Array.isArray(frets))return null;
+  for(let s=Math.min(frets.length,OPEN.length)-1;s>=0;s--){
+    const f=frets[s];
+    if(typeof f==='number'&&f>=0)return (OPEN[s]+f)%12;
+  }
+  return null;
+}
+function chordSlashPc(c){
+  if(c.slash!=null)return c.slash;
+  const bass=bassPcFromFrets(c.frets);
+  return bass!=null&&bass!==c.root?bass:null;
+}
+const songChordLabel=c=>{
+  const slash=chordSlashPc(c);
+  return pcName(c.root)+c.suf+(slash!=null?'/'+pcName(slash):'');
+};
 
 /* ============ voicing generator ============ */
 function findVoicings(rootPc,ivs){
@@ -4745,7 +4766,7 @@ function buildChip(sec,cIdx,c,primary){
     if(tri) rn='<span class="rn">'+tri.rn+'</span>';
   }
   const nameBtn=document.createElement('button');nameBtn.className='chip-name';
-  nameBtn.innerHTML='<span class="num">'+num+'</span><span>'+pcName(c.root)+c.suf+'</span>'+rn;
+  nameBtn.innerHTML='<span class="num">'+num+'</span><span>'+songChordLabel(c)+'</span>'+rn;
   nameBtn.setAttribute('aria-pressed',isActive?'true':'false');
   nameBtn.title='Click to load this chord and browse shapes';
   nameBtn.addEventListener('click',e=>{e.stopPropagation();toggleChip(sec,cIdx);});
@@ -5638,7 +5659,7 @@ function buildExportText(){
     L.push('['+(g.name||'Section')+']');
     if(g.chords.length){
       const toks=g.chords.map(c=>{
-        const nm=pcName(c.root)+c.suf;
+        const nm=songChordLabel(c);
         if(!used.has(nm))used.set(nm,[]);
         const shape=c.frets.join(',');
         if(!used.get(nm).some(f=>f.join(',')===shape))used.get(nm).push(c.frets);
@@ -6183,7 +6204,7 @@ function guidanceMarkup(keyInfo){
     const loc=chordAtGlobalIdx(gIdx);
     if(!loc)return;
     const {chord,sec}=loc;
-    const label=pcName(chord.root)+chord.suf;
+    const label=songChordLabel(chord);
     const repl=findReplacement(chord,tonic);
     html+='<div class="guidance-item"><b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+'</span> is outside '+tonicNote+' major. '
       +'Replace with <button class="repl-btn" data-sec="'+sec.id+'" data-idx="'+loc.cIdx+'" data-root="'+repl.root+'" data-suf="'+repl.suf+'">'

@@ -6614,6 +6614,22 @@ function wireKeyCompass(host){
   }));
 }
 
+// A major or dominant-seventh chord a fifth above a diatonic chord is that
+// chord's own dominant -- V/x. It is chromatic on purpose, the most common
+// deliberate out-of-key chord there is, and it belongs to no related key,
+// because the note that makes it work is in none of them. Offering to replace
+// it with something diatonic removes the only thing it was there to do.
+function secondaryDominantOf(chord,keyInfo){
+  if(!chord||!keyInfo||keyInfo.dominantContext)return null;
+  if(!['','7','9','13','7sus4'].includes(chord.suf))return null;
+  const target=(chord.root+5)%12;
+  if(target===keyInfo.tonic)return null;          // that is just the key's own V
+  const tri=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo))
+    .find(t=>t.root===target&&t.suf!=='dim');     // nobody tonicises the diminished
+  if(!tri)return null;
+  const resolves=allChords().some(c=>c.root===tri.root&&startsLike(tri.suf,c.suf));
+  return {tri,label:pcName(tri.root)+tri.suf,resolves};
+}
 function guidanceMarkup(keyInfo){
   const {tonic,outIdxs}=keyInfo;
   const tonicNote=pcName(tonic);
@@ -6624,6 +6640,14 @@ function guidanceMarkup(keyInfo){
     const {chord,sec}=loc;
     if(currentSectionKeys.has(sec.id))return; // modulated, not borrowed — nothing to replace
     const label=songChordLabel(chord);
+    const sd=secondaryDominantOf(chord,keyInfo);
+    if(sd){
+      html+='<div class="guidance-item"><b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+
+        '</span> is the dominant of <b>'+escapeHtml(sd.label)+'</b> <span style="opacity:.7;font-size:.72rem">'+sd.tri.rn+
+        '</span> — a secondary dominant, outside '+tonicNote+' major on purpose'+
+        (sd.resolves?', and your song plays the chord it pulls to.':'. Follow it with '+escapeHtml(sd.label)+' and it lands.')+'</div>';
+      return;
+    }
     const repl=findReplacement(chord,tonic);
     html+='<div class="guidance-item"><b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+'</span> is outside '+tonicNote+' major. '
       +'Replace with <button class="repl-btn" data-sec="'+sec.id+'" data-idx="'+loc.cIdx+'" data-root="'+repl.root+'" data-suf="'+repl.suf+'">'

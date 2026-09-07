@@ -510,10 +510,13 @@
 
   /* Key is a property of the song, like its title -- so it reads next to the
      title rather than heading a card of its own. */
-  .song-key{font-weight:800;font-size:.82rem;color:var(--ink-dim);white-space:nowrap}
+  /* The line wraps, its parts do not: three pills plus the key name overflow a
+     narrow screen, and nowrap on the whole line clipped the last one off. */
+  .song-key{font-weight:800;font-size:.82rem;color:var(--ink-dim);white-space:normal}
+  .song-key b{white-space:nowrap}
   .song-key b{color:var(--tomato-dk)}
   .song-key .song-key-fit{font-family:"Courier New",monospace;font-size:.66rem;font-weight:900;
-    color:var(--ink);background:var(--sun-soft);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin-left:5px}
+    color:var(--ink);background:var(--sun-soft);border:1.5px solid var(--ink);border-radius:5px;padding:1px 6px;margin-left:5px;white-space:nowrap}
   .song-key[hidden]{display:none}
   /* Same seven notes, different home -- a chord-only analyzer can't pick
      between them, so this offers the alternate mode reading rather than

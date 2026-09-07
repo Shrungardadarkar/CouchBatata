@@ -1093,6 +1093,10 @@
     width:8px;height:8px;border-radius:50%;background:var(--tomato);border:1.5px solid var(--ink);
     margin-right:5px;vertical-align:middle}
   .chip.outlier.active .chip-name::before{background:var(--cream)}
+  /* Red says "outside the key and going nowhere". Once the chord it pulls to
+     follows it, it is resolved and reads blue -- still chromatic, no longer a
+     loose end. */
+  .chip.outlier.resolved .chip-name::before{background:var(--sky)}
   .fit-badge{display:inline-block;padding:3px 10px;border-radius:999px;
     background:var(--tomato);color:var(--cream);font-size:.72rem;border:2px solid var(--ink);
     font-weight:900;margin-left:8px;letter-spacing:.02em}
@@ -1203,6 +1207,7 @@
   .drop-indicator{background:var(--capture)}
   .fit-badge{background:var(--cream-2);color:var(--ink)}
   .chip.outlier .chip-name::before{background:var(--brand)}
+  .chip.outlier.resolved .chip-name::before{background:var(--sky)}
   .guidance{background:var(--cream-2)}
   .key-line strong,.mood,.scale-info b{color:var(--brand)}
 
@@ -5058,14 +5063,17 @@ function buildSectionCard(sec,idx,primary){
 function buildChip(sec,cIdx,c,primary){
   const isActive=activeChip && activeChip.sectionId===sec.id && activeChip.chordIdx===cIdx;
   const isOutlier=(currentOutlierMap.get(sec.id)||new Set()).has(cIdx);
+  const isResolved=isOutlier&&outlierIsResolved(sec,cIdx,currentSectionKeys.get(sec.id)||currentKeyInfo);
   const num=cIdx+1;
   const chip=document.createElement('span');
   const isPop=_popChip && _popChip.sectionId===sec.id && _popChip.chordIdx===cIdx;
-  chip.className='chip'+(isActive?' active':'')+(isOutlier?' outlier':'')+(isPop?' chip-pop':'');
+  chip.className='chip'+(isActive?' active':'')+(isOutlier?' outlier':'')+(isResolved?' resolved':'')+(isPop?' chip-pop':'');
   if(isPop)_popChip=null;  // consume so it only animates once
-  chip.title=isOutlier
-    ? "Borrowed chord — outside the current key. See Musical guidance below."
-    : 'Press and hold to drag, or use ‹ › to reorder';
+  chip.title=isResolved
+    ? 'Outside the key, and lands where it means to — see "using" for the route'
+    : isOutlier
+      ? "Borrowed chord — outside the current key. See Musical guidance below."
+      : 'Press and hold to drag, or use ‹ › to reorder';
   attachChipDrag(chip,sec,cIdx);
   let rn='';
   if(primary!==null){
@@ -6711,6 +6719,21 @@ function secondaryDominantOf(chord,keyInfo){
    answers all three from theory, because it borrows its target's key for a
    moment: approach it the way you approach any dominant, play in the key it
    is pointing at, and land on the chord it pulls to. */
+// An out-of-key chord that is set up and then lands is doing its job, not
+// sitting there by accident. Answered per position, because it is the chord
+// actually next to it in the song that decides -- not whether the target
+// happens to exist somewhere else entirely.
+function outlierIsResolved(sec,cIdx,keyInfo){
+  const chord=sec&&sec.chords[cIdx];
+  if(!chord)return false;
+  const sd=secondaryDominantOf(chord,keyInfo||currentKeyInfo);
+  if(!sd)return false;
+  const lands=c=>!!c&&c.root===sd.tri.root&&startsLike(sd.tri.suf,c.suf);
+  // Repeats of the dominant itself still count as leading to the same place.
+  let j=cIdx+1;
+  while(sec.chords[j]&&sec.chords[j].root===chord.root&&sec.chords[j].suf===chord.suf)j++;
+  return lands(sec.chords[j]);
+}
 function chromaticRoute(chord,keyInfo){
   if(!chord||!keyInfo||keyInfo.dominantContext)return null;
   const sd=secondaryDominantOf(chord,keyInfo);
@@ -6721,14 +6744,28 @@ function chromaticRoute(chord,keyInfo){
     // over it -- harmonic minor when the target is minor, because that is
     // where the dominant's raised third comes from in the first place.
     const scale=targetMinor?{root:t.root,scale:'harmMin'}:{root:t.root,scale:'major'};
-    // ii-V into the target: half-diminished when the target is minor.
-    const iiRoot=(t.root+2)%12, iiSuf=targetMinor?'m7♭5':'m7';
+    // The run-up sits on the ii of the target. Textbook says half-diminished
+    // for a minor target -- but the song has a key of its own, and that chord
+    // can drag in a second out-of-key note to set up the first. If the core
+    // key already has a chord on that root, use that one: it does the same
+    // job and keeps the detour to one chord.
+    const iiRoot=(t.root+2)%12;
+    const home=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo)).find(x=>x.root===iiRoot);
+    const into=home
+      ? {root:home.root,suf:home.suf,
+         why:'The '+home.rn+' of '+pcName(keyInfo.tonic)+' and the ii of '+pcName(t.root)+
+             ' — sets up the dominant without leaving the key'}
+      : {root:iiRoot,suf:targetMinor?'m7♭5':'m7',
+         why:'The ii of '+pcName(t.root)+' — the standard run-up, though it steps outside '+pcName(keyInfo.tonic)+' too'};
+    const outDiatonic=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo))
+      .some(x=>x.root===t.root&&startsLike(x.suf,t.suf));
     return {
       kind:'secondary dominant',
       summary:'It borrows '+pcName(t.root)+(targetMinor?' minor':' major')+' for a moment.',
-      into:{root:iiRoot,suf:iiSuf,why:'The ii of '+pcName(t.root)+' — the standard run-up to any dominant'},
+      into,
       scale:Object.assign({},scale,{why:'The key it is pointing at, for as long as it lasts'}),
-      out:{root:t.root,suf:t.suf,why:'The chord it pulls to'+(sd.resolves?', already in your song':'')},
+      out:{root:t.root,suf:t.suf,
+        why:'The chord it pulls to'+(outDiatonic?', itself in '+pcName(keyInfo.tonic):'')+(sd.resolves?' — already in your song':'')},
     };
   }
   // Any other out-of-key chord: no canonical approach or exit, but there is
@@ -6765,7 +6802,9 @@ function guidanceMarkup(keyInfo){
       html+='<div class="guidance-item"><b>'+label+'</b> in <span class="in-section">'+escapeHtml(sec.name)+
         '</span> is the dominant of <b>'+escapeHtml(sd.label)+'</b> <span style="opacity:.7;font-size:.72rem">'+sd.tri.rn+
         '</span> — a secondary dominant, outside '+tonicNote+' major on purpose'+
-        (sd.resolves?', and your song plays the chord it pulls to.':'. Follow it with '+escapeHtml(sd.label)+' and it lands.')+'</div>';
+        (outlierIsResolved(sec,loc.cIdx,keyInfo)
+          ? ', and it lands on '+escapeHtml(sd.label)+' right after. Nothing to fix.'
+          : '. Follow it with '+escapeHtml(sd.label)+' and it lands.')+'</div>';
       return;
     }
     const repl=findReplacement(chord,tonic);

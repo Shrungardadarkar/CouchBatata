@@ -603,6 +603,16 @@
   .key-chord-chip.is-previewing{background:var(--sun);box-shadow:3px 3px 0 var(--ink)}
   .conn-keep{font:900 .58rem "Courier New",monospace;text-transform:uppercase;
     letter-spacing:.04em;color:var(--ink-dim)}
+  /* In, through, out -- read left to right, because that is the order it is
+     played in. A ring would imply these are alternatives; they are a sequence. */
+  .route-row{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
+  .route-step{min-width:0}
+  .route-step+.route-step{position:relative;padding-left:14px}
+  .route-step+.route-step::before{content:'→';position:absolute;left:0;top:23px;color:var(--ink-faint);font-weight:900}
+  .route-label{margin:0 0 4px;font:900 .6rem "Courier New",monospace;letter-spacing:.05em;
+    text-transform:uppercase;color:var(--ink-faint)}
+  .route-why{margin:5px 0 0;font-size:.72rem;line-height:1.4;color:var(--ink-dim);max-width:22ch}
+  .is-here-chip{background:var(--sun);cursor:default;box-shadow:1.5px 1.5px 0 var(--ink)}
   @media (max-width:480px){
     .compass-bubble{min-width:44px;padding:4px 7px;font-size:.66rem}
     .compass-rn{font-size:.5rem}
@@ -2799,6 +2809,8 @@ let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
 let joinFixOpen=false;         // the "smooth the join" chip's disclosure, not persisted
 let joinFixPin=null;           // the join it is showing, so auditioning a suggestion doesn't close it
 let connPreview=null;          // the connector being auditioned; a second tap on it keeps it
+let routeOpen=false;           // the "using this chord" disclosure, not persisted
+let routePin=null;             // the chord it describes, so auditioning a step doesn't close it
 let keyCompassOpen=false;      // the "related keys" chip's disclosure, not persisted
 let keyCompassSelected=null;   // index into relatedKeysFor(currentKeyInfo), or null
 // Plain-language degree names for the long-press tip, so the colour code
@@ -6174,6 +6186,9 @@ function renderChordKeyChips(){
   if(hasMore)html+='<button type="button" class="mini-key-chip'+(chordPaletteOpen?' on':'')+'" id="chipMoreInKey" title="Every chord in this key">more in key <span class="key-chip-x">'+(chordPaletteOpen?'▴':'▾')+'</span></button>';
   if(hasCompass)html+='<button type="button" class="mini-key-chip'+(keyCompassOpen?' on':'')+'" id="chipRelatedKeys" title="Keys next door to this one">related keys'+
     (compassBorrowing?' <span class="key-chip-rn">borrowing</span>':'')+' <span class="key-chip-x">'+(keyCompassOpen?'▴':'▾')+'</span></button>';
+  const route=activeChipRoute();
+  if(route)html+='<button type="button" class="mini-key-chip'+(routeOpen?' on':'')+'" id="chipRoute" title="What leads into this chord, what to play over it, and what it lands on">using '+
+    escapeHtml(songChordLabel(route.chord))+' <span class="key-chip-x">'+(routeOpen?'▴':'▾')+'</span></button>';
   const joins=activeChipJoins();
   if(joins.length)html+='<button type="button" class="mini-key-chip'+(joinFixOpen?' on':'')+'" id="chipJoinFix" title="A chord to put between these — the move either side of this one is a stretch">smooth the join'+
     (joins.length>1?' <span class="key-chip-rn">'+joins.length+'</span>':'')+' <span class="key-chip-x">'+(joinFixOpen?'▴':'▾')+'</span></button>';
@@ -6181,6 +6196,7 @@ function renderChordKeyChips(){
   if(isChordMode)html+=scalesChipMarkup();
   if(chordPaletteOpen&&hasMore)html+=palette;
   if(keyCompassOpen&&hasCompass)html+=renderKeyCompass(currentKeyInfo);
+  if(routeOpen&&route)html+=renderChordRoute(route);
   if(joinFixOpen&&joins.length)html+=renderJoinFix(joins);
   if(isChordMode&&scalePickerOpen)html+=scalePickerMarkup();
   host.innerHTML=html;
@@ -6192,6 +6208,12 @@ function renderChordKeyChips(){
   document.getElementById('chipRelatedKeys')?.addEventListener('click',()=>{
     keyCompassOpen=!keyCompassOpen;renderChordKeyChips();
   });
+  document.getElementById('chipRoute')?.addEventListener('click',()=>{
+    routeOpen=!routeOpen;
+    routePin=routeOpen&&activeChip?{sectionId:activeChip.sectionId,chordIdx:activeChip.chordIdx}:null;
+    connPreview=null;
+    renderChordKeyChips();
+  });
   document.getElementById('chipJoinFix')?.addEventListener('click',()=>{
     joinFixOpen=!joinFixOpen;
     joinFixPin=joinFixOpen&&activeChip?{sectionId:activeChip.sectionId,chordIdx:activeChip.chordIdx}:null;
@@ -6202,6 +6224,7 @@ function renderChordKeyChips(){
   wireScalesChip(host);
   wireKeyCompass(host);
   wireJoinFix(host);
+  wireChordRoute(host);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
@@ -6354,7 +6377,7 @@ function renderKey(){
   const songKey=document.getElementById('songKey');
   if(keyContextCount<1||!keyInfo){
     songKey.hidden=true;songKey.innerHTML='';
-    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;joinFixOpen=false;joinFixPin=null;connPreview=null;
+    _hadOutliers=false;chordPaletteOpen=false;keyCompassOpen=false;keyCompassSelected=null;joinFixOpen=false;joinFixPin=null;connPreview=null;routeOpen=false;routePin=null;
     scaleActive=null;scaleBoxIdx=null;render();renderChordSuggestions();return;
   }
   const {tonic,outIdxs,inChords,totalChords,isPerfectFit,alsoFits,altMode,dominantContext}=keyInfo;
@@ -6559,6 +6582,54 @@ function renderJoinFix(joins){
   });
   return html+'</div>';
 }
+// The route for the selected chord, when it is one that sits outside the key.
+function activeChipRoute(){
+  if(activeChip&&routePin&&(routePin.sectionId!==activeChip.sectionId||routePin.chordIdx!==activeChip.chordIdx))routePin=null;
+  if(routeOpen&&!routePin&&activeChip)routePin={sectionId:activeChip.sectionId,chordIdx:activeChip.chordIdx};
+  const ref=activeChip||routePin;
+  if(!ref||!currentKeyInfo)return null;
+  const sec=findSection(ref.sectionId);
+  const chord=sec&&sec.chords[ref.chordIdx];
+  if(!chord)return null;
+  const outliers=currentOutlierMap.get(sec.id);
+  if(!outliers||!outliers.has(ref.chordIdx))return null;   // in-key chords need no route
+  const route=chromaticRoute(chord,currentSectionKeys.get(sec.id)||currentKeyInfo);
+  return route?{route,sec,chord,idx:ref.chordIdx}:null;
+}
+function renderChordRoute(r){
+  const {route,sec,chord,idx}=r;
+  const step=(item,pos,label)=>{
+    if(!item)return '';
+    const name=pcName(item.root)+item.suf;
+    const on=connPreview&&connPreview.secId===sec.id&&connPreview.idx===pos&&connPreview.root===item.root&&connPreview.suf===item.suf;
+    return '<div class="route-step"><p class="route-label">'+label+'</p>'+
+      '<button type="button" class="key-chord-chip'+(on?' is-previewing':'')+'" data-join-sec="'+sec.id+'" data-join-idx="'+pos+
+      '" data-conn-root="'+item.root+'" data-conn-suf="'+escapeHtml(item.suf)+'" data-conn-frets="'+
+      ((playableSuggestion(item.root,item.suf)||{frets:[]}).frets||[]).join(',')+'" title="'+escapeHtml(item.why)+
+      (on?' — tap again to add it here':' — tap to hear it')+'">'+escapeHtml(name)+(on?' <span class="conn-keep">keep?</span>':'')+'</button>'+
+      '<p class="route-why">'+escapeHtml(item.why)+'</p></div>';
+  };
+  const sc=route.scale;
+  return '<div class="key-palette"><p class="key-chord-intro">Using '+escapeHtml(songChordLabel(chord))+
+    ' <span class="key-chord-degrees">'+escapeHtml(route.kind)+' &mdash; '+escapeHtml(route.summary)+'</span></p>'+
+    '<div class="route-row">'+
+      step(route.into,idx,'Into it')+
+      '<div class="route-step is-here"><p class="route-label">The chord</p>'+
+        '<span class="key-chord-chip is-here-chip">'+escapeHtml(songChordLabel(chord))+'</span>'+
+        '<p class="route-why">Where you are</p></div>'+
+      step(route.out,idx+1,'Out of it')+
+    '</div>'+
+    '<div class="route-step"><p class="route-label">Play over it</p>'+
+      '<button type="button" class="key-chord-chip is-bridge" data-route-scale="'+sc.scale+'" data-route-root="'+sc.root+
+      '" title="'+escapeHtml(sc.why)+' — tap to put it on the fretboard">'+escapeHtml(pcName(sc.root)+' '+SCALES[sc.scale].name)+'</button>'+
+      '<p class="route-why">'+escapeHtml(sc.why)+'</p></div></div>';
+}
+function wireChordRoute(host){
+  host.querySelectorAll('[data-route-scale]').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    setActiveScale(Number(btn.dataset.routeRoot),btn.dataset.routeScale);
+  }));
+}
 // Put a chord between two others. The selected chip follows its own chord
 // rather than staying on an index that now points at the new arrival.
 function insertConnectorChord(secId,idx,root,suf,frets){
@@ -6572,6 +6643,7 @@ function insertConnectorChord(secId,idx,root,suf,frets){
   // The pin needs the same shift, or the panel would afterwards be describing
   // whichever chord slid into the index it was holding.
   if(joinFixPin&&joinFixPin.sectionId===secId&&joinFixPin.chordIdx>=idx)joinFixPin.chordIdx++;
+  if(routePin&&routePin.sectionId===secId&&routePin.chordIdx>=idx)routePin.chordIdx++;
   _popChip={sectionId:secId,chordIdx:idx};
   refreshKeyContext();renderSong();renderKey();save();
   // The selected chord now has a different neighbour, so its connection
@@ -6629,6 +6701,51 @@ function secondaryDominantOf(chord,keyInfo){
   if(!tri)return null;
   const resolves=allChords().some(c=>c.root===tri.root&&startsLike(tri.suf,c.suf));
   return {tri,label:pcName(tri.root)+tri.suf,resolves};
+}
+/* ---------- how to use a chord that sits outside the key ----------
+   Three questions a player actually has about a chromatic chord: what gets me
+   into it, what do I play over it, and what gets me out. A secondary dominant
+   answers all three from theory, because it borrows its target's key for a
+   moment: approach it the way you approach any dominant, play in the key it
+   is pointing at, and land on the chord it pulls to. */
+function chromaticRoute(chord,keyInfo){
+  if(!chord||!keyInfo||keyInfo.dominantContext)return null;
+  const sd=secondaryDominantOf(chord,keyInfo);
+  if(sd){
+    const t=sd.tri;
+    const targetMinor=t.suf==='m';
+    // A dominant tonicises its target, so the target's own key is what to play
+    // over it -- harmonic minor when the target is minor, because that is
+    // where the dominant's raised third comes from in the first place.
+    const scale=targetMinor?{root:t.root,scale:'harmMin'}:{root:t.root,scale:'major'};
+    // ii-V into the target: half-diminished when the target is minor.
+    const iiRoot=(t.root+2)%12, iiSuf=targetMinor?'m7♭5':'m7';
+    return {
+      kind:'secondary dominant',
+      summary:'It borrows '+pcName(t.root)+(targetMinor?' minor':' major')+' for a moment.',
+      into:{root:iiRoot,suf:iiSuf,why:'The ii of '+pcName(t.root)+' — the standard run-up to any dominant'},
+      scale:Object.assign({},scale,{why:'The key it is pointing at, for as long as it lasts'}),
+      out:{root:t.root,suf:t.suf,why:'The chord it pulls to'+(sd.resolves?', already in your song':'')},
+    };
+  }
+  // Any other out-of-key chord: no canonical approach or exit, but there is
+  // usually a mode of the tonic that simply contains it, which is the honest
+  // answer to "what do I play over this".
+  const pcs=new Set(chord.pcs);
+  const holds=(root,key)=>{
+    const set=new Set(SCALES[key].intervals.map(iv=>(root+iv)%12));
+    return [...pcs].every(pc=>set.has(pc));
+  };
+  const modes=['mixo','dorian','lydian','minor','phrygian','major','harmMin','melMin'];
+  const found=modes.find(m=>holds(keyInfo.tonic,m));
+  if(!found)return null;
+  return {
+    kind:'borrowed',
+    summary:'Outside the key, but one scale still covers it.',
+    into:null,
+    scale:{root:keyInfo.tonic,scale:found,why:'Contains every note of this chord and stays on your tonic'},
+    out:null,
+  };
 }
 function guidanceMarkup(keyInfo){
   const {tonic,outIdxs}=keyInfo;

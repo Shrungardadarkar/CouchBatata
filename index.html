@@ -597,6 +597,34 @@
     padding:1px 6px;white-space:nowrap;pointer-events:none}
   .compass-tag.borrow{color:var(--ink-soft);border-color:var(--ink-faint)}
   .compass-legend{font-size:.72rem;color:var(--ink-faint);text-align:center;margin:2px 0 10px}
+  /* Chord map. Radius is distance from the key, so the ring the chord sits on
+     is the information -- inside is the key's own, outside is borrowed. */
+  .chord-map{margin-top:4px}
+  .map-stage{position:relative;aspect-ratio:1/1;max-width:400px;margin:0 auto 6px;
+    background:var(--cream);border:1.5px dashed var(--ink-faint);border-radius:12px}
+  .map-stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  .map-centre{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    font:900 .68rem "Arial Black",Arial,sans-serif;color:var(--ink-faint);white-space:nowrap;pointer-events:none}
+  .map-node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+    align-items:center;gap:1px;min-width:40px;padding:4px 8px;border:2px solid var(--ink);border-radius:999px;
+    background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;font:800 .72rem/1 inherit;
+    color:var(--ink);white-space:nowrap;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  @media (hover:hover){.map-node:hover{background:var(--mint);box-shadow:3px 3px 0 var(--ink);z-index:2}}
+  .map-node:active{transform:translate(-50%,-50%) translate(1px,1px);transition-duration:.05s}
+  .map-node:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  /* Filled means the song already plays it; outline means it is available. */
+  .map-node.used{background:var(--sun)}
+  .map-node.outside{border-style:dashed;background:var(--cream-2)}
+  .map-node.outside.leads{border-style:solid;border-color:var(--sky)}
+  .map-rn{font:900 .52rem "Courier New",monospace;color:var(--ink-soft)}
+  /* The way in, named on the chord it gets you to. Acting on it is the route
+     panel's job -- this says which chord, so the map stays readable. */
+  .map-via{font:900 .5rem "Courier New",monospace;color:var(--mint-dk);letter-spacing:.02em}
+  .map-node.used .map-rn{color:var(--ink)}
+  @media (max-width:480px){
+    .map-node{min-width:32px;padding:3px 6px;font-size:.64rem}
+  }
   .compass-hint{color:var(--ink-dim);font-size:.84rem;font-weight:650;text-align:center;padding:8px 0}
   .compass-drawer{background:var(--cream-2);border:2px solid var(--ink);border-radius:10px;padding:12px 14px}
   .compass-drawer .key-chord-group+.key-chord-group{margin-top:10px}
@@ -1935,13 +1963,13 @@ function connectorCandidates(prev,next,keyInfo){
 }
 // A connector earns its place only if BOTH halves are easier than the jump it
 // replaces. Something that merely averages well can still hide a lurch.
-function connectorSuggestions(prev,next,keyInfo,limit=3){
+function connectorSuggestions(prev,next,keyInfo,limit=3,minDirect=SMOOTH_JOIN){
   if(!prev||!next||!Array.isArray(prev.frets)||!Array.isArray(next.frets))return [];
   const direct=connectionScore(prev.frets,next.frets);
   // Nothing to fix on a join that already moves well. Without this the app
   // offers an improvement on every chord change in the song, and advice that
   // is always present is advice nobody reads.
-  if(direct==null||direct<SMOOTH_JOIN)return [];
+  if(direct==null||direct<minDirect)return [];
   const scored=[];
   connectorCandidates(prev,next,keyInfo).forEach(cand=>{
     const formula=FORMULAS.find(f=>f.suf===cand.suf);
@@ -6236,6 +6264,7 @@ function renderChordKeyChips(){
   wireKeyCompass(host);
   wireJoinFix(host);
   wireChordRoute(host);
+  wireChordMap(host);
 }
 function renderSoloKeyChip(){
   const host=document.getElementById('soloKeyChips');
@@ -6432,6 +6461,45 @@ function renderKey(){
 // The full in-key palette, plus borrowed-chord guidance when there is any.
 // Only reachable from the chord chip's disclosure, so the single suggestion
 // stays the default and this stays the deliberate step past it.
+function renderChordMap(map){
+  if(!map)return '';
+  const cx=50,cy=50,rIn=20,rOut=38;
+  const at=(r,deg)=>{const a=deg*Math.PI/180;return {x:cx+r*Math.sin(a),y:cy-r*Math.cos(a)};};
+  let rings='<circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'"/>';
+  let spokes='',nodes='',tags='';
+  map.inner.forEach(n=>{
+    const p=at(rIn,n.angle);
+    const label=pcName(n.root)+n.suf;
+    nodes+='<button type="button" class="map-node'+(n.used?' used':'')+'" data-map-root="'+n.root+
+      '" data-map-suf="'+escapeHtml(n.suf)+'" style="left:'+p.x+'%;top:'+p.y+'%" title="'+escapeHtml(label)+' — '+n.rn+
+      (n.used?', in your song':', in the key but unused')+'. Tap to hear it">'+escapeHtml(label)+
+      '<span class="map-rn">'+n.rn+'</span></button>';
+  });
+  map.outer.forEach(o=>{
+    const a=at(rIn,o.anchorAngle), b=at(rOut,o.angle);
+    spokes+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke-dasharray="3 2.5"/>';
+    nodes+='<button type="button" class="map-node outside'+(o.sd?' leads':'')+'" data-map-root="'+o.root+
+      '" data-map-suf="'+escapeHtml(o.suf)+'" style="left:'+b.x+'%;top:'+b.y+'%" title="'+escapeHtml(o.label)+
+      ' — outside the key, sitting next to the '+o.anchorRn+' it relates to'+
+      (o.bridge?'. Get into it via '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf)+' — '+escapeHtml(o.bridge.why):'')+
+      '. Tap to hear it">'+escapeHtml(o.label)+
+      (o.bridge?'<span class="map-via">via '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf)+'</span>':'')+'</button>';
+  });
+  return '<div class="chord-map"><div class="map-stage">'+
+    '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
+      '<g stroke="var(--ink-faint)" stroke-width=".5" stroke-dasharray="1.5 2" fill="none">'+rings+'</g>'+
+      '<g stroke="var(--ink)" stroke-width="1" fill="none">'+spokes+'</g></svg>'+
+    '<span class="map-centre">'+escapeHtml(map.label)+'</span>'+
+    nodes+tags+
+    '</div><p class="compass-legend">Inner ring is the key, in fifths &mdash; neighbours here are easy moves. '+
+    'Anything outside the key sits beyond it, out from the chord it relates to, with the chord that bridges them between.</p></div>';
+}
+function wireChordMap(host){
+  host.querySelectorAll('[data-map-root]').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    loadSuggestedChord({root:Number(btn.dataset.mapRoot),suf:btn.dataset.mapSuf||''});
+  }));
+}
 function renderChordPalette(){
   const keyInfo=currentKeyInfo;
   if(!keyInfo)return '';
@@ -6439,7 +6507,11 @@ function renderChordPalette(){
   const cs=allChords();
   let html='<div class="key-palette">';
   if(!isPerfectFit&&!dominantContext)html+=guidanceMarkup(keyInfo);
-  if(keyContextCount>=2&&isPerfectFit&&!dominantContext){
+  const map=keyContextCount>=2?chordMapFor(keyInfo):null;
+  if(map)html+=renderChordMap(map);
+  // The three flat rows say the same thing the map does, with less in them --
+  // shown only when there is no map to show.
+  if(!map&&keyContextCount>=2&&isPerfectFit&&!dominantContext){
     const tris=diatonicTriadsFor(tonic,keyIntervals(keyInfo));
     const isUsed=t=>cs.some(p=>p.root===t.root&&startsLike(t.suf,p.suf));
     const chip=t=>{
@@ -6465,6 +6537,65 @@ function wireChordPalette(host){
   }));
 }
 
+/* ---------- the chord map ----------
+   One ring of chords rather than one ring of keys. Distance from the middle is
+   distance from the key: the seven diatonic chords sit on the inner ring, and
+   anything the song plays from outside the key sits beyond it, directly out
+   from the diatonic chord it relates to, with the chord that bridges the two
+   sitting on the spoke between them.
+
+   The inner ring runs by fifths -- IV, I, V, ii, vi, iii, vii° -- so chords
+   that are neighbours on the ring are neighbours to move between. Scale-degree
+   order would look tidier and be less use. */
+const MAP_ORDER=[0,4,1,5,2,6,3];   // I, V, ii, vi, iii, vii°, IV
+function chordMapFor(keyInfo,secId){
+  if(!keyInfo||keyInfo.dominantContext)return null;
+  const tris=diatonicTriadsFor(keyInfo.tonic,keyIntervals(keyInfo));
+  if(tris.length<7)return null;
+  const songChords=allChords();
+  const used=t=>songChords.some(c=>c.root===t.root&&startsLike(t.suf,c.suf));
+  const inner=MAP_ORDER.map((idx,pos)=>{
+    const t=tris[idx];
+    return {root:t.root,suf:t.suf,rn:t.rn,used:used(t),angle:pos*(360/7)};
+  });
+  // Everything the song plays that the key does not contain.
+  const seen=new Set();
+  const outer=[];
+  sections.forEach(sec=>{
+    if(secId&&sec.id!==secId)return;
+    sec.chords.forEach(c=>{
+      if(tris.some(t=>t.root===c.root&&startsLike(t.suf,c.suf)))return;   // in key
+      const id=c.root+':'+c.suf;
+      if(seen.has(id))return;
+      seen.add(id);
+      // What it relates to: a secondary dominant points at its target, and
+      // anything else sits nearest the diatonic chord it shares most with.
+      const sd=secondaryDominantOf(c,keyInfo);
+      const anchorTri=sd?sd.tri:findReplacement(c,keyInfo.tonic);
+      const anchor=inner.find(n=>n.root===anchorTri.root)||inner[0];
+      // A secondary dominant has a named way in; anything else gets the best
+      // connector, asked for regardless of how smooth the move already is --
+      // the question here is "what gets me in", not "is this join rough".
+      const approach=sd?chromaticRoute(c,keyInfo).into:null;
+      const found=approach||connectorSuggestions(
+        {root:anchor.root,suf:anchor.suf,frets:(playableSuggestion(anchor.root,anchor.suf)||{}).frets},
+        c,keyInfo,1,0)[0]||null;
+      outer.push({root:c.root,suf:c.suf,label:songChordLabel(c),used:true,
+        anchorRn:anchor.rn,anchorAngle:anchor.angle,sd:!!sd,
+        bridge:found?{root:found.root,suf:found.suf,why:found.why}:null});
+    });
+  });
+  // Two outliers hanging off the same diatonic chord would land on top of each
+  // other; fan them apart rather than stack them.
+  const byAngle=new Map();
+  outer.forEach(o=>{
+    const n=byAngle.get(o.anchorAngle)||0;
+    o.angle=o.anchorAngle+(n===0?0:(n%2?19:-19)*Math.ceil(n/2));
+    o.fan=n;   // stagger the bridge labels too, or they sit on each other
+    byAngle.set(o.anchorAngle,n+1);
+  });
+  return {inner,outer,tonic:keyInfo.tonic,label:keyInfoLabel(keyInfo)};
+}
 // The related-keys compass: song key in the middle, its five closely-related
 // keys and parallel minor/major arranged around it. A separate disclosure
 // from "more in key" -- that one answers "what else fits *this* key", this

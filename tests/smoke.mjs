@@ -196,10 +196,14 @@ assert.doesNotMatch(html, /id="btnSaveFresh"/);
 assert.match(html, /Save project \(\.json\)/);
 assert.match(html, /Last time: building/);
 assert.match(html, /flash\(restoreMsg,\{duration:5600\}\)/);
-assert.match(html, /const KEY_COACH_SEEN_KEY='couch-batata\.key-coach\.v1\.seen'/);
-assert.match(html, /Start here/);
-assert.match(html, /data-key-root/);
-assert.match(html, /function markKeyCoachSeen\(\)/);
+// What a chord is doing against the key reads in one line under the chord;
+// the key itself is one map, with the keys next door reached through it.
+assert.match(html, /function chordContext\(\)/);
+assert.match(html, /function outlierFunction\(chord,keyInfo\)/);
+assert.match(html, /const BORROWINGS=\{/);
+assert.match(html, /function chordMapFor\(keyInfo\)/);
+assert.match(html, /data-map-view/);
+assert.doesNotMatch(html, /function renderKeyCompass\(|function guidanceMarkup\(|Replace with <button/);
 assert.doesNotMatch(html, /function nextUnusedDiatonicChord\(/);
 assert.match(html, /openStringsHintShown&&!opts\.openStringsHint/);
 assert.match(html, /openStringsHint:true,closable:true/);

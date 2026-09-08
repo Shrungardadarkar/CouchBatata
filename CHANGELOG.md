@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-08 — One line under the chord, one map of the key
+
+- The five disclosures under the chord (also in key, more in key, related
+  keys, using, smooth the join) are now one context line and two chips. The
+  line says where the chord on the board sits against the key — "the ii of
+  G major", "the ♭VII of G major, borrowed from the parallel minor", "the
+  dominant of Am, a secondary dominant" — and carries the moves that follow:
+  a chord before or after it, a chord between it and a stretched neighbour,
+  the scale to play over it. Tap to hear, tap again to keep.
+- The related-keys compass is folded into the chord map. Each key next door
+  is reached through one chord on the ring (its own I or i), so that chord
+  names the key; tap it and "Look from E minor →" redraws the ring from
+  there. The parallel key is a flip at the centre. "You are here" now marks
+  the chord selected in the song, not the key.
+- Out-of-key chords are named for what they are doing — ♭VII, iv, ♭VI, ♭III,
+  ♭II, ii°, ♯iv°, the Picardy I, Dorian IV, the subtonic VII — with the mode
+  they came from and where they usually go. The old "replace with" offer is
+  gone; the scale claimed for a borrowed chord is only made after every note
+  of the chord has been checked against it.
+- Key analysis: with equal coverage, a minor reading wins when the structure
+  backs it (Am G F E is A minor, not C major with a stray E). A minor key's
+  V7 is recognised as its own. Augmented chords are no longer tonicised. The
+  chord on the board is not counted twice when the song already has it.
+- The header pill reads "2 borrowed" instead of a fit fraction, and opens
+  the map. Charts now carry a "Borrowed:" line naming each one.
+- Only one thing opens under the chord at a time; opening the map closes
+  scales and vice versa.
+
 ## 2026-07-26 — Desktop two-column layout (experimental)
 
 - On wide screens (1100px+), Tab builder and Key & Scales now live in a

@@ -6239,11 +6239,18 @@ function contextRef(){
   if(connPreview&&pinChord())return ctxPin;
   return null;
 }
-function chordContext(){
-  if(!currentKeyInfo||keyContextCount<2)return null;
+// What the line -- and the map's "here" marker -- are both about: a song
+// selection first, then a pinned move, then whatever is live on the board.
+// One resolver so the two never disagree about where "here" is.
+function hereChordInfo(){
   const ref=contextRef();
   const sec=ref?findSection(ref.sectionId):null;
   const chord=sec?sec.chords[ref.chordIdx]:(chordBoardTouched&&current&&current.suf!=null?current:null);
+  return {chord,sec,ref};
+}
+function chordContext(){
+  if(!currentKeyInfo||keyContextCount<2)return null;
+  const {chord,sec,ref}=hereChordInfo();
   if(!chord||!Array.isArray(chord.pcs))return null;
   const secKey=sec?currentSectionKeys.get(sec.id):null;
   const key=secKey||currentKeyInfo;
@@ -6623,11 +6630,10 @@ function renderChordMap(map){
   // at Em/Bm on both desktop and phone, 24% does not).
   const cx=50,cy=50,rIn=24,rOut=40;
   const at=(r,deg)=>{const a=deg*Math.PI/180;return {x:cx+r*Math.sin(a),y:cy-r*Math.cos(a)};};
-  // "You are here" is the selected song chord, or the last one selected while
-  // the map is being explored -- the place in the song, not the key.
-  const ref=contextRef();
-  const refSec=ref&&findSection(ref.sectionId);
-  const hereChord=(refSec&&refSec.chords[ref.chordIdx])||pinChord();
+  // "You are here" is whatever the context line above is describing -- a
+  // song selection, a pinned move, or the chord live on the board -- so the
+  // two can never point at different chords.
+  const hereChord=hereChordInfo().chord;
   const isHere=(root,suf,exact)=>!!hereChord&&hereChord.root===root&&(exact?hereChord.suf===suf:startsLike(suf,hereChord.suf));
   const isPicked=(root,suf)=>!!mapPick&&mapPick.root===root&&mapPick.suf===suf;
   const node=(cls,root,suf,x,y,title,body)=>'<button type="button" class="map-node'+cls+'" data-map-root="'+root+

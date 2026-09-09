@@ -583,11 +583,20 @@
   /* Chord map. Radius is distance from the key, so the ring the chord sits on
      is the information -- inside is the key's own, outside is borrowed. */
   .chord-map{margin-top:4px}
-  .map-stage{position:relative;aspect-ratio:1/1;max-width:400px;margin:0 auto 6px;
+  /* Fills its column instead of floating as a small square in a wide one --
+     the ring is the main event here, so it gets the room the container
+     actually has, up to a cap where the spokes would otherwise overstretch. */
+  .map-stage{position:relative;aspect-ratio:1/1;width:100%;max-width:640px;margin:0 auto 6px;
     background:var(--cream);border:1.5px dashed var(--ink-faint);border-radius:12px}
   .map-stage svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+  /* The key you are actually looking at, made to read as the one fact on this
+     screen you can't miss -- a solid tomato chip rather than faint centred
+     text, the same red the "here" tag and the picked ring use elsewhere for
+     "this is the thing that's true right now". */
   .map-centre{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    font:900 .68rem "Arial Black",Arial,sans-serif;color:var(--ink-faint);white-space:nowrap;pointer-events:none}
+    font:900 .82rem "Arial Black",Arial,sans-serif;color:var(--paper);white-space:nowrap;pointer-events:none;
+    background:var(--tomato);border:2px solid var(--ink);border-radius:999px;
+    padding:6px 16px;box-shadow:2px 2px 0 var(--ink);z-index:1}
   .map-node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;
     align-items:center;gap:1px;min-width:40px;padding:4px 8px;border:2px solid var(--ink);border-radius:999px;
     background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer;font:800 .72rem/1 inherit;
@@ -660,6 +669,7 @@
     .map-node{min-width:32px;padding:3px 6px;font-size:.64rem}
     .map-rn{font-size:.46rem}
     .map-via{font-size:.44rem;padding:0 4px}
+    .map-centre{font-size:.62rem;padding:4px 10px}
   }
 
   /* The context line: one sentence under the chord about where it sits

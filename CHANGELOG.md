@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-09 — The chord map fills its column, and the key reads as a chip you can't miss
+
+- The map's ring used to sit as a small fixed square (400px) in a much wider
+  column, wasting most of the space around it. It now fills the width it
+  actually has, up to a cap where the spokes would otherwise overstretch —
+  bigger on a wide screen, unchanged on a phone.
+- The current key at the ring's centre was small, faint text easy to miss
+  next to the chords around it. It's now a solid tomato chip, the same red
+  used everywhere else in the app for "this is the thing that's true right
+  now" (the "here" tag, the picked-node ring).
+
 ## 2026-09-09 — Setting a key from the map no longer leaves an old scale stuck on the neck
 
 - **"Set as key" and "back to the detected key" now clear a scale that was

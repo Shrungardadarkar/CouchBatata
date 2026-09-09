@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-09 — Getting in and out of a borrowed chord
+
+- **Every chord from outside the key now shows a way in and a way out.** Not
+  when the fingering is awkward — always, because the reason to want a bridge
+  there is harmonic. Selecting F♯ in Spiralove now offers **getting in:
+  C♯m7♭5** (its own ii, the textbook run-up) and **getting out: Bm** (what it
+  pulls to); F offers **getting in: C7** and **getting out: G7**, the chord
+  that walks it into the C that follows.
+- **Stopped marking joins because they're a stretch for the hand.** A stretch
+  is a fingering problem, not a question about the song, and marking it spent
+  the app's one "here is a move worth thinking about" signal on the wrong
+  thing. The `›` marks now sit exactly where the song *leaves* the key and
+  where it *comes back* — G→F♯, F→C, C→F♯7 — and tapping one selects the
+  borrowed chord so its panel explains the move and hands you the bridges.
+- **"Trust your ear on this one" now says something useful.** A chord no
+  standard borrowing names still has a true thing to say about it: which
+  chord of the key it sits closest to and therefore leans on. F in B Phrygian
+  reads "its nearest chord in the key is Am (vii)" instead of a shrug, and
+  the map caption says the same thing about the spoke it hangs on.
+- Bridges are now chosen on function first — the dominant of where you're
+  going beats a chord that merely falls under the fingers — with hand comfort
+  only breaking ties. Smoothing an awkward stretch still ranks the old way.
+
 ## 2026-09-09 — Shapes you can actually fret, and the borrowed dominant every minor key uses
 
 - **Dropped 68 unplayable shapes.** The generator was offering grips with an

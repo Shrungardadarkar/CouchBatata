@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-09-09 — The map's bridge chords are playable, and "Look from" stops lying about distance
+
+- The bridge chord now sits **on the dotted line** it belongs to, because it
+  is the step between those two chords — not a label crowded onto one end of
+  it. It is also a control now: tap it and that chord goes on the fretboard,
+  and the chord it leads into gets selected so the caption explains the move
+  you just heard. Where two outliers share a spoke's neighbourhood, their
+  bridge chips slide to different points along their own lines instead of
+  landing on top of each other.
+- Fixed "Look from" re-anchoring itself to whatever you were previewing.
+  Previewing a distant reading silently re-measured the whole strip from
+  *there*, so a key 5 notes from your song could show its own neighbours as
+  "same chords" while the ring above was full of outside chords — the strip
+  and the map were describing two different places. It is now always measured
+  from your song's own key, and says so ("from B phrygian") above the row.
+- The reading you are previewing no longer vanishes from the strip. It used
+  to be excluded as "home" the moment you looked at it; now it stays, marked
+  **viewing**, at its own honest distance — including a reading reached from
+  an "Explore" link rather than from the strip itself.
+- Every chip now also says how much of your song actually fits it ("8/14
+  fit"). Note-distance says what the *scale* costs; this says what the *song*
+  costs, and they are not the same question — which is the thing that makes a
+  far-away reading obviously far away rather than just differently labelled.
+- Fixed the "Look from" list changing shape depending on the flavour of the
+  key you were standing in: the six same-note rotations (G major, A Dorian,
+  C Lydian…) were only ever offered from a major reading, so a Phrygian or
+  Dorian song was shown a list with its six *closest* answers missing. Every
+  church mode is one collection rotated, so they are offered from all of them
+  now.
+- Fixed "over it" recommending a scale from the other side of the world. It
+  took the first mode off a fixed list that merely contained the chord's
+  notes, which answered an F♯ triad in B Phrygian with **B Lydian** — five of
+  seven notes away from the key the rest of the song is in. It now picks the
+  nearest mode to your actual key that genuinely holds the chord: B harmonic
+  minor, two notes away, and where that chord's raised third comes from.
+
 ## 2026-09-09 — The chord that opens a modulated section, and a truer whole-song key
 
 - A section that modulates to its own key now shows the chord that led it

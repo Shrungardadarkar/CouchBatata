@@ -602,11 +602,20 @@
   .map-node.outside.leads{border-style:solid;border-color:var(--sky)}
   .map-rn{font:900 .52rem "Courier New",monospace;color:var(--ink-soft)}
   .map-node.used .map-rn{color:var(--ink)}
-  /* The way in, named on the chord itself -- acting on it is the caption's
-     job, this just says which chord bridges the two. */
-  .map-via{font:900 .5rem "Courier New",monospace;color:var(--mint-dk);letter-spacing:.02em}
+  /* The chord that bridges a ring chord to the outside one hanging off it.
+     It sits on the spoke between them, because that is the move it belongs
+     to, and it is tappable: it loads onto the fretboard like any other
+     suggestion. Dashed to read as "a step you could add", not one you play. */
+  .map-via{position:absolute;transform:translate(-50%,-50%);z-index:1;
+    font:900 .5rem "Courier New",monospace;letter-spacing:.02em;color:var(--mint-dk);
+    background:var(--paper);border:1.5px dashed var(--mint-dk);border-radius:999px;
+    padding:1px 5px;cursor:pointer;white-space:nowrap;box-shadow:1px 1px 0 var(--mint-dk);
+    transition:transform .16s var(--ease-spring),background .12s,color .12s}
+  @media (hover:hover){.map-via:hover{background:var(--mint);color:var(--paper);z-index:4}}
+  .map-via:active{transform:translate(-50%,-50%) translate(1px,1px);transition-duration:.05s}
+  .map-via:focus-visible{outline:3px solid var(--focus);outline-offset:2px;z-index:4}
   .map-node.picked{background:var(--mint);color:var(--paper);box-shadow:3px 3px 0 var(--ink)}
-  .map-node.picked .map-rn,.map-node.picked .map-via{color:var(--paper)}
+  .map-node.picked .map-rn{color:var(--paper)}
   /* "You are here" is the chord selected in the song -- a place, not a key. */
   .map-node.here{box-shadow:0 0 0 3px var(--tomato),3px 3px 0 var(--ink)}
   /* Short enough to sit inside the node's own width, so it never reaches a
@@ -641,9 +650,16 @@
   .lf-used{font:900 .5rem "Courier New",monospace;text-transform:uppercase;letter-spacing:.02em;
     background:var(--sun-soft);color:var(--tomato-dk);border-radius:999px;padding:0 5px;margin-left:2px}
   .lf-badge{font:900 .56rem "Courier New",monospace;color:var(--ink-dim)}
+  /* What the scale costs is one thing; how much of YOUR song still fits in it
+     is the other, and it is the one that answers "why is this one first". */
+  .lf-fit{color:var(--ink-faint)}
+  .lf-fit.is-all{color:var(--mint-dk)}
+  .lf-on{font:900 .5rem "Courier New",monospace;text-transform:uppercase;letter-spacing:.02em;
+    background:var(--ink);color:var(--paper);border-radius:999px;padding:0 5px;margin-left:2px}
   @media (max-width:480px){
     .map-node{min-width:32px;padding:3px 6px;font-size:.64rem}
     .map-rn{font-size:.46rem}
+    .map-via{font-size:.44rem;padding:0 4px}
   }
 
   /* The context line: one sentence under the chord about where it sits
@@ -2858,7 +2874,7 @@ function noteDiffCount(tonicA,scaleA,tonicB,scaleB){
 // two different distances (A Dorian is G major's own 7 chords read from A,
 // 0 away; A natural minor flattens the 6th, 1 away) -- both are listed,
 // each honestly measured, rather than collapsed into one.
-function lookFromCandidates(keyInfo){
+function lookFromCandidates(keyInfo,alsoInclude){
   if(!keyInfo||keyInfo.dominantContext)return [];
   const tonic=keyInfo.tonic;
   const homeScale=keyInfo.keyScale&&SCALES[keyInfo.keyScale]?keyInfo.keyScale:(keyInfo.keyMode==='minor'?'minor':'major');
@@ -2867,6 +2883,13 @@ function lookFromCandidates(keyInfo){
   // song's own key isn't borrowed from anywhere, even if it also happens to
   // be diatonic to a neighbour.
   const outlierLocs=keyInfo.isPerfectFit?[]:[...keyInfo.outIdxs].map(chordAtGlobalIdx).filter(Boolean);
+  // How many of the song's own chords a reading actually holds. Note-distance
+  // says what the scale costs; this says what the SONG costs, and the two are
+  // not the same question -- a reading one note away can still leave half the
+  // progression outside it. Counted per distinct chord, so a chord repeated
+  // eight times doesn't drown out the rest.
+  const distinct=[],dseen=new Set();
+  allChords().forEach(c=>{const k=c.root+':'+c.suf;if(dseen.has(k))return;dseen.add(k);distinct.push(c);});
   const seen=new Set();
   const out=[];
   const add=(root,scaleKey,rn)=>{
@@ -2874,6 +2897,8 @@ function lookFromCandidates(keyInfo){
     if(seen.has(key)||(root===tonic&&scaleKey===homeScale))return;
     seen.add(key);
     const tris=diatonicTriadsFor(root,SCALES[scaleKey].intervals);
+    const pcSet=new Set(SCALES[scaleKey].intervals.map(iv=>(root+iv)%12));
+    const fits=distinct.filter(c=>c.pcs.every(pc=>pcSet.has(pc))).length;
     // Natural minor's working dominant is the major V (harmonic minor raises
     // the leading tone for exactly this) -- E7 belongs to A minor as surely
     // as Dm does, and the plain triad ring alone would never say so. Dorian,
@@ -2886,6 +2911,7 @@ function lookFromCandidates(keyInfo){
     const loc=outlierLocs.find(l=>belongs(l.chord));
     out.push({
       root,scaleKey,rn,tris,dist:noteDiffCount(tonic,homeScale,root,scaleKey),
+      fits,total:distinct.length,
       name:pcName(root)+' '+SCALES[scaleKey].name.toLowerCase(),
       used:loc?{root:loc.chord.root,suf:loc.chord.suf,label:pcName(loc.chord.root)+loc.chord.suf,where:loc.sec.name}:null,
     });
@@ -2894,14 +2920,31 @@ function lookFromCandidates(keyInfo){
   // below (the relative minor IS its major parent's own Aeolian reading)
   // keeps the more informative roman-numeral label.
   (RELATED_KEY_DEFS[homeMode]||[]).forEach(d=>add((tonic+d.off)%12,d.mode,d.rn));
-  // Same seven chords as home, read from a different one as tonic -- only
-  // meaningful starting from a plain major reading, the one place a
-  // chord-only analysis can genuinely mean two different things (see
-  // altModeFor above; minor's own modal relatives are a murkier topic).
-  if(homeScale==='major')MAJ_SCALE.forEach((deg,i)=>{if(i)add((tonic+deg)%12,MODE_BY_DEGREE[i],null);});
+  // Same seven notes as home, read from a different one as tonic. Every church
+  // mode is that one collection rotated, so this is exactly as true seen from
+  // Phrygian as it is from major -- and these are the closest readings that
+  // exist, since nothing changes but which chord feels like home. Offering
+  // them only from a major reading meant a Phrygian or Dorian song was shown
+  // a list with its six best answers missing, and a list that changed shape
+  // depending on the flavour of wherever you happened to be standing.
+  // Harmonic and melodic minor have no such tidy rotation set, so they fall
+  // through to the related keys and same-tonic modes instead.
+  const hi=MODE_BY_DEGREE.indexOf(homeScale);
+  if(hi>=0){
+    const relMajor=((tonic-MAJ_SCALE[hi])%12+12)%12;
+    MAJ_SCALE.forEach((deg,i)=>add((relMajor+deg)%12,MODE_BY_DEGREE[i],null));
+  }
   // Same tonic, a different mode altogether.
   MODE_BY_DEGREE.forEach(scaleKey=>add(tonic,scaleKey,null));
-  return out.sort((a,b)=>a.dist-b.dist);
+  // Whatever is being previewed is always in the list, so the thing you are
+  // looking at can always be pointed to and highlighted -- a preview reached
+  // from an "Explore" link rather than from this strip would otherwise be the
+  // one reading you cannot see the position of. It earns no special placing:
+  // it is measured and sorted like everything else.
+  if(alsoInclude&&SCALES[alsoInclude.scaleKey])add(alsoInclude.tonic,alsoInclude.scaleKey,null);
+  // Closest first by what the scale costs; where two cost the same, the one
+  // that holds more of this song's chords goes first.
+  return out.sort((a,b)=>a.dist-b.dist||b.fits-a.fits);
 }
 
 // Find a scale/mode that covers every chord tone in the progression
@@ -6849,9 +6892,22 @@ function chordMapFor(keyInfo){
   outer.forEach(o=>{
     const n=byAngle.get(o.anchorAngle)||0;
     o.angle=o.anchorAngle+(n===0?0:(n%2?19:-19)*Math.ceil(n/2));
+    // Spokes off the same chord stay close even when fanned, so their bridge
+    // chips would sit on top of each other -- especially when two outliers
+    // share one (F♯ and F♯7 are both reached through F♯dim). Slide each a
+    // different distance along its own spoke instead.
+    o.fan=n;
     byAngle.set(o.anchorAngle,n+1);
   });
-  return {inner,outer,keyInfo,label:keyInfoLabel(keyInfo),candidates:lookFromCandidates(keyInfo)};
+  // "Look from" is a menu of places to go *from the song's own key*, so it is
+  // always measured from there -- previewing one of them must not re-anchor
+  // the menu to the place being previewed, or every distance in it quietly
+  // starts meaning something else ("same chords" measured against the preview,
+  // not against your song) and the ring and the strip stop agreeing. Anchoring
+  // it here also keeps the reading you are previewing in the list, where it
+  // can be highlighted, instead of vanishing because it became "home".
+  const home=currentKeyInfo&&!currentKeyInfo.dominantContext?currentKeyInfo:keyInfo;
+  return {inner,outer,keyInfo,home,label:keyInfoLabel(keyInfo),candidates:lookFromCandidates(home,mapView)};
 }
 function renderChordMap(map){
   if(!map)return '';
@@ -6872,24 +6928,35 @@ function renderChordMap(map){
       escapeHtml(label)+' — '+n.rn+(n.used?', in your song':', in the key but unused')+'. Tap to hear it',
       (here?'<span class="map-here">here</span>':'')+escapeHtml(label)+'<span class="map-rn">'+n.rn+'</span>');
   });
+  let vias='';
   map.outer.forEach(o=>{
     const a=at(rIn,o.anchorAngle),b=at(rOut,o.angle),here=isHere(o.root,o.suf,true);
     spokes+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke-dasharray="3 2.5"/>';
-    // The way in is named on the chord itself -- acting on it is the
-    // caption's job below, this just says which chord.
-    const via=o.bridge?'<span class="map-via">via '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf)+'</span>':'';
     nodes+=node(' outside'+(o.leads?' leads':'')+(here?' here':'')+(isPicked(o.root,o.suf)?' picked':''),o.root,o.suf,b.x,b.y,
       escapeHtml(o.label)+' — outside the key, sitting next to the '+o.anchorRn+' it relates to'+
       (o.bridge?'. Bridge in with '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf):'')+'. Tap to hear it',
       (here?'<span class="map-here">here</span>':'')+escapeHtml(o.label)+
-      '<span class="map-rn">'+(o.rn?escapeHtml(o.rn):'outside')+'</span>'+via);
+      '<span class="map-rn">'+(o.rn?escapeHtml(o.rn):'outside')+'</span>');
+    // The bridge chord is the step *between* those two chords, so it sits on
+    // the spoke that joins them rather than as a label on one end of it -- and
+    // it is a control in its own right: tapping it puts that chord on the
+    // fretboard and selects the chord it leads into, so the caption below
+    // explains the move you just heard.
+    if(o.bridge){
+      const t=0.5+((o.fan||0)%3)*0.13,bl=pcName(o.bridge.root)+o.bridge.suf;
+      const m={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};
+      vias+='<button type="button" class="map-via" data-via-root="'+o.bridge.root+'" data-via-suf="'+escapeHtml(o.bridge.suf)+
+        '" data-via-into="'+o.root+':'+escapeHtml(o.suf)+'" style="left:'+m.x+'%;top:'+m.y+'%" title="'+
+        escapeHtml(bl+' bridges into '+o.label+(o.bridge.why?' — '+o.bridge.why:'')+'. Tap to put it on the fretboard')+
+        '">'+escapeHtml(bl)+'</button>';
+    }
   });
   return '<div class="chord-map"><div class="map-stage">'+
     '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
       '<g stroke="var(--ink-faint)" stroke-width=".5" stroke-dasharray="1.5 2" fill="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'"/></g>'+
       '<g stroke="var(--ink)" stroke-width="1" fill="none">'+spokes+'</g></svg>'+
     '<span class="map-centre">'+escapeHtml(map.label)+'</span>'+
-    nodes+
+    vias+nodes+
     '</div>'+renderLookFrom(map)+renderMapCaption(map)+'</div>';
 }
 // How far a note-distance actually is, in plain terms rather than a bucket
@@ -6902,9 +6969,10 @@ function lookFromDistBadge(dist){
 }
 function lookFromWhy(cand,home){
   const distPhrase=cand.dist===0?'the exact same 7 chords':cand.dist+' chord'+(cand.dist===1?'':'s')+' would be different';
-  if(cand.rn)return 'Your '+cand.rn+' — '+distPhrase+'.';
-  if(cand.root===home.tonic)return 'Keeps '+pcName(home.tonic)+' home — '+distPhrase+'.';
-  return 'Same chords as '+keyInfoLabel(home)+', read from '+pcName(cand.root)+' instead — '+distPhrase+'.';
+  const fitPhrase=' Holds '+cand.fits+' of the '+cand.total+' chords your song actually plays.';
+  if(cand.rn)return 'Your '+cand.rn+' — '+distPhrase+'.'+fitPhrase;
+  if(cand.root===home.tonic)return 'Keeps '+pcName(home.tonic)+' home — '+distPhrase+'.'+fitPhrase;
+  return 'Same chords as '+keyInfoLabel(home)+', read from '+pcName(cand.root)+' instead — '+distPhrase+'.'+fitPhrase;
 }
 // Every other reading of this song, ranked closest first -- a relative mode,
 // a real key change, a same-tonic mode, whichever actually costs the fewest
@@ -6912,14 +6980,16 @@ function lookFromWhy(cand,home){
 // "Set as key" in the caption below says so.
 function renderLookFrom(map){
   if(!map.candidates.length)return '';
-  const home=map.keyInfo;
+  const home=map.home;
   let html='<div class="lookfrom-head"><span class="lookfrom-label">Look from</span>'+
-    '<span class="lookfrom-spectrum">closest <b>&larr;</b> &middot; <b>&rarr;</b> most different</span></div><div class="lookfrom-row">';
+    '<span class="lookfrom-spectrum">from <b>'+escapeHtml(keyInfoLabel(home))+'</b> &middot; closest <b>&larr;</b> &middot; <b>&rarr;</b> most different</span></div><div class="lookfrom-row">';
   map.candidates.forEach(c=>{
     const on=mapView&&mapView.tonic===c.root&&mapView.scaleKey===c.scaleKey;
     html+='<button type="button" class="lookfrom-chip'+(on?' on':'')+'" data-map-view="'+c.root+':'+c.scaleKey+
-      '" title="'+escapeHtml(lookFromWhy(c,home))+'"><span class="lf-name">'+escapeHtml(c.name)+
-      (c.used?' <span class="lf-used">used</span>':'')+'</span><span class="lf-badge">'+lookFromDistBadge(c.dist)+'</span></button>';
+      '" aria-pressed="'+(on?'true':'false')+'" title="'+escapeHtml(lookFromWhy(c,home))+'"><span class="lf-name">'+escapeHtml(c.name)+
+      (on?' <span class="lf-on">viewing</span>':'')+(c.used?' <span class="lf-used">used</span>':'')+
+      '</span><span class="lf-badge">'+lookFromDistBadge(c.dist)+
+      ' <span class="lf-fit'+(c.fits===c.total?' is-all':'')+'">'+c.fits+'/'+c.total+' fit</span></span></button>';
   });
   return html+'</div>';
 }
@@ -6961,6 +7031,14 @@ function wireChordMap(host){
     // Loading re-renders this row on its way through analyze(); only a chord
     // with no playable shape needs the caption redrawn by hand.
     if(!loadSuggestedChord({root,suf}))renderChordKeyChips();
+  }));
+  host.querySelectorAll('[data-via-root]').forEach(btn=>btn.addEventListener('click',event=>{
+    event.stopPropagation();
+    const [ir,is]=btn.dataset.viaInto.split(':');
+    // Select the chord it bridges into, so the caption explains the move,
+    // while the fretboard shows the bridge chord itself.
+    mapPick={root:Number(ir),suf:is||''};
+    if(!loadSuggestedChord({root:Number(btn.dataset.viaRoot),suf:btn.dataset.viaSuf||''}))renderChordKeyChips();
   }));
   host.querySelectorAll('[data-map-view]').forEach(btn=>btn.addEventListener('click',event=>{
     event.stopPropagation();
@@ -7173,8 +7251,17 @@ function outlierFunction(chord,keyInfo){
   const iv=((chord.root-keyInfo.tonic)+12)%12;
   const hit=BORROWINGS[mode].find(b=>b.iv===iv&&startsLike(b.q,chord.suf));
   const pcs=[...new Set(chord.pcs)];
+  // "What do I play over this" has to stay near the song you are actually in.
+  // Taking the first mode off a fixed list that merely holds the chord's notes
+  // can land somewhere absurd -- an F♯ triad in B Phrygian would be answered
+  // with B Lydian, five of seven notes away from the key the rest of the song
+  // is in, when B harmonic minor holds the same chord two notes away and is
+  // where that chord's raised third comes from in the first place. So: every
+  // mode that genuinely holds the chord, nearest to the key's own scale first.
+  const homeScaleKey=keyInfo.keyScale&&SCALES[keyInfo.keyScale]?keyInfo.keyScale:(mode==='minor'?'minor':'major');
   const containing=root=>['mixo','dorian','lydian','minor','phrygian','major','harmMin','melMin']
-    .find(m=>scaleHolds(root,m,pcs));
+    .filter(m=>scaleHolds(root,m,pcs))
+    .sort((a,b)=>noteDiffCount(keyInfo.tonic,homeScaleKey,root,a)-noteDiffCount(keyInfo.tonic,homeScaleKey,root,b))[0];
   // A major triad on a minor key's tonic is that key's own I borrowed bright,
   // not the dominant of its iv -- the one place the table outranks V/x. Put
   // a seventh on it and it is pulling somewhere again, so V/iv it is.

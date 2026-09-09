@@ -7117,6 +7117,12 @@ function wireChordMap(host){
     const [t,s]=event.currentTarget.dataset.setKey.split(':');
     keyOverride={tonic:Number(t),scaleKey:s};
     mapView=null;mapPick=null;
+    // A scale already pinned on the fretboard was chosen for the OLD key --
+    // keeping it active would leave the neck showing notes for a key you just
+    // left, silently disagreeing with the header and the suggestions list
+    // that both did update. Clearing it is what lets "For soloing" come back
+    // with fresh options for the key you actually just set.
+    scaleActive=null;scaleBoxIdx=null;scalePreview=null;
     refreshKeyContext();renderSong();renderKey();save();
     const label=keyInfoLabel(currentKeyInfo);
     showBoardSticker('Now working in '+label+' — chord suggestions, scales and the chart will follow this key.',{timeout:5200});
@@ -7128,6 +7134,10 @@ function wireChordMap(host){
 }
 function revertKeyOverride(){
   keyOverride=null;mapView=null;mapPick=null;
+  // Same reasoning as setting a key from the map: a scale pinned for the
+  // overridden key is stale the moment that key stops being the one you're
+  // in, so it goes back to unset rather than quietly misleading the neck.
+  scaleActive=null;scaleBoxIdx=null;scalePreview=null;
   refreshKeyContext();renderSong();renderKey();save();
   flash('Back to the detected key');
 }

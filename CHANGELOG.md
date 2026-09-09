@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-09 — Setting a key from the map no longer leaves an old scale stuck on the neck
+
+- **"Set as key" and "back to the detected key" now clear a scale that was
+  already pinned on the fretboard.** Chord suggestions and the key header
+  were already updating correctly, but a scale chosen for the *previous* key
+  stayed active — so after switching to B Phrygian from the map, the neck
+  could keep showing dots for the old key's E minor pentatonic, silently
+  disagreeing with everything else on screen. It now resets to unset, and
+  "For soloing" comes back with fresh top suggestions for the key you just
+  set, exactly like it does the first time you ever open it.
+
 ## 2026-09-09 — Getting in and out of a borrowed chord
 
 - **Every chord from outside the key now shows a way in and a way out.** Not

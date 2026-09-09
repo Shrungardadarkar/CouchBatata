@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-09-09 — The chord that opens a modulated section, and a truer whole-song key
+
+- A section that modulates to its own key now shows the chord that led it
+  there: when the section before it ends on a chord that hinges into the
+  new key — either a chord shared by both (a common-chord pivot) or a
+  dominant whose target is the new key's own chord — the section header
+  gets a "via F♯7"-style badge next to its key tag. Tap it to jump straight
+  to that chord and see the full explanation in both keys.
+- The per-chord context line now checks across a section break, not just
+  within it: a dominant parked on the last chord of a section that resolves
+  on the first chord of the next now correctly says "it lands on Bm right
+  after" instead of staying silent because the two chords live in different
+  section arrays.
+- Fixed a real accuracy bug this surfaced: a section that reads cleanly in
+  its own key (a chorus that modulates) was still allowed to vote on what
+  the whole SONG's key is, and a big enough modulated section could drag
+  the reading somewhere neither section actually lives (two 10-chord A
+  major choruses pulled a plainly-G-major song toward "D major"). Sections
+  the app already treats as "modulated, not borrowed" are now excluded from
+  the whole-song key vote before it's taken.
+- Fixed a second, deeper accuracy bug in the same area: picking a key by
+  raw chord-coverage alone can prefer a coincidental fit over the one the
+  song is actually telling. On the same real song, a plain reading of
+  "which key covers more chords" preferred C major (whose only advantage
+  was one accidental match) over G major, even though the "leftover"
+  chords in a G major reading are the song's own well-known borrowings
+  (♭VII, and V7 of iii) while the C major leftovers explained nothing. The
+  key detector now checks its own leftovers with the app's own
+  borrowing/secondary-dominant engine, and a key that can explain what it
+  doesn't cover always beats one that merely covers slightly more by
+  accident.
+
 ## 2026-09-09 — Look from any key or mode, and set it as the working key
 
 - The map's "related keys" no longer needs its own tab: one ranked strip,

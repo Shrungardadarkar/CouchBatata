@@ -897,6 +897,14 @@
   .sect-key{font:900 .64rem "Courier New",monospace;color:var(--mint-dk);
     background:var(--mint-soft);border:1.5px solid var(--mint-dk);border-radius:5px;
     padding:1px 6px;white-space:nowrap}
+  /* The chord that hinges the song into this section's own key -- a dashed
+     border reads as "leads in from before", distinct from the solid key tag
+     it sits beside. */
+  .sect-pivot{font:800 .64rem "Courier New",monospace;color:var(--ink-dim);
+    background:none;border:1.5px dashed var(--ink-dim);border-radius:5px;
+    padding:1px 6px;white-space:nowrap;cursor:pointer}
+  .sect-pivot b{color:var(--ink)}
+  @media (hover:hover){.sect-pivot:hover{color:var(--ink);border-color:var(--ink)}}
 
   .sect-chords{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:36px}
   /* Sits in the gap the flex gap already leaves, so marking a join costs the
@@ -2361,8 +2369,23 @@ function analyzeKey(chords=allChords()){
     const minAnchor=chords.some(c=>c.root===t && (c.suf==='m'||c.suf==='m7'));
     const rootBonus=majAnchor?4:(minAnchor?2:0);
     const firstBonus=chords[0].root===t?2:0;
-    scored.push({tonic:t,outIdxs,inChords,
-      score:inChords*10+rootBonus+firstBonus-outIdxs.length*2});
+    // Raw coverage alone can pick the wrong tonic: a key that happens to
+    // swallow one more chord as a coincidental diatonic match can still beat
+    // one whose "leftovers" are not accidents at all -- a well-known
+    // borrowing, or a secondary dominant pointing at one of its own chords.
+    // A reading that cannot account for a chord at all (not in the key, and
+    // not one of the recognised moves out of it either) is the one that
+    // should actually lose, even if it technically covers fewer chords than
+    // some other key it steps outside of one more time. Judged with the
+    // app's own borrowing/secondary-dominant engine, not a second copy of
+    // it, and weighted to dominate every other factor: which key leaves the
+    // fewest truly unaccountable chords comes first, coverage only breaks
+    // a tie.
+    const probe={tonic:t,keyMode:'major',keyScale:'major',dominantContext:false};
+    let unexplained=0;
+    outIdxs.forEach(i=>{if(!outlierFunction(chords[i],probe)?.named)unexplained++;});
+    scored.push({tonic:t,outIdxs,inChords,unexplained,
+      score:unexplained*-1000+inChords*10+rootBonus+firstBonus-outIdxs.length*2});
   }
   scored.sort((a,b)=>b.score-a.score);
   const best=scored[0];
@@ -2448,15 +2471,48 @@ function refreshKeyContext(){
   const context=keyAnalysisContext();
   keyContextCount=context.chords.length;
   keyContextIncludesBoard=context.includeBoard;
-  currentKeyInfo=keyOverride
-    ?keyInfoForOverride(keyOverride.tonic,keyOverride.scaleKey,context.chords)
-    :analyzeKey(context.chords);
+  if(keyOverride){
+    currentKeyInfo=keyInfoForOverride(keyOverride.tonic,keyOverride.scaleKey,context.chords);
+  }else{
+    const naive=analyzeKey(context.chords);
+    // A section that reads as a clean, different key entirely on its own --
+    // a chorus that modulates to its own major, say -- is a guest in the
+    // song, not the host. Left in the pot, its chords can out-vote
+    // everyone else's and drag the whole SONG's key toward wherever the
+    // guest lives (a real case: two ten-chord choruses in A major pulled a
+    // song that is plainly G major toward D major, because more raw chords
+    // fit D). Find those sections against the naive whole-song reading,
+    // drop their chords, and only then settle on the home key.
+    const modulated=new Set();
+    sections.forEach(sec=>{if(sectionKeyInfo(sec,naive))modulated.add(sec.id);});
+    const homeSections=sections.filter(s=>!modulated.has(s.id));
+    if(modulated.size&&homeSections.some(s=>s.chords.length)){
+      const homeChords=homeSections.flatMap(s=>s.chords);
+      // The board's audition chord (if any) belongs to no section and was
+      // never in question -- carry it through exactly as analyzeKey first
+      // saw it, appended last.
+      if(context.includeBoard)homeChords.push(context.chords[context.chords.length-1]);
+      currentKeyInfo=analyzeKey(homeChords)||naive;
+    }else{
+      currentKeyInfo=naive;
+    }
+  }
   // Worked out once per pass: analyzeKey is not cheap, and the outlier map,
   // the guidance and every section card all need the same answer.
   currentSectionKeys=new Map();
   sections.forEach(sec=>{
     const info=sectionKeyInfo(sec,currentKeyInfo);
     if(info)currentSectionKeys.set(sec.id,info);
+  });
+  // A section that modulates did not appear from nowhere: the last chord of
+  // whatever came before it is usually the hinge, sometimes reached by a
+  // dominant that only makes sense once you know which key it is opening.
+  currentSectionPivots=new Map();
+  sections.forEach((sec,idx)=>{
+    const secKey=currentSectionKeys.get(sec.id);
+    const prev=sections[idx-1];
+    const pivot=secKey&&prev?sectionPivot(prev,secKey,currentKeyInfo):null;
+    if(pivot)currentSectionPivots.set(sec.id,pivot);
   });
   currentOutlierMap=buildOutlierMap(currentKeyInfo);
   currentCoveringMode=findCoveringMode(currentKeyInfo);
@@ -2731,6 +2787,35 @@ function sectionKeyInfo(sec,songKeyInfo){
     &&(info.keyMode||'major')===(songKeyInfo.keyMode||'major'))return null;
   return info;
 }
+// The chord right before a section that reads in its own key is usually the
+// hinge -- either it already belongs to both keys (a classic common-chord
+// pivot), or it is a dominant in the old key whose target is the new key's
+// own chord, tonicising the doorway on its way through. Two different moves,
+// the same job: named here once so a section header can show it without
+// making the player tap a chord to learn what got them there.
+function sectionPivot(prevSec,secKeyInfo,songKeyInfo){
+  if(!prevSec||!Array.isArray(prevSec.chords)||!prevSec.chords.length)return null;
+  if(!secKeyInfo||!songKeyInfo||secKeyInfo.dominantContext||songKeyInfo.dominantContext)return null;
+  const last=prevSec.chords[prevSec.chords.length-1];
+  const secTris=diatonicTriadsFor(secKeyInfo.tonic,keyIntervals(secKeyInfo));
+  const inSec=c=>c&&secTris.some(t=>t.root===c.root&&startsLike(t.suf,c.suf));
+  const secLabel=keyInfoLabel(secKeyInfo),homeLabel=keyInfoLabel(songKeyInfo);
+  if(inSec(last)){
+    const secTri=secTris.find(t=>t.root===last.root&&startsLike(t.suf,last.suf));
+    const homeTri=keyTriads(songKeyInfo).find(t=>t.root===last.root&&startsLike(t.suf,last.suf));
+    return {chord:last,kind:'shared',rn:secTri.rn,
+      summary:pcName(last.root)+last.suf+' is '+(homeTri?'the '+homeTri.rn+' of '+homeLabel:'already outside '+homeLabel)+
+        ' and the '+secTri.rn+' of '+secLabel+' -- the same chord reads in both, so the song slides straight across.'};
+  }
+  const fn=outlierFunction(last,songKeyInfo);
+  if(fn&&fn.kind==='secondary'&&inSec(fn.target)){
+    const secTri=secTris.find(t=>t.root===fn.target.root&&startsLike(t.suf,fn.target.suf));
+    return {chord:last,kind:'dominant',rn:fn.rn,target:fn.target,
+      summary:pcName(last.root)+last.suf+' is the '+fn.rn+' of '+homeLabel+
+        ' -- it pulls to '+pcName(fn.target.root)+fn.target.suf+', the '+secTri.rn+' of '+secLabel+' and the door into it.'};
+  }
+  return null;
+}
 function keyInfoLabel(info){
   if(!info)return '';
   if(info.dominantContext)return pcName(info.tonic)+' dominant blues';
@@ -2938,6 +3023,7 @@ const SCALE_DEGREE_NAMES={sroot:'the root — home',sthird:'the 3rd — the colo
 let currentKeyInfo=null; // {tonic, outIdxs (Set), inChords, totalChords, isPerfectFit, alsoFits}
 let currentOutlierMap=new Map(); // sectionId → Set of local chord idxs that are outliers
 let currentSectionKeys=new Map();// sectionId → its own key, when it has one the song doesn't
+let currentSectionPivots=new Map();// sectionId → the hinge chord that led in from the section before, when one is found
 let currentCoveringMode=null;    // {root, scale} that covers all chords incl. outliers, or null
 let keyContextCount=0;
 let keyContextIncludesBoard=false;
@@ -5024,6 +5110,22 @@ function buildSectionCard(sec,idx,primary){
     keyTag.title='This section sits in '+keyInfoLabel(secKey)+' on its own — the song reads as '+
       (currentKeyInfo?keyInfoLabel(currentKeyInfo):'another key')+' overall.';
     bar.appendChild(keyTag);
+    const pivot=currentSectionPivots.get(sec.id);
+    if(pivot){
+      const pivotBtn=document.createElement('button');
+      pivotBtn.type='button';pivotBtn.className='sect-pivot';
+      pivotBtn.innerHTML='via <b>'+escapeHtml(pcName(pivot.chord.root)+pivot.chord.suf)+'</b>';
+      pivotBtn.title=pivot.summary+' Tap to jump to it.';
+      pivotBtn.addEventListener('click',e=>{
+        e.stopPropagation();
+        const prevSec=sections[idx-1];
+        if(!prevSec)return;
+        toggleChip(prevSec,prevSec.chords.length-1);
+        renderChordKeyChips();
+        document.getElementById('chordKeyChips')?.scrollIntoView({behavior:'smooth',block:'center'});
+      });
+      bar.appendChild(pivotBtn);
+    }
   }
 
   const sp=document.createElement('span');sp.className='sect-bar-sp';bar.appendChild(sp);
@@ -6976,7 +7078,13 @@ function outlierIsResolved(sec,cIdx,keyInfo){
   // Repeats of the dominant itself still count as leading to the same place.
   let j=cIdx+1;
   while(sec.chords[j]&&sec.chords[j].root===chord.root&&sec.chords[j].suf===chord.suf)j++;
-  return lands(sec.chords[j]);
+  if(j<sec.chords.length)return lands(sec.chords[j]);
+  // Running off the end of the section is not running off the end of the
+  // song -- a dominant parked on the last chord before a section break is
+  // very often the pivot into whatever comes right after it.
+  const idx=sections.findIndex(s=>s.id===sec.id);
+  const next=sections[idx+1];
+  return lands(next&&next.chords[0]);
 }
 function chromaticRoute(chord,keyInfo){
   if(!chord||!keyInfo||keyInfo.dominantContext)return null;

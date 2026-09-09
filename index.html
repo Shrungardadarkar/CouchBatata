@@ -529,9 +529,22 @@
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
   @media (hover:hover){.song-key-alt:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
   .song-key-alt:active{transform:translate(1px,1px);transition-duration:.05s}
+  /* A key the player chose, not the one analyzeKey() would have picked --
+     neutral-toned so it reads as a fact about the song, not a suggestion,
+     with an always-available way back to what the chords actually imply. */
+  .song-key-revert{font:900 .66rem "Courier New",monospace;color:var(--ink-dim);
+    background:var(--cream-2);border:1.5px solid var(--ink-faint);border-radius:5px;
+    padding:1px 7px;margin-left:5px;cursor:pointer;white-space:nowrap;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring)}
+  @media (hover:hover){.song-key-revert:hover{transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}}
+  .song-key-revert:active{transform:translate(1px,1px);transition-duration:.05s}
   /* The in-key palette, revealed from the chord chip rather than standing in
      its own panel: the chip is the one answer, this is the exploration. */
-  .key-palette{flex-basis:100%;margin-top:9px;background:var(--paper);border:2px dashed var(--ink);
+  /* min-width:0 overrides a flex item's default auto min-width (its content's
+     min-content size) -- without it, a wide-enough scrolling row inside here
+     (the look-from strip, once it has enough candidates) forces this whole
+     flex item wider instead of scrolling in place, and the page grows with it. */
+  .key-palette{flex-basis:100%;min-width:0;margin-top:9px;background:var(--paper);border:2px dashed var(--ink);
     border-radius:10px;padding:11px 12px}
   .key-palette .scale-notes-line{margin-top:6px}
   .scale-switch-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:7px}
@@ -589,10 +602,11 @@
   .map-node.outside.leads{border-style:solid;border-color:var(--sky)}
   .map-rn{font:900 .52rem "Courier New",monospace;color:var(--ink-soft)}
   .map-node.used .map-rn{color:var(--ink)}
-  /* A chord that is also the doorway to a neighbouring key says which. */
-  .map-key{color:var(--mint-dk);font-size:.92em}
+  /* The way in, named on the chord itself -- acting on it is the caption's
+     job, this just says which chord bridges the two. */
+  .map-via{font:900 .5rem "Courier New",monospace;color:var(--mint-dk);letter-spacing:.02em}
   .map-node.picked{background:var(--mint);color:var(--paper);box-shadow:3px 3px 0 var(--ink)}
-  .map-node.picked .map-rn,.map-node.picked .map-key{color:var(--paper)}
+  .map-node.picked .map-rn,.map-node.picked .map-via{color:var(--paper)}
   /* "You are here" is the chord selected in the song -- a place, not a key. */
   .map-node.here{box-shadow:0 0 0 3px var(--tomato),3px 3px 0 var(--ink)}
   /* Short enough to sit inside the node's own width, so it never reaches a
@@ -606,6 +620,27 @@
   .map-cap-line b{color:var(--ink)}
   .map-cap-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
   .map-btn{padding:5px 12px;font-size:.76rem;font-family:inherit;font-weight:800}
+  /* Look from: every other reading of this song, ranked by how many notes it
+     actually costs -- one scrolling row, same idiom as the scale-alternates
+     row, rather than a set of categories to understand before seeing any of
+     them. */
+  .lookfrom-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    margin:14px 0 7px;flex-wrap:wrap}
+  .lookfrom-label{font:900 .64rem "Courier New",monospace;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--ink-faint)}
+  .lookfrom-spectrum{font-size:.7rem;color:var(--ink-faint)}
+  .lookfrom-spectrum b{color:var(--ink-dim)}
+  .lookfrom-row{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
+  .lookfrom-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+    font:inherit;text-align:left;background:var(--cream);border:2px solid var(--ink);border-radius:10px;
+    padding:6px 11px;cursor:pointer;box-shadow:1.5px 1.5px 0 var(--ink);
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  @media (hover:hover){.lookfrom-chip:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
+  .lookfrom-chip.on{background:var(--sun);box-shadow:3px 3px 0 var(--ink)}
+  .lf-name{font-weight:800;font-size:.8rem;white-space:nowrap}
+  .lf-used{font:900 .5rem "Courier New",monospace;text-transform:uppercase;letter-spacing:.02em;
+    background:var(--sun-soft);color:var(--tomato-dk);border-radius:999px;padding:0 5px;margin-left:2px}
+  .lf-badge{font:900 .56rem "Courier New",monospace;color:var(--ink-dim)}
   @media (max-width:480px){
     .map-node{min-width:32px;padding:3px 6px;font-size:.64rem}
     .map-rn{font-size:.46rem}
@@ -2191,13 +2226,30 @@ function suggestScales(primary,info=currentKeyInfo,cs=allChords(),covering=curre
     sugs.push({root:primary,scale:'mixo',why:'Fits the I7 chord; follow IV7 and V7 with their own Mixolydian roots for exact chord-tone coverage.'});
     return sugs;
   }
+  // The scale this reading actually stands on -- 'major' unless the key came
+  // from previewing or setting one of the other six modes. Falling back to
+  // hard-coded 'major'/'minor' below would tell a Lydian or Mixolydian
+  // reading its own raised 4th or flattened 7th "hits every chord tone" when
+  // the plain major scale it named instead does not contain it.
+  const scaleKey=info&&info.keyScale&&SCALES[info.keyScale]?info.keyScale:null;
   if(info&&info.keyMode==='minor'){
     sugs.push({root:primary,scale:'minPent',why:'A compact minor vocabulary centred on your tonal home.'});
-    sugs.push({root:primary,scale:'minor',why:'Natural minor for melodies that stay close to the tonic sound.'});
-    if(info.keyScale==='harmMin'){
-      sugs.push({root:primary,scale:'harmMin',why:'Matches the raised 7th and dominant pull in this progression.'});
-    } else if(info.keyScale==='melMin'){
-      sugs.push({root:primary,scale:'melMin',why:'Matches the raised 6th and 7th in this progression.'});
+    if(scaleKey&&scaleKey!=='minor'&&scaleKey!=='harmMin'&&scaleKey!=='melMin'){
+      // Dorian, Phrygian, Locrian, or a modal preview from the map -- a
+      // minor-flavoured reading that isn't natural/harmonic/melodic minor.
+      sugs.push({root:primary,scale:scaleKey,why:'The exact notes of this reading — every chord tone, including what makes it '+SCALES[scaleKey].name+'.'});
+      // Locrian is two notes from natural minor; Dorian and Phrygian are one --
+      // measured, not assumed, since claiming a fixed count here would be
+      // wrong for whichever of the three doesn't match it.
+      const minorDiff=noteDiffCount(primary,scaleKey,primary,'minor');
+      sugs.push({root:primary,scale:'minor',why:'The plain natural-minor cousin — '+minorDiff+' note'+(minorDiff===1?'':'s')+' simpler.'});
+    } else {
+      sugs.push({root:primary,scale:'minor',why:'Natural minor for melodies that stay close to the tonic sound.'});
+      if(info.keyScale==='harmMin'){
+        sugs.push({root:primary,scale:'harmMin',why:'Matches the raised 7th and dominant pull in this progression.'});
+      } else if(info.keyScale==='melMin'){
+        sugs.push({root:primary,scale:'melMin',why:'Matches the raised 6th and 7th in this progression.'});
+      }
     }
     return sugs;
   }
@@ -2208,7 +2260,11 @@ function suggestScales(primary,info=currentKeyInfo,cs=allChords(),covering=curre
   // Safe defaults — minor pent is the most forgiving over almost any progression
   sugs.push({root:rel,scale:'minPent',why:'A forgiving, guitar-shaped starting point inside this key.'});
   sugs.push({root:rel,scale:'blues',why:'Same shapes as minor pent, plus the ♭5 for grit.'});
-  sugs.push({root:primary,scale:'major',why:'The parent scale — hits every chord tone.'});
+  if(scaleKey&&scaleKey!=='major'){
+    sugs.push({root:primary,scale:scaleKey,why:'The parent scale for this reading — hits every chord tone, including what makes it '+SCALES[scaleKey].name+'.'});
+  }else{
+    sugs.push({root:primary,scale:'major',why:'The parent scale — hits every chord tone.'});
+  }
   // The alternate reading the key line offers, sitting right next to its
   // note-set twin: same seven notes as the parent scale, resolved somewhere
   // else. Offering it in the header and then leaving it out of the soloing
@@ -2374,11 +2430,27 @@ function keyAnalysisContext(){
   const includeBoard=!!current&&chordBoardTouched&&!activeChip&&!duplicate;
   return {chords:includeBoard?[...saved,current]:saved,includeBoard};
 }
+// A keyInfo forced to a chosen tonic and mode instead of the best-fit one
+// analyzeKey() would have picked -- same shape, so every reader of
+// currentKeyInfo (scale suggestions, chord suggestions, the map, the export)
+// follows it without needing to know an override exists.
+function keyInfoForOverride(tonic,scaleKey,chords){
+  const set=new Set(SCALES[scaleKey].intervals.map(iv=>(tonic+iv)%12));
+  const outIdxs=[];
+  chords.forEach((c,i)=>{if(!c.pcs.every(pc=>set.has(pc)))outIdxs.push(i);});
+  return {
+    tonic,outIdxs:new Set(outIdxs),inChords:chords.length-outIdxs.length,totalChords:chords.length,
+    isPerfectFit:outIdxs.length===0,alsoFits:[],altMode:null,dominantContext:false,
+    keyScale:scaleKey,keyMode:modeFlavor(scaleKey),overridden:true,
+  };
+}
 function refreshKeyContext(){
   const context=keyAnalysisContext();
   keyContextCount=context.chords.length;
   keyContextIncludesBoard=context.includeBoard;
-  currentKeyInfo=analyzeKey(context.chords);
+  currentKeyInfo=keyOverride
+    ?keyInfoForOverride(keyOverride.tonic,keyOverride.scaleKey,context.chords)
+    :analyzeKey(context.chords);
   // Worked out once per pass: analyzeKey is not cheap, and the outlier map,
   // the guidance and every section card all need the same answer.
   currentSectionKeys=new Map();
@@ -2662,68 +2734,89 @@ function sectionKeyInfo(sec,songKeyInfo){
 function keyInfoLabel(info){
   if(!info)return '';
   if(info.dominantContext)return pcName(info.tonic)+' dominant blues';
-  if(info.keyMode==='minor')return pcName(info.tonic)+' '+(SCALES[info.keyScale]?.name||'minor').toLowerCase();
-  return pcName(info.tonic)+' major';
+  // Every keyInfo this app builds carries a real SCALES key in keyScale, so
+  // its own name is always the right word here -- "major" was only ever
+  // true because keyScale was always 'major' whenever keyMode wasn't
+  // 'minor'. A Lydian or Mixolydian reading needs its own name too.
+  const scale=SCALES[info.keyScale]||SCALES.major;
+  return pcName(info.tonic)+' '+scale.name.toLowerCase();
 }
+// Whether a mode's own tonic triad reads as major or minor -- the same
+// classification suggestScales() already uses via MINOR_CENTER_SCALES, kept
+// in one place so a key built around any of the seven modes picks the right
+// scale defaults, chord-suggestion ranking and display conventions.
+function modeFlavor(scaleKey){return MINOR_CENTER_SCALES.has(scaleKey)?'minor':'major';}
 
-// The five closely-related keys of the song's key, plus its parallel
-// major/minor -- each carrying the chord that pivots (or, for the parallel,
-// the shared dominant that bridges) into it, and -- when one of the song's
-// own outlier chords already belongs there -- which chord, and where.
+// The classic modulation targets of a key -- V, IV, and the relative/related
+// minors (or, from a minor key, v, iv, and the relative/related majors).
+// Reused as the backbone of lookFromCandidates(); the note-distance a move
+// actually costs is computed there, not hard-coded here.
 const RELATED_KEY_DEFS={
-  major:[
-    {off:7,mode:'major',rn:'V',dist:1},
-    {off:5,mode:'major',rn:'IV',dist:1},
-    {off:9,mode:'minor',rn:'vi',dist:0},
-    {off:2,mode:'minor',rn:'ii',dist:1},
-    {off:4,mode:'minor',rn:'iii',dist:1},
-  ],
-  minor:[
-    {off:7,mode:'minor',rn:'v',dist:1},
-    {off:5,mode:'minor',rn:'iv',dist:1},
-    {off:3,mode:'major',rn:'III',dist:0},
-    {off:8,mode:'major',rn:'VI',dist:1},
-    {off:10,mode:'major',rn:'VII',dist:1},
-  ],
+  major:[{off:7,mode:'major',rn:'V'},{off:5,mode:'major',rn:'IV'},
+    {off:9,mode:'minor',rn:'vi'},{off:2,mode:'minor',rn:'ii'},{off:4,mode:'minor',rn:'iii'}],
+  minor:[{off:7,mode:'minor',rn:'v'},{off:5,mode:'minor',rn:'iv'},
+    {off:3,mode:'major',rn:'III'},{off:8,mode:'major',rn:'VI'},{off:10,mode:'major',rn:'VII'}],
 };
-function relatedKeysFor(keyInfo){
+// How many pitch classes differ between two seven-note scales -- the one
+// measure of "close" that works whether the tonic moves or stays put, so a
+// same-tonic mode and a real key change land on the same ruler.
+function noteDiffCount(tonicA,scaleA,tonicB,scaleB){
+  const a=new Set(SCALES[scaleA].intervals.map(iv=>(tonicA+iv)%12));
+  const b=new Set(SCALES[scaleB].intervals.map(iv=>(tonicB+iv)%12));
+  let diff=0;a.forEach(pc=>{if(!b.has(pc))diff++;});
+  return diff;
+}
+// Every place "Look from" can take you, ranked by that one ruler rather than
+// sorted into buckets that don't actually share a distance -- G Mixolydian
+// and D major are both one note from G major, even though only one of them
+// moves the tonic. The same-sounding name can legitimately appear twice at
+// two different distances (A Dorian is G major's own 7 chords read from A,
+// 0 away; A natural minor flattens the 6th, 1 away) -- both are listed,
+// each honestly measured, rather than collapsed into one.
+function lookFromCandidates(keyInfo){
   if(!keyInfo||keyInfo.dominantContext)return [];
   const tonic=keyInfo.tonic;
-  const mode=keyInfo.keyMode==='minor'?'minor':'major';
+  const homeScale=keyInfo.keyScale&&SCALES[keyInfo.keyScale]?keyInfo.keyScale:(keyInfo.keyMode==='minor'?'minor':'major');
+  const homeMode=keyInfo.keyMode==='minor'?'minor':'major';
   // Only genuine outliers count as "borrowed" -- a chord already inside the
   // song's own key isn't borrowed from anywhere, even if it also happens to
-  // be diatonic to a neighbor.
+  // be diatonic to a neighbour.
   const outlierLocs=keyInfo.isPerfectFit?[]:[...keyInfo.outIdxs].map(chordAtGlobalIdx).filter(Boolean);
-  const build=(off,relMode,rn,dist,borrow)=>{
-    const root=(tonic+off)%12;
-    const tris=diatonicTriadsFor(root,relMode==='major'?MAJ_SCALE:SCALES.minor.intervals);
-    // A minor key's working dominant is the major V (harmonic minor raises
-    // the leading tone for exactly this). E7 belongs to A minor as surely as
-    // Dm does, and a natural-minor ring alone would never say so.
+  const seen=new Set();
+  const out=[];
+  const add=(root,scaleKey,rn)=>{
+    const key=root+':'+scaleKey;
+    if(seen.has(key)||(root===tonic&&scaleKey===homeScale))return;
+    seen.add(key);
+    const tris=diatonicTriadsFor(root,SCALES[scaleKey].intervals);
+    // Natural minor's working dominant is the major V (harmonic minor raises
+    // the leading tone for exactly this) -- E7 belongs to A minor as surely
+    // as Dm does, and the plain triad ring alone would never say so. Dorian,
+    // Phrygian and Locrian have no such convention -- their own v is already
+    // whatever their own scale makes it, so this stays specific to exactly
+    // the natural-minor reading rather than every minor-flavoured mode.
+    const domRoot=(root+7)%12;
     const belongs=c=>tris.some(t=>t.root===c.root&&startsLike(t.suf,c.suf))
-      ||(relMode==='minor'&&c.root===(root+7)%12&&startsLike('',c.suf));
+      ||(scaleKey==='minor'&&c.root===domRoot&&startsLike('',c.suf));
     const loc=outlierLocs.find(l=>belongs(l.chord));
-    const entry={
-      root,mode:relMode,rn,dist,tris,
-      name:pcName(root)+(relMode==='minor'?' minor':' major'),
+    out.push({
+      root,scaleKey,rn,tris,dist:noteDiffCount(tonic,homeScale,root,scaleKey),
+      name:pcName(root)+' '+SCALES[scaleKey].name.toLowerCase(),
       used:loc?{root:loc.chord.root,suf:loc.chord.suf,label:pcName(loc.chord.root)+loc.chord.suf,where:loc.sec.name}:null,
-    };
-    if(borrow){
-      // Not a true pivot -- shares the tonic, not the key signature. The
-      // dominant seventh built on the shared 5th degree resolves the same
-      // into either mode (harmonic minor raises the parallel key's leading
-      // tone to match), so it's offered as the way to bridge into it.
-      entry.pivot={type:'borrow',label:'shared tonic',rn:'parallel'};
-      const bRoot=(tonic+7)%12;
-      entry.bridge={root:bRoot,suf:'7',label:pcName(bRoot)+'7'};
-    }else{
-      entry.pivot={type:'pivot',root,suf:relMode==='minor'?'m':'',label:pcName(root)+(relMode==='minor'?'m':''),rn};
-    }
-    return entry;
+    });
   };
-  const list=RELATED_KEY_DEFS[mode].map(d=>build(d.off,d.mode,d.rn,d.dist,false));
-  list.push(build(0,mode==='major'?'minor':'major','parallel',2,true));
-  return list;
+  // The classic modulation targets first, so a coincidence with a relabel
+  // below (the relative minor IS its major parent's own Aeolian reading)
+  // keeps the more informative roman-numeral label.
+  (RELATED_KEY_DEFS[homeMode]||[]).forEach(d=>add((tonic+d.off)%12,d.mode,d.rn));
+  // Same seven chords as home, read from a different one as tonic -- only
+  // meaningful starting from a plain major reading, the one place a
+  // chord-only analysis can genuinely mean two different things (see
+  // altModeFor above; minor's own modal relatives are a murkier topic).
+  if(homeScale==='major')MAJ_SCALE.forEach((deg,i)=>{if(i)add((tonic+deg)%12,MODE_BY_DEGREE[i],null);});
+  // Same tonic, a different mode altogether.
+  MODE_BY_DEGREE.forEach(scaleKey=>add(tonic,scaleKey,null));
+  return out.sort((a,b)=>a.dist-b.dist);
 }
 
 // Find a scale/mode that covers every chord tone in the progression
@@ -2830,8 +2923,13 @@ let chordPaletteOpen=false; // the "chord map" chip's disclosure, not persisted
 let scalePickerOpen=false;  // the "scales" chip's disclosure, not persisted
 let connPreview=null;       // the move being auditioned; a second tap on it keeps it
 let ctxPin=null;            // the song chord the context line describes, so auditioning a move doesn't lose it
-let mapView=null;           // {tonic,keyMode} the chord map is looking from, or null for the song's own key
+let mapView=null;           // {tonic,scaleKey} the chord map is previewing, or null for the working key
 let mapPick=null;           // the map node last tapped: {root,suf,ring}, or null
+// A key the player chose from the map instead of the one auto-detected from
+// the chords. Persisted like any other song setting: it is a decision about
+// the song, not a transient view of it, so it survives a reload and follows
+// the song between devices the way the chords themselves do.
+let keyOverride=null;       // {tonic,scaleKey}, or null to defer to analyzeKey()
 // Plain-language degree names for the long-press tip, so the colour code
 // explains itself on demand instead of via a permanent legend.
 const SCALE_DEGREE_NAMES={sroot:'the root — home',sthird:'the 3rd — the colour',
@@ -3123,6 +3221,7 @@ function projectSnapshot(){
     useFlats,
     scaleActive:scaleActive?{root:scaleActive.root,scale:scaleActive.scale}:null,
     scaleBoxIdx,
+    keyOverride:keyOverride?{tonic:keyOverride.tonic,scaleKey:keyOverride.scaleKey}:null,
     nextId:_nextId,nextLeadId:_nextLeadId
   };
 }
@@ -3209,6 +3308,8 @@ function restoreProject(d){
   scaleActive=d.scaleActive&&Number.isInteger(d.scaleActive.root)&&SCALES[d.scaleActive.scale]
     ?{root:((d.scaleActive.root%12)+12)%12,scale:d.scaleActive.scale}:null;
   scaleBoxIdx=Number.isInteger(d.scaleBoxIdx)&&d.scaleBoxIdx>=0?d.scaleBoxIdx:null;
+  keyOverride=d.keyOverride&&Number.isInteger(d.keyOverride.tonic)&&SCALES[d.keyOverride.scaleKey]
+    ?{tonic:((d.keyOverride.tonic%12)+12)%12,scaleKey:d.keyOverride.scaleKey}:null;
   _nextId=Math.max(maxId+1,Number.isInteger(d.nextId)?d.nextId:1);
   _nextLeadId=Math.max(_nextLeadId,Number.isInteger(d.nextLeadId)&&d.nextLeadId>0?d.nextLeadId:1);
   return true;
@@ -3268,7 +3369,7 @@ async function flushCurrentProject(){
 function blankProjectSnapshot(){
   return {
     app:'Couch Batata',version:1,songName:'',sections:[],activeSectionId:null,
-    useFlats,scaleActive:null,scaleBoxIdx:null,nextId:1,nextLeadId:1
+    useFlats,scaleActive:null,scaleBoxIdx:null,keyOverride:null,nextId:1,nextLeadId:1
   };
 }
 function resetProjectEditingState(){
@@ -6269,6 +6370,15 @@ function chordContext(){
     }else if(fn&&fn.pull&&!same(next,fn.pull)){
       moves.push({label:'after it',item:Object.assign({why:'Where a '+fn.rn+' usually goes'},fn.pull),at:i+1});
     }
+    // A named borrowing with no real chord before it to judge -- first in
+    // its section, say -- still gets a real way in rather than silence.
+    // Anywhere a genuine neighbour exists, the join-smoothing check just
+    // below already answers this, so it only fires in that neighbour's
+    // absence.
+    if(fn&&fn.kind!=='secondary'&&!prev){
+      const into=outlierApproach(chord,key,fn);
+      if(into)moves.push({label:'before it',item:into,at:i});
+    }
     // A join either side that is a stretch for the hand, and the one chord
     // that best sits between. connectorSuggestions() bails cheaply on a join
     // that already moves well, so most chords get nothing here.
@@ -6495,13 +6605,16 @@ function renderKey(){
   }
   const {tonic,isPerfectFit,altMode,dominantContext}=keyInfo;
   const rel=(tonic+9)%12;
-  const tentative=keyContextCount<2;
+  const tentative=keyContextCount<2&&!keyInfo.overridden;
   let html='';
   if(dominantContext){
     html='Tonal center: <b>'+pcName(tonic)+' dominant blues</b>';
   } else {
+    // The relative-minor annotation is a plain-major-key convention -- it
+    // names the key that shares this one's signature, which only means
+    // something when this key's signature is the plain major scale.
     html=(tentative?'Tentative key: ':'Key: ')+'<b>'+keyInfoLabel(keyInfo)+'</b>'+
-      (keyInfo.keyMode==='minor'?'':' / '+pcName(rel)+' minor');
+      (keyInfo.keyScale==='major'?' / '+pcName(rel)+' minor':'');
     // How many distinct chords sit outside the key -- not a fit fraction,
     // which is the analyser's own bookkeeping. Tapping it opens the map,
     // where those chords are the ones on the outer ring.
@@ -6509,6 +6622,7 @@ function renderKey(){
     if(borrowed)html+='<button type="button" class="song-key-fit" id="songKeyBorrowed" title="See them on the chord map">'+borrowed+' borrowed</button>';
   }
   if(altMode)html+='<button type="button" class="song-key-alt" id="songKeyAltMode" title="Solo in '+pcName(altMode.root)+' '+altMode.name+' instead">also: '+pcName(altMode.root)+' '+altMode.name+'</button>';
+  if(keyInfo.overridden)html+='<button type="button" class="song-key-revert" id="songKeyRevert" title="Go back to the key detected from your chords">↩ detected</button>';
   songKey.innerHTML=html;songKey.hidden=false;
   document.getElementById('songKeyAltMode')?.addEventListener('click',event=>{
     event.stopPropagation();
@@ -6517,6 +6631,10 @@ function renderKey(){
   document.getElementById('songKeyBorrowed')?.addEventListener('click',event=>{
     event.stopPropagation();
     openChordMap();
+  });
+  document.getElementById('songKeyRevert')?.addEventListener('click',event=>{
+    event.stopPropagation();
+    revertKeyOverride();
   });
 
   // Announce borrowed chords once per transition, where every other board-
@@ -6554,48 +6672,59 @@ function openChordMap(){
    One ring of chords rather than one ring of keys. Distance from the middle is
    distance from the key: the seven diatonic chords sit on the inner ring, and
    anything the song plays from outside the key sits beyond it, out from the
-   diatonic chord it relates to.
+   diatonic chord it relates to, with the chord that bridges the two on the
+   spoke between them.
 
    The inner ring runs by fifths -- IV, I, V, ii, vi, iii, vii° -- so chords
    that are neighbours on the ring are neighbours to move between. Scale-degree
    order would look tidier and be less use.
 
-   The keys next door are on the ring already: each is reached through one of
-   these chords (its own I or i), so that chord carries the key's name, and
-   looking from there redraws the ring around it. The parallel key shares the
-   tonic but not the chords, so it is a flip at the centre rather than a node. */
+   Below it, "Look from" ranks every other reading of this song -- a relative
+   mode, a real key change, a same-tonic mode -- by how many notes it actually
+   costs, not by which of those three kinds it happens to be. Tapping one
+   redraws the ring from there; the working key itself only moves when the
+   player says so. */
 const MAP_ORDER=[0,4,1,5,2,6,3];   // I, V, ii, vi, iii, vii°, IV
-// The key the map is drawn from: the song's own, or the one being looked at.
+// The key the map is drawn from: the working key, or the one being previewed.
 function mapKeyInfo(){
   const home=currentKeyInfo;
   if(!home||home.dominantContext)return home;
-  if(mapView&&mapView.tonic===home.tonic&&mapView.keyMode===(home.keyMode||'major'))mapView=null;
+  if(mapView&&mapView.tonic===home.tonic&&mapView.scaleKey===(home.keyScale||'major'))mapView=null;
   if(!mapView)return home;
-  return {tonic:mapView.tonic,keyMode:mapView.keyMode,keyScale:mapView.keyMode==='minor'?'minor':'major',
+  return {tonic:mapView.tonic,keyScale:mapView.scaleKey,keyMode:modeFlavor(mapView.scaleKey),
     isPerfectFit:true,outIdxs:new Set(),alsoFits:[],altMode:null,dominantContext:false,viewing:true};
+}
+// What an outer chord's "Explore" link points at -- wherever it resolves to
+// (a secondary dominant), the mode it was named as borrowed from, or the
+// mode that simply holds it, in that order of preference. Never fabricated:
+// only ever a scale outlierFunction() already stood behind for this chord.
+function outlierExploreTarget(fn){
+  if(!fn)return null;
+  if(fn.kind==='secondary')return {tonic:fn.target.root,scaleKey:fn.target.suf==='m'?'minor':'major'};
+  if(fn.scale&&SCALES[fn.scale.scale]&&MODE_BY_DEGREE.includes(fn.scale.scale))return {tonic:fn.scale.root,scaleKey:fn.scale.scale};
+  return null;
 }
 function chordMapFor(keyInfo){
   if(!keyInfo||keyInfo.dominantContext)return null;
   const tris=keyTriads(keyInfo);
   if(tris.length<7)return null;
   const songChords=allChords();
-  const isMinor=keyInfo.keyMode==='minor';
+  // A minor key's working dominant is the major V (harmonic minor raises the
+  // leading tone for exactly this) -- checked against the exact natural-minor
+  // reading, not any minor-flavoured mode, since Dorian and Phrygian have no
+  // equivalent convention of borrowing a major V.
   const domRoot=(keyInfo.tonic+7)%12;
-  const related=relatedKeysFor(keyInfo);
   const inner=MAP_ORDER.map((idx,pos)=>{
     let t=tris[idx];
-    // A minor key's working dominant is the major V. When the song plays it
-    // that way, the ring says so instead of insisting on natural minor's v.
-    if(isMinor&&idx===4&&t.suf==='m'&&songChords.some(c=>c.root===domRoot&&startsLike('',c.suf)))t={root:t.root,suf:'',rn:'V'};
+    if(keyInfo.keyScale==='minor'&&idx===4&&t.suf==='m'&&songChords.some(c=>c.root===domRoot&&startsLike('',c.suf)))t={root:t.root,suf:'',rn:'V'};
     const used=songChords.some(c=>c.root===t.root&&startsLike(t.suf,c.suf));
-    const key=related.find(k=>k.pivot.type==='pivot'&&k.root===t.root&&(k.mode==='minor')===(t.suf==='m'))||null;
-    return {root:t.root,suf:t.suf,rn:t.rn,used,angle:pos*(360/7),
-      key:key?{tonic:key.root,keyMode:key.mode,name:key.name,rn:key.rn}:null};
+    return {root:t.root,suf:t.suf,rn:t.rn,used,angle:pos*(360/7)};
   });
   // Everything the song plays that the key does not contain, each sitting
   // out from the chord it relates to: a secondary dominant beside its target,
   // a named borrowing beside where it goes, anything else beside the diatonic
-  // chord it shares most with.
+  // chord it shares most with -- and, on the spoke between them, the chord
+  // that actually bridges the two, found the same way any other join is.
   const seen=new Set();
   const outer=[];
   sections.forEach(sec=>sec.chords.forEach(c=>{
@@ -6609,7 +6738,8 @@ function chordMapFor(keyInfo){
       :findReplacement(c,keyInfo).root;
     const anchor=inner.find(n=>n.root===anchorRoot)||inner[0];
     outer.push({root:c.root,suf:c.suf,label:songChordLabel(c),used:true,fn,rn:fn?fn.rn:null,
-      anchorRn:anchor.rn,anchorAngle:anchor.angle,leads:!!(fn&&(fn.kind==='secondary'||fn.pull))});
+      anchorRn:anchor.rn,anchorAngle:anchor.angle,leads:!!(fn&&(fn.kind==='secondary'||fn.pull)),
+      bridge:outlierApproach(c,keyInfo,fn),explore:outlierExploreTarget(fn)});
   }));
   // Two outliers hanging off the same diatonic chord would land on top of each
   // other; fan them apart rather than stack them.
@@ -6619,15 +6749,10 @@ function chordMapFor(keyInfo){
     o.angle=o.anchorAngle+(n===0?0:(n%2?19:-19)*Math.ceil(n/2));
     byAngle.set(o.anchorAngle,n+1);
   });
-  const parallel=related.find(k=>k.pivot.type==='borrow')||null;
-  return {inner,outer,keyInfo,label:keyInfoLabel(keyInfo),
-    parallel:parallel?{tonic:parallel.root,keyMode:parallel.mode,name:parallel.name,bridge:parallel.bridge}:null};
+  return {inner,outer,keyInfo,label:keyInfoLabel(keyInfo),candidates:lookFromCandidates(keyInfo)};
 }
 function renderChordMap(map){
   if(!map)return '';
-  // Seven inner nodes now carry a key name each; the ring has to be wide
-  // enough that neighbours' labels clear one another (measured: 20% collided
-  // at Em/Bm on both desktop and phone, 24% does not).
   const cx=50,cy=50,rIn=24,rOut=40;
   const at=(r,deg)=>{const a=deg*Math.PI/180;return {x:cx+r*Math.sin(a),y:cy-r*Math.cos(a)};};
   // "You are here" is whatever the context line above is describing -- a
@@ -6642,17 +6767,20 @@ function renderChordMap(map){
   map.inner.forEach(n=>{
     const p=at(rIn,n.angle),label=pcName(n.root)+n.suf,here=isHere(n.root,n.suf,false);
     nodes+=node((n.used?' used':'')+(here?' here':'')+(isPicked(n.root,n.suf)?' picked':''),n.root,n.suf,p.x,p.y,
-      escapeHtml(label)+' — '+n.rn+(n.used?', in your song':', in the key but unused')+(n.key?'. Also the way into '+escapeHtml(n.key.name):'')+'. Tap to hear it',
-      (here?'<span class="map-here">here</span>':'')+escapeHtml(label)+
-      '<span class="map-rn">'+n.rn+(n.key?' <span class="map-key">'+escapeHtml(n.key.name)+'</span>':'')+'</span>');
+      escapeHtml(label)+' — '+n.rn+(n.used?', in your song':', in the key but unused')+'. Tap to hear it',
+      (here?'<span class="map-here">here</span>':'')+escapeHtml(label)+'<span class="map-rn">'+n.rn+'</span>');
   });
   map.outer.forEach(o=>{
     const a=at(rIn,o.anchorAngle),b=at(rOut,o.angle),here=isHere(o.root,o.suf,true);
     spokes+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke-dasharray="3 2.5"/>';
+    // The way in is named on the chord itself -- acting on it is the
+    // caption's job below, this just says which chord.
+    const via=o.bridge?'<span class="map-via">via '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf)+'</span>':'';
     nodes+=node(' outside'+(o.leads?' leads':'')+(here?' here':'')+(isPicked(o.root,o.suf)?' picked':''),o.root,o.suf,b.x,b.y,
-      escapeHtml(o.label)+' — outside the key, sitting next to the '+o.anchorRn+' it relates to. Tap to hear it',
+      escapeHtml(o.label)+' — outside the key, sitting next to the '+o.anchorRn+' it relates to'+
+      (o.bridge?'. Bridge in with '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf):'')+'. Tap to hear it',
       (here?'<span class="map-here">here</span>':'')+escapeHtml(o.label)+
-      '<span class="map-rn">'+(o.rn?escapeHtml(o.rn):'outside')+'</span>');
+      '<span class="map-rn">'+(o.rn?escapeHtml(o.rn):'outside')+'</span>'+via);
   });
   return '<div class="chord-map"><div class="map-stage">'+
     '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
@@ -6660,7 +6788,38 @@ function renderChordMap(map){
       '<g stroke="var(--ink)" stroke-width="1" fill="none">'+spokes+'</g></svg>'+
     '<span class="map-centre">'+escapeHtml(map.label)+'</span>'+
     nodes+
-    '</div>'+renderMapCaption(map)+'</div>';
+    '</div>'+renderLookFrom(map)+renderMapCaption(map)+'</div>';
+}
+// How far a note-distance actually is, in plain terms rather than a bucket
+// name -- "same chords" and "1 chord differs" tell the whole story a
+// category label like "closely related" only gestures at.
+function lookFromDistBadge(dist){
+  if(dist===0)return 'same chords';
+  if(dist===1)return '1 chord differs';
+  return dist+' chords differ';
+}
+function lookFromWhy(cand,home){
+  const distPhrase=cand.dist===0?'the exact same 7 chords':cand.dist+' chord'+(cand.dist===1?'':'s')+' would be different';
+  if(cand.rn)return 'Your '+cand.rn+' — '+distPhrase+'.';
+  if(cand.root===home.tonic)return 'Keeps '+pcName(home.tonic)+' home — '+distPhrase+'.';
+  return 'Same chords as '+keyInfoLabel(home)+', read from '+pcName(cand.root)+' instead — '+distPhrase+'.';
+}
+// Every other reading of this song, ranked closest first -- a relative mode,
+// a real key change, a same-tonic mode, whichever actually costs the fewest
+// notes. Tapping one previews it on the ring above; nothing is decided until
+// "Set as key" in the caption below says so.
+function renderLookFrom(map){
+  if(!map.candidates.length)return '';
+  const home=map.keyInfo;
+  let html='<div class="lookfrom-head"><span class="lookfrom-label">Look from</span>'+
+    '<span class="lookfrom-spectrum">closest <b>&larr;</b> &middot; <b>&rarr;</b> most different</span></div><div class="lookfrom-row">';
+  map.candidates.forEach(c=>{
+    const on=mapView&&mapView.tonic===c.root&&mapView.scaleKey===c.scaleKey;
+    html+='<button type="button" class="lookfrom-chip'+(on?' on':'')+'" data-map-view="'+c.root+':'+c.scaleKey+
+      '" title="'+escapeHtml(lookFromWhy(c,home))+'"><span class="lf-name">'+escapeHtml(c.name)+
+      (c.used?' <span class="lf-used">used</span>':'')+'</span><span class="lf-badge">'+lookFromDistBadge(c.dist)+'</span></button>';
+  });
+  return html+'</div>';
 }
 // What the map is saying right now: the node last tapped, or how to read it.
 function renderMapCaption(map){
@@ -6675,20 +6834,21 @@ function renderMapCaption(map){
     else if(fn.kind==='secondary')line=name+' is the dominant of <b>'+escapeHtml(pcName(fn.target.root)+fn.target.suf)+'</b> — outside '+home+' on purpose, and that is where it goes.';
     else if(fn.named)line=name+' is the <b>'+fn.rn+'</b> of '+home+', '+escapeHtml(fn.summary)+(fn.pull?'. It usually goes to <b>'+escapeHtml(pcName(fn.pull.root)+fn.pull.suf)+'</b>':'')+'.';
     else line=name+' sits '+escapeHtml(fn.summary)+'.';
+    if(pick.bridge)line+=' Bridge in with <b>'+escapeHtml(pcName(pick.bridge.root)+pick.bridge.suf)+'</b> — '+escapeHtml(pick.bridge.why)+'.';
+    const explore=pick.explore;
+    if(explore)actions+='<button type="button" class="btn ghost map-btn" data-map-view="'+explore.tonic+':'+explore.scaleKey+
+      '">Explore '+escapeHtml(pcName(explore.tonic)+' '+SCALES[explore.scaleKey].name)+' →</button>';
   }else if(pick){
     line='<b>'+escapeHtml(pcName(pick.root)+pick.suf)+'</b> is the <b>'+pick.rn+'</b> of '+home+(pick.used?', in your song.':', in the key and unused.');
-    if(pick.key){
-      line+=' It is also the home chord of '+escapeHtml(pick.key.name)+'.';
-      actions+='<button type="button" class="btn ghost map-btn" data-map-view="'+pick.key.tonic+':'+pick.key.keyMode+'">Look from '+escapeHtml(pick.key.name)+' →</button>';
-    }
   }else if(viewing){
-    line='Looking from <b>'+home+'</b>. Filled chords are ones your song already plays; anything of yours outside this key sits beyond the ring.';
+    line='Previewing <b>'+home+'</b> — the map above shows what your song looks like from here. Nothing is saved yet.';
+    actions+='<button type="button" class="btn primary map-btn" id="mapSetKey" data-set-key="'+map.keyInfo.tonic+':'+map.keyInfo.keyScale+
+      '">Set as key →</button><button type="button" class="btn ghost map-btn" data-map-view="home">Cancel</button>';
   }else{
-    line='<b>'+home+'</b> in fifths — neighbours on the ring are easy moves. Chords your song plays from outside it sit beyond, next to what they relate to. The red ring is the chord selected in the song. Tap a chord to hear it.';
+    line='<b>'+home+'</b> in fifths — neighbours on the ring are easy moves. Chords your song plays from outside it sit beyond, next to what they relate to. The red ring is the chord selected in the song. Tap a chord to hear it, or try another reading below.';
   }
-  if(viewing)actions+='<button type="button" class="btn ghost map-btn" data-map-view="home">← Back to '+escapeHtml(keyInfoLabel(currentKeyInfo))+'</button>';
-  else if(map.parallel)actions+='<button type="button" class="btn ghost map-btn" data-map-view="'+map.parallel.tonic+':'+map.parallel.keyMode+
-    '" title="Same tonic, the other mode — '+escapeHtml(map.parallel.bridge.label)+' resolves into either">⇄ '+escapeHtml(map.parallel.name)+'</button>';
+  if(!viewing&&map.keyInfo.overridden)
+    actions+='<button type="button" class="btn ghost map-btn" id="mapRevertKey">↩ back to the detected key</button>';
   return '<div class="map-cap"><p class="map-cap-line">'+line+'</p>'+(actions?'<div class="map-cap-actions">'+actions+'</div>':'')+'</div>';
 }
 function wireChordMap(host){
@@ -6704,10 +6864,28 @@ function wireChordMap(host){
     event.stopPropagation();
     const v=btn.dataset.mapView;
     if(v==='home')mapView=null;
-    else{const [t,m]=v.split(':');mapView={tonic:Number(t),keyMode:m};}
+    else{const [t,s]=v.split(':');mapView={tonic:Number(t),scaleKey:s};}
     mapPick=null;
     renderChordKeyChips();
   }));
+  host.querySelector('#mapSetKey')?.addEventListener('click',event=>{
+    event.stopPropagation();
+    const [t,s]=event.currentTarget.dataset.setKey.split(':');
+    keyOverride={tonic:Number(t),scaleKey:s};
+    mapView=null;mapPick=null;
+    refreshKeyContext();renderSong();renderKey();save();
+    const label=keyInfoLabel(currentKeyInfo);
+    showBoardSticker('Now working in '+label+' — chord suggestions, scales and the chart will follow this key.',{timeout:5200});
+  });
+  host.querySelector('#mapRevertKey')?.addEventListener('click',event=>{
+    event.stopPropagation();
+    revertKeyOverride();
+  });
+}
+function revertKeyOverride(){
+  keyOverride=null;mapView=null;mapPick=null;
+  refreshKeyContext();renderSong();renderKey();save();
+  flash('Back to the detected key');
 }
 function renderChordPalette(map){
   if(!map)return '';
@@ -6940,6 +7118,25 @@ function outlierFunction(chord,keyInfo){
     scaleWhy:'Holds every note of the chord and stays on your tonic',
     pull:null,
   };
+}
+// A chord to land on right before an outlier -- the real voice-leading
+// engine's own answer, not a hand-picked formula, so it works the same way
+// for a named borrowing as it already does for smoothing any other join.
+// A secondary dominant already has a textbook way in (its target's own ii);
+// anything else gets measured from whatever it relates to -- its usual
+// destination if it has one, otherwise its nearest diatonic neighbour.
+function outlierApproach(chord,keyInfo,fn){
+  if(fn&&fn.kind==='secondary'){
+    const route=chromaticRoute(chord,keyInfo);
+    return route&&route.into||null;
+  }
+  const anchor=fn&&fn.pull?fn.pull:findReplacement(chord,keyInfo);
+  const anchorShape=playableSuggestion(anchor.root,anchor.suf);
+  const chordShape=playableSuggestion(chord.root,chord.suf);
+  if(!anchorShape||!chordShape)return null;
+  const sug=connectorSuggestions({frets:anchorShape.frets},
+    {root:chord.root,suf:chord.suf,frets:chordShape.frets},keyInfo,1,0)[0];
+  return sug?{root:sug.root,suf:sug.suf,why:sug.why}:null;
 }
 // Where a chord sits against a key: on it, as which degree, or off it, doing
 // what. One answer for the context line, the map and the export.
@@ -7176,7 +7373,7 @@ function clearSongState(){
   sections=[];
   activeSectionId=null;
   syncSongTitleUI();
-  scaleActive=null;scaleBoxIdx=null;
+  scaleActive=null;scaleBoxIdx=null;keyOverride=null;
   resetProjectEditingState();
   analyze();
   renderSong();

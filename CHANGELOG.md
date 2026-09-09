@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-09-09 — Look from any key or mode, and set it as the working key
+
+- The map's "related keys" no longer needs its own tab: one ranked strip,
+  "Look from", lists every reading of the current key — a relative mode
+  (A Dorian, the same 7 chords read from a different one), a real key
+  change (D major, your V), a same-tonic mode (G Mixolydian) — closest
+  first, each tagged with how many chords it actually costs ("same
+  chords" / "1 chord differs" / …), measured, not bucketed by category.
+  The same-sounding name can appear twice at two different distances (A
+  Dorian vs A natural minor) and both are shown, honestly tagged, rather
+  than picked for you.
+- Tapping a reading previews it on the ring; **Set as key** commits it —
+  the header, the chord suggestions, the scale suggestions and position
+  boxes, and the exported chart all follow the new key, with an
+  always-visible "↩ back to the detected key" once you have. The choice
+  is saved with the song and survives a reload.
+- Every chord outside the key now gets a real bridge chord, found the
+  same way any other join is smoothed (real fret-based voice-leading, not
+  a guessed formula) — named on the ring itself ("via D7") and spelled
+  out wherever the chord's story is told, instead of needing a separate
+  control to find it. A borrowed chord's popover also links straight to
+  the mode it came from ("Explore G Mixolydian →").
+- The chord map, the context line, and the exported chart can now center
+  on any of the seven modes, not just major and minor — key names,
+  distances, and scale suggestions are computed for whichever one is
+  showing rather than assumed to be major. A minor key's own dominant
+  (E7 for A minor) is recognised as such; Dorian, Phrygian and Locrian
+  are not credited with a borrowing that is only ever a natural-minor
+  convention.
+
 ## 2026-09-08 — One line under the chord, one map of the key
 
 - The five disclosures under the chord (also in key, more in key, related

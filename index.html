@@ -2045,6 +2045,22 @@ function findVoicings(rootPc,ivs){
         for(let i=played[0];i<=played[played.length-1];i++)if(cur[i]<0)inner++;
         if(inner>1)return;
         const minF=fretted.length?Math.min(...fretted):0;
+        // A hand has four fingers. A shape with more fretted notes than that
+        // can only be played by collapsing the notes on its lowest fret under
+        // one barred finger -- and that finger lies flat across the neck, so
+        // it also covers every string on the high-e side of the furthest note
+        // it has to reach. An "open" string there is not open at all: the
+        // barre is already sitting on it. Shapes claiming one aren't merely
+        // awkward, they're unplayable (a barre at fret 2 with the high e
+        // ringing open is not a grip, it's two hands), so they're dropped
+        // here rather than scored down. Shapes with four or fewer fretted
+        // notes need no barre and keep their open strings -- which is every
+        // standard open chord, so none of them are touched.
+        const frettedIdx=[];for(let i=0;i<6;i++)if(cur[i]>0)frettedIdx.push(i);
+        if(frettedIdx.length>4){
+          const reach=Math.max(...frettedIdx.filter(i=>cur[i]===minF));
+          for(let i=0;i<=reach;i++)if(cur[i]===0)return;
+        }
         const opens=cur.filter(f=>f===0).length;
         const score=played.length*2+(bassIsRoot?6:0)-inner*4-minF*0.5-span*0.3+opens*0.4;
         out.push({frets:cur.slice(),score,minF});
@@ -6929,6 +6945,12 @@ function renderChordMap(map){
       (here?'<span class="map-here">here</span>':'')+escapeHtml(label)+'<span class="map-rn">'+n.rn+'</span>');
   });
   let vias='';
+  // Several chords hanging off the same ring chord are often reached through
+  // the same bridge (F♯m, F♯ and F♯7 all come in through F♯sus4), and drawing
+  // it once per spoke just stacks three identical chips on top of each other.
+  // One chip per distinct bridge per anchor: the chord it names is the same
+  // either way, and the spokes it is not drawn on lose nothing but clutter.
+  const viaSeen=new Set();
   map.outer.forEach(o=>{
     const a=at(rIn,o.anchorAngle),b=at(rOut,o.angle),here=isHere(o.root,o.suf,true);
     spokes+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke-dasharray="3 2.5"/>';
@@ -6942,7 +6964,9 @@ function renderChordMap(map){
     // it is a control in its own right: tapping it puts that chord on the
     // fretboard and selects the chord it leads into, so the caption below
     // explains the move you just heard.
-    if(o.bridge){
+    const viaKey=o.bridge?o.anchorAngle+'|'+o.bridge.root+':'+o.bridge.suf:null;
+    if(o.bridge&&!viaSeen.has(viaKey)){
+      viaSeen.add(viaKey);
       const t=0.5+((o.fan||0)%3)*0.13,bl=pcName(o.bridge.root)+o.bridge.suf;
       const m={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};
       vias+='<button type="button" class="map-via" data-via-root="'+o.bridge.root+'" data-via-suf="'+escapeHtml(o.bridge.suf)+
@@ -7017,7 +7041,7 @@ function renderMapCaption(map){
     actions+='<button type="button" class="btn primary map-btn" id="mapSetKey" data-set-key="'+map.keyInfo.tonic+':'+map.keyInfo.keyScale+
       '">Set as key →</button><button type="button" class="btn ghost map-btn" data-map-view="home">Cancel</button>';
   }else{
-    line='<b>'+home+'</b> in fifths — neighbours on the ring are easy moves. Chords your song plays from outside it sit beyond, next to what they relate to. The red ring is the chord selected in the song. Tap a chord to hear it, or try another reading below.';
+    line='<b>'+home+'</b> in fifths — neighbours on the ring are easy moves. Every chord your song plays from <i>outside</i> the key hangs on a spoke beside the one chord it points at: a dominant next to what it resolves to, a borrowed chord next to where it usually goes, anything else next to its closest relative in the key. The chip on the spoke is the chord that bridges those two — tap it to put it on the fretboard. The red ring is whatever is selected in the song.';
   }
   if(!viewing&&map.keyInfo.overridden)
     actions+='<button type="button" class="btn ghost map-btn" id="mapRevertKey">↩ back to the detected key</button>';
@@ -7235,6 +7259,15 @@ const BORROWINGS={
     {iv:5,q:'',rn:'IV',scale:'dorian',from:'Dorian',pull:0,tip:'Dorian brightness'},
     {iv:10,q:'',rn:'VII',scale:'minor',from:'natural minor',pull:3,tip:'the subtonic, natural minor’s way round the leading tone'},
     {iv:7,q:'m',rn:'v',scale:'minor',from:'natural minor',pull:0,tip:'the gentler dominant'},
+    // The dominant every minor-flavoured key borrows. Natural minor, Dorian,
+    // Phrygian and Locrian all build a minor or diminished chord on their own
+    // 5th degree, which will not pull home -- so players raise the 7th and
+    // play a major V (or V7) instead. That is the whole reason harmonic minor
+    // exists. Without this it fell past the table and came back "not one of
+    // the usual borrowings, trust your ear" for E7 in A minor, which is
+    // roughly the most-played borrowed chord there is. Harmonic minor keys
+    // never reach here: their V is already major and already diatonic.
+    {iv:7,q:'',rn:'V',scale:'harmMin',from:'harmonic minor',pull:0,tip:'the raised leading tone, it pulls hard home'},
     {iv:1,q:'',rn:'♭II',scale:'phrygian',from:'Phrygian',pull:7,tip:'the Neapolitan, it leans hard on V'},
     {iv:2,q:'m',rn:'ii',scale:'dorian',from:'Dorian',pull:7,tip:'brighter than ii°'},
   ],

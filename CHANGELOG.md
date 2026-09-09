@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-09-09 — Shapes you can actually fret, and the borrowed dominant every minor key uses
+
+- **Dropped 68 unplayable shapes.** The generator was offering grips with an
+  open string ringing *inside a barre* — F♯7 as `242320`, a barre at fret 2
+  with the high e open, which is not a grip, it's two hands. A hand has four
+  fingers, so a shape with more fretted notes than that has to collapse its
+  lowest fret under one barred finger, and that finger lies flat across
+  everything on the high-e side of the furthest note it must reach. Those
+  shapes are now rejected outright rather than scored down. 60 of the 300
+  root × quality combinations improved; every removed shape was verified
+  unplayable, no chord lost a playable grip, and pitch-correctness and the
+  1–5 shape count are unchanged. Shapes with four or fewer fretted notes keep
+  their open strings, so every standard open chord is untouched.
+- **Fixed the borrowed dominant in every minor-flavoured key.** E7 in A minor
+  — arguably the most-played borrowed chord there is — came back as "not one
+  of the usual borrowings, trust your ear on this one". Natural minor,
+  Dorian, Phrygian and Locrian all build a minor or diminished chord on their
+  own 5th degree, so a major or dominant-7 chord there isn't the key's own V
+  at all; it's the raised leading tone borrowed from harmonic minor, which is
+  the entire reason harmonic minor exists. It is now named **V**, and on the
+  map it points home to the tonic instead of being parked next to whichever
+  ring chord it happened to share a note with. (In Spiralove read as B
+  Phrygian, that moves F♯, F♯7 and F♯m off D and onto Bm, where they belong.)
+- The map now explains its own layout instead of leaving you to infer it:
+  every outside chord hangs beside the one chord it points at — a dominant
+  next to what it resolves to, a borrowed chord next to where it usually
+  goes, anything else next to its closest relative in the key.
+- Where several outside chords share one bridge chord, it's drawn once
+  instead of stacking identical chips on top of each other.
+
 ## 2026-09-09 — The map's bridge chords are playable, and "Look from" stops lying about distance
 
 - The bridge chord now sits **on the dotted line** it belongs to, because it

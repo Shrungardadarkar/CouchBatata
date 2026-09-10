@@ -1172,7 +1172,13 @@
        edge of this box. */
     .app-shell{display:flex;align-items:flex-start;gap:0}
     #btnSongShelf{display:none}
-    #songShelfOverlay{position:sticky;top:20px;inset:auto;z-index:auto;opacity:1;background:none;padding:0;
+    /* inset:auto must come before top:20px -- inset is shorthand for all four
+       offsets, so if it were written after top it would win (same rule, same
+       specificity, last declaration for a given property wins) and silently
+       reset top back to auto, leaving the sidebar with no sticky offset --
+       exactly the bug that had it scroll away with the page instead of
+       staying pinned. */
+    #songShelfOverlay{position:sticky;inset:auto;top:20px;z-index:auto;opacity:1;background:none;padding:0;
       display:flex !important;flex:0 0 var(--shelf-w,260px);width:var(--shelf-w,260px);min-width:0;
       height:calc(100vh - 40px);transition:none}
     .song-shelf-dialog{width:100%;height:100%;max-height:none;border:0;border-right:2.5px solid var(--ink);
@@ -2993,7 +2999,15 @@ function findReplacement(chord,keyInfo){
     const isTMajor=t.suf==='';
     const isTDim=t.suf==='dim';
     const qualityMatch=(isOutMajor&&isTMajor)||(isOutMinor&&isTMinor)||(isOutDim&&isTDim);
-    const dimPenalty=(isTDim&&!isOutDim)?2:0;
+    // A flat +2 here was large enough to out-vote a real root-proximity
+    // advantage of up to 4 semitones (2 / the 0.5-per-semitone weight below) --
+    // enough to make an outlier "sit closest to" a diatonic chord a full
+    // fourth away in root rather than the vii°/ii° that's a half step from
+    // it, just to avoid ever anchoring on a diminished triad. +1 still
+    // prefers a non-diminished chord when everything else about two
+    // candidates is close, without being able to override a proximity or
+    // shared-tone edge the two factors above it already established.
+    const dimPenalty=(isTDim&&!isOutDim)?1:0;
     return {...t,score:-shared*2 + rootDist*0.5 + dimPenalty - (qualityMatch?1:0)};
   });
   scored.sort((a,b)=>a.score-b.score);

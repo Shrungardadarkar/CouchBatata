@@ -202,6 +202,12 @@ assert.match(html, /textContent='Rename'/);
 assert.doesNotMatch(html, /textContent='Back up'/);
 assert.doesNotMatch(html, /class="song-context"/);
 assert.match(html, /<h2>Tab builder<\/h2>\s*<span class="song-key" id="songKey"/);
+// inset:auto must come before top:20px in the docked sidebar rule -- inset is
+// shorthand for all four offsets, so listed after top it silently wins and
+// resets top back to auto, leaving position:sticky with no offset to hold
+// against -- the sidebar scrolled away with the page instead of staying
+// pinned, and only reproduced by actually scrolling in a browser.
+assert.match(html, /#songShelfOverlay\{position:sticky;inset:auto;top:20px;/);
 assert.match(html, /async function importProjectData\(data,sourceLabel\)/);
 assert.match(html, /async function saveToLinkedFolder\(\)/);
 assert.match(html, /async function openProjectFromPicker\(\)/);
@@ -218,6 +224,13 @@ assert.match(html, /function outlierFunction\(chord,keyInfo\)/);
 assert.match(html, /const BORROWINGS=\{/);
 assert.match(html, /function chordMapFor\(keyInfo\)/);
 assert.match(html, /data-map-view/);
+// findReplacement()'s anchor-avoidance penalty against diminished triads used
+// to be large enough (+2) to out-vote a real root-proximity edge of up to 4
+// semitones -- an outlier chord could "sit closest to" a diatonic chord a
+// fourth away in root rather than the vii°/ii° a half step from it. +1 still
+// nudges away from a diminished anchor on a genuine tie, without being able
+// to override the shared-tone/root-proximity signals ranked above it.
+assert.match(html, /const dimPenalty=\(isTDim&&!isOutDim\)\?1:0;/);
 assert.doesNotMatch(html, /function renderKeyCompass\(|function guidanceMarkup\(|Replace with <button/);
 assert.doesNotMatch(html, /function nextUnusedDiatonicChord\(/);
 assert.match(html, /openStringsHintShown&&!opts\.openStringsHint/);

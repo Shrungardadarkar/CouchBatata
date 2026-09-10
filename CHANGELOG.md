@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-10 — Bridge chips read as equal to the chords they connect, and stop colliding with them
+
+- **Bridge chips (e.g. Bm between Am and E) are now sized like a regular
+  chord node**, not a small caption stuck on the spoke. They carry the same
+  font size, padding, border weight and shadow as the diatonic and borrowed
+  chords around them, because the chord that bridges two others is exactly
+  as important as either one.
+- **That extra size had nowhere to go on the ring it was drawn on.** The gap
+  between the inner (in-key) ring and the outer (borrowed) ring was tuned for
+  the old, much smaller chip — enlarging it without the ring also making
+  room meant a bridge chip could sit directly on top of the chord it named,
+  or the chord it bridged into (verified with a Playwright script measuring
+  real bounding-box overlaps against the exact dense Spiralove/B-phrygian
+  chart that surfaced the bug: multiple chips were overlapping by 20-260px²).
+  The ring's own two radii now scale continuously with the map's real
+  measured width — not a viewport guess — from a tight phone-width layout up
+  to the full 640px stage, closing a gap where an in-between column width
+  (e.g. a narrower desktop pane) fell between two old fixed breakpoints and
+  still collided.
+- **Outliers fanned off the same chord get a little more room from each
+  other** (19° → 22° between siblings), and the bridge chip's position along
+  its spoke leans slightly toward the chord it names rather than sitting
+  dead centre, since an outlier with no named function shows "outside" as
+  its own badge and is reliably the widest thing on that spoke.
+- Verified zero overlaps and no out-of-stage clipping from 360px phone width
+  up through 900px+ desktop on the six-outlier stress case; a residual small
+  overlap remains only at the legacy 320px viewport (sub-2% of devices).
+
 ## 2026-09-09 — The chord map fills its column, and the key reads as a chip you can't miss
 
 - The map's ring used to sit as a small fixed square (400px) in a much wider

@@ -616,9 +616,9 @@
      to, and it is tappable: it loads onto the fretboard like any other
      suggestion. Dashed to read as "a step you could add", not one you play. */
   .map-via{position:absolute;transform:translate(-50%,-50%);z-index:1;
-    font:900 .7rem "Courier New",monospace;letter-spacing:.02em;color:var(--mint-dk);
+    font:900 .72rem "Courier New",monospace;letter-spacing:.02em;color:var(--mint-dk);
     background:var(--paper);border:2px dashed var(--mint-dk);border-radius:999px;
-    padding:4px 10px;cursor:pointer;white-space:nowrap;box-shadow:1.5px 1.5px 0 var(--mint-dk);
+    padding:4px 8px;cursor:pointer;white-space:nowrap;box-shadow:1.5px 1.5px 0 var(--mint-dk);
     transition:transform .16s var(--ease-spring),background .12s,color .12s}
   @media (hover:hover){.map-via:hover{background:var(--mint);color:var(--paper);z-index:4}}
   .map-via:active{transform:translate(-50%,-50%) translate(1px,1px);transition-duration:.05s}
@@ -665,13 +665,6 @@
   .lf-fit.is-all{color:var(--mint-dk)}
   .lf-on{font:900 .5rem "Courier New",monospace;text-transform:uppercase;letter-spacing:.02em;
     background:var(--ink);color:var(--paper);border-radius:999px;padding:0 5px;margin-left:2px}
-  @media (max-width:480px){
-    .map-node{min-width:32px;padding:3px 6px;font-size:.64rem}
-    .map-rn{font-size:.46rem}
-    .map-via{font-size:.44rem;padding:0 4px}
-    .map-centre{font-size:.62rem;padding:4px 10px}
-  }
-
   /* The context line: one sentence under the chord about where it sits
      against the key, and the moves that follow. The left edge carries the
      verdict -- in the key, outside it, or outside and landing. */
@@ -6954,7 +6947,7 @@ function chordMapFor(keyInfo){
   const byAngle=new Map();
   outer.forEach(o=>{
     const n=byAngle.get(o.anchorAngle)||0;
-    o.angle=o.anchorAngle+(n===0?0:(n%2?19:-19)*Math.ceil(n/2));
+    o.angle=o.anchorAngle+(n===0?0:(n%2?22:-22)*Math.ceil(n/2));
     // Spokes off the same chord stay close even when fanned, so their bridge
     // chips would sit on top of each other -- especially when two outliers
     // share one (F♯ and F♯7 are both reached through F♯dim). Slide each a
@@ -6974,8 +6967,25 @@ function chordMapFor(keyInfo){
 }
 function renderChordMap(map){
   if(!map)return '';
-  const cx=50,cy=50,rIn=24,rOut=40;
+  // A chip's own pixel footprint barely shrinks with the viewport, but the
+  // ring's radii are percentages of whatever width the stage actually has --
+  // so a narrower stage needs a visibly tighter ring and smaller chip text
+  // (both scaled continuously from the real measured container, not a
+  // viewport breakpoint -- a narrow column on a wide screen needs this
+  // exactly as much as a phone does) or the outer chips collide with each
+  // other and with the shared bridge chip between them. lerp(0) is the
+  // tightest phone-width layout this was tuned against, lerp(1) the full
+  // 640px stage.
+  const stageW=document.getElementById('chordKeyChips')?.clientWidth||640;
+  const scale=Math.max(0,Math.min(1,(stageW-270)/(640-270)));
+  const lerp=(a,b)=>a+(b-a)*scale;
+  const cx=50,cy=50,rIn=lerp(17,21),rOut=lerp(40,45);
   const at=(r,deg)=>{const a=deg*Math.PI/180;return {x:cx+r*Math.sin(a),y:cy-r*Math.cos(a)};};
+  const px=n=>n.toFixed(2)+'px',rem=n=>n.toFixed(3)+'rem';
+  const nodeStyle='font-size:'+rem(lerp(.46,.72))+';padding:'+px(lerp(2,4))+' '+px(lerp(3,8))+';min-width:'+px(lerp(22,40))+';';
+  const viaStyle='font-size:'+rem(lerp(.38,.72))+';padding:'+px(lerp(1,4))+' '+px(lerp(3,8))+';';
+  const centreStyle='font-size:'+rem(lerp(.46,.82))+';padding:'+px(lerp(3,6))+' '+px(lerp(6,16))+';';
+  const rnStyle='font-size:'+rem(lerp(.34,.52))+';',hereStyle='font-size:'+rem(lerp(.32,.44))+';padding:'+px(lerp(1,1))+' '+px(lerp(3,6))+';top:'+px(lerp(-6,-10))+';';
   // "You are here" is whatever the context line above is describing -- a
   // song selection, a pinned move, or the chord live on the board -- so the
   // two can never point at different chords.
@@ -6983,13 +6993,14 @@ function renderChordMap(map){
   const isHere=(root,suf,exact)=>!!hereChord&&hereChord.root===root&&(exact?hereChord.suf===suf:startsLike(suf,hereChord.suf));
   const isPicked=(root,suf)=>!!mapPick&&mapPick.root===root&&mapPick.suf===suf;
   const node=(cls,root,suf,x,y,title,body)=>'<button type="button" class="map-node'+cls+'" data-map-root="'+root+
-    '" data-map-suf="'+escapeHtml(suf)+'" style="left:'+x+'%;top:'+y+'%" aria-pressed="'+isPicked(root,suf)+'" title="'+title+'">'+body+'</button>';
+    '" data-map-suf="'+escapeHtml(suf)+'" style="left:'+x+'%;top:'+y+'%;'+nodeStyle+'" aria-pressed="'+isPicked(root,suf)+'" title="'+title+'">'+body+'</button>';
+  const hereTag='<span class="map-here" style="'+hereStyle+'">here</span>',rnSpan=s=>'<span class="map-rn" style="'+rnStyle+'">'+s+'</span>';
   let spokes='',nodes='';
   map.inner.forEach(n=>{
     const p=at(rIn,n.angle),label=pcName(n.root)+n.suf,here=isHere(n.root,n.suf,false);
     nodes+=node((n.used?' used':'')+(here?' here':'')+(isPicked(n.root,n.suf)?' picked':''),n.root,n.suf,p.x,p.y,
       escapeHtml(label)+' — '+n.rn+(n.used?', in your song':', in the key but unused')+'. Tap to hear it',
-      (here?'<span class="map-here">here</span>':'')+escapeHtml(label)+'<span class="map-rn">'+n.rn+'</span>');
+      (here?hereTag:'')+escapeHtml(label)+rnSpan(n.rn));
   });
   let vias='';
   // Several chords hanging off the same ring chord are often reached through
@@ -7004,8 +7015,7 @@ function renderChordMap(map){
     nodes+=node(' outside'+(o.leads?' leads':'')+(here?' here':'')+(isPicked(o.root,o.suf)?' picked':''),o.root,o.suf,b.x,b.y,
       escapeHtml(o.label)+' — outside the key, sitting next to the '+o.anchorRn+' it relates to'+
       (o.bridge?'. Bridge in with '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf):'')+'. Tap to hear it',
-      (here?'<span class="map-here">here</span>':'')+escapeHtml(o.label)+
-      '<span class="map-rn">'+(o.rn?escapeHtml(o.rn):'outside')+'</span>');
+      (here?hereTag:'')+escapeHtml(o.label)+rnSpan(o.rn?escapeHtml(o.rn):'outside'));
     // The bridge chord is the step *between* those two chords, so it sits on
     // the spoke that joins them rather than as a label on one end of it -- and
     // it is a control in its own right: tapping it puts that chord on the
@@ -7014,10 +7024,13 @@ function renderChordMap(map){
     const viaKey=o.bridge?o.anchorAngle+'|'+o.bridge.root+':'+o.bridge.suf:null;
     if(o.bridge&&!viaSeen.has(viaKey)){
       viaSeen.add(viaKey);
-      const t=0.5+((o.fan||0)%3)*0.13,bl=pcName(o.bridge.root)+o.bridge.suf;
+      // Biased slightly toward the anchor: an outlier with no named function
+      // shows "outside" as its own badge, which reliably makes it the widest
+      // thing on the spoke, so the midpoint needs to lean away from it.
+      const t=0.46+((o.fan||0)%3)*0.13,bl=pcName(o.bridge.root)+o.bridge.suf;
       const m={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t};
       vias+='<button type="button" class="map-via" data-via-root="'+o.bridge.root+'" data-via-suf="'+escapeHtml(o.bridge.suf)+
-        '" data-via-into="'+o.root+':'+escapeHtml(o.suf)+'" style="left:'+m.x+'%;top:'+m.y+'%" title="'+
+        '" data-via-into="'+o.root+':'+escapeHtml(o.suf)+'" style="left:'+m.x+'%;top:'+m.y+'%;'+viaStyle+'" title="'+
         escapeHtml(bl+' bridges into '+o.label+(o.bridge.why?' — '+o.bridge.why:'')+'. Tap to put it on the fretboard')+
         '">'+escapeHtml(bl)+'</button>';
     }
@@ -7026,7 +7039,7 @@ function renderChordMap(map){
     '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
       '<g stroke="var(--ink-faint)" stroke-width=".5" stroke-dasharray="1.5 2" fill="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'"/></g>'+
       '<g stroke="var(--ink)" stroke-width="1" fill="none">'+spokes+'</g></svg>'+
-    '<span class="map-centre">'+escapeHtml(map.label)+'</span>'+
+    '<span class="map-centre" style="'+centreStyle+'">'+escapeHtml(map.label)+'</span>'+
     vias+nodes+
     '</div>'+renderLookFrom(map)+renderMapCaption(map)+'</div>';
 }

@@ -2799,8 +2799,18 @@ chordSuggestionRow.addEventListener('keydown',event=>{
 chordScrollPrevBtn.addEventListener('click',()=>scrollChordSuggestions(-1));
 chordScrollNextBtn.addEventListener('click',()=>scrollChordSuggestions(1));
 let _moveAudition=false;
+// If this exact chord already sits somewhere in the song, its player already
+// chose a shape for it -- that shape is what "this chord" should mean
+// everywhere it's offered again (a suggestion chip, the chord-map ring, a
+// via chip), not a fresh pick findVoicings() happens to rank first. Exact
+// root+suf only: a plain F♯ suggestion should never silently hand back an
+// F♯7 someone else in the song plays.
+function savedVoicingFor(root,suf){
+  const c=allChords().find(c=>c.root===root&&c.suf===suf&&Array.isArray(c.frets));
+  return c?{frets:c.frets}:null;
+}
 function loadSuggestedChord(item){
-  const shape=Array.isArray(item.frets)?{frets:item.frets}:playableSuggestion(item.root,item.suf);
+  const shape=Array.isArray(item.frets)?{frets:item.frets}:(savedVoicingFor(item.root,item.suf)||playableSuggestion(item.root,item.suf));
   if(!shape){showBoardSticker('No playable shape found for '+pcName(item.root)+item.suf,{timeout:1600});return false;}
   // Loading anything that is not a move being auditioned ends the audition:
   // the board now shows something else, so "tap again to keep" would keep a

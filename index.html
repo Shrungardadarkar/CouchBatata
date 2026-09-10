@@ -7555,7 +7555,15 @@ function outlierFunction(chord,keyInfo){
     // is in nobody's Mixolydian). The name still stands; the scale is only
     // claimed for a mode that actually holds every note.
     const scaleKey=scaleHolds(keyInfo.tonic,hit.scale,pcs)?hit.scale:containing(keyInfo.tonic);
-    const pullTri=hit.pull==null?null:keyTriads(keyInfo).find(t=>t.root===(keyInfo.tonic+hit.pull)%12)||null;
+    // Usually the target is one of the key's own 7 diatonic chords, but ♭VI's
+    // own tip ("it usually walks ♭VI, ♭VII, I") points at another borrowing,
+    // not a diatonic one -- keyTriads alone can't find ♭VII, since it isn't
+    // in the home scale at all. Fall back to this same BORROWINGS table for
+    // a pull target that is itself a named borrowing.
+    const pullBorrowed=hit.pull==null?null:BORROWINGS[mode].find(b=>b.iv===hit.pull);
+    const pullTri=hit.pull==null?null:
+      keyTriads(keyInfo).find(t=>t.root===(keyInfo.tonic+hit.pull)%12)
+      ||(pullBorrowed?{root:(keyInfo.tonic+hit.pull)%12,suf:pullBorrowed.q}:null);
     return {
       kind:'borrowed',named:true,rn:hit.rn,from:hit.from,
       summary:'borrowed from '+hit.from+' — '+hit.tip,

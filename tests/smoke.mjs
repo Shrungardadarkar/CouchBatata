@@ -202,6 +202,15 @@ assert.match(html, /textContent='Rename'/);
 assert.doesNotMatch(html, /textContent='Back up'/);
 assert.doesNotMatch(html, /class="song-context"/);
 assert.match(html, /<h2>Tab builder<\/h2>\s*<span class="song-key" id="songKey"/);
+// Each song row's "..." menu also offers Copy, duplicating that song as an
+// independent record rather than switching to or overwriting anything.
+assert.match(html, /async function duplicateSongFromShelf\(record\)/);
+assert.match(html, /textContent='Copy'/);
+assert.match(html, /actions\.append\(rename,dupe,remove\)/);
+// The chord card's Add/Reset buttons sit right under the shape browser now,
+// not after the description, notes and key-context chips.
+assert.match(html, /<\/div>\s*<div class="btn-row">\s*<button class="btn primary" id="btnAdd"[\s\S]*?<div class="key-chip-row" id="chordKeyChips"/);
+assert.match(html, /textContent="?Reset Fretboard"?|>Reset Fretboard</);
 // inset:auto must come before top:20px in the docked sidebar rule -- inset is
 // shorthand for all four offsets, so listed after top it silently wins and
 // resets top back to auto, leaving position:sticky with no offset to hold

@@ -1695,11 +1695,11 @@
         <span class="sr-status" id="shapeLabelSr" aria-live="polite"></span>
       </div>
     </div>
-    <div class="key-chip-row" id="chordKeyChips" hidden aria-label="Key and scale context"></div>
     <div class="btn-row">
       <button class="btn primary" id="btnAdd" disabled title="Add this chord to the active section">Add to progression</button>
-      <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset to open strings</button>
+      <button class="btn ghost" id="btnClear" title="Restore all six strings to their open notes">Reset Fretboard</button>
     </div>
+    <div class="key-chip-row" id="chordKeyChips" hidden aria-label="Key and scale context"></div>
   </div>
 
   <div class="live-strip solo-live-strip" id="soloLiveStrip">
@@ -8305,6 +8305,26 @@ async function renameSongFromShelf(record){
   }
   enterSongNameEdit();
 }
+async function duplicateSongFromShelf(record){
+  if(!_songDb){notifySongStoreUnavailable();return;}
+  // The active song's on-disk record can lag the in-memory one by up to a
+  // save cycle -- read straight from live state for that one instead of
+  // risking a copy that's missing the edit someone just made.
+  let snapshot;
+  if(record.id===activeProjectId){
+    commitPendingSongName();
+    snapshot=projectSnapshot();
+  }else{
+    const fresh=await songRecord(record.id);
+    if(!fresh)return;
+    snapshot=fresh.snapshot;
+  }
+  const clone=JSON.parse(JSON.stringify(snapshot));
+  const title=((record.title||'Untitled song')+' copy').slice(0,120);
+  clone.songName=title;
+  const copy=await addSongRecord(clone,{activate:false,title});
+  flash('Duplicated as "'+copy.title+'"');
+}
 function renderSongShelf(){
   renderSongShelfTrigger();
   songShelfList.textContent='';
@@ -8335,8 +8355,9 @@ function renderSongShelf(){
     const more=document.createElement('button');more.type='button';more.className='song-shelf-more';more.textContent='⋯';more.setAttribute('aria-label','More actions for '+record.title);more.setAttribute('aria-expanded','false');
     const actions=document.createElement('div');actions.className='song-shelf-actions';actions.hidden=true;
     const rename=document.createElement('button');rename.type='button';rename.className='song-shelf-action';rename.textContent='Rename';rename.addEventListener('click',()=>renameSongFromShelf(record));
+    const dupe=document.createElement('button');dupe.type='button';dupe.className='song-shelf-action';dupe.textContent='Copy';dupe.title='Duplicate this song';dupe.addEventListener('click',()=>duplicateSongFromShelf(record));
     const remove=document.createElement('button');remove.type='button';remove.className='song-shelf-action danger';remove.textContent='Delete…';remove.addEventListener('click',()=>deleteSongFromShelf(record));
-    actions.append(rename,remove);
+    actions.append(rename,dupe,remove);
     more.addEventListener('click',()=>{
       const isOpen=!actions.hidden;
       songShelfList.querySelectorAll('.song-shelf-actions').forEach(other=>{if(other!==actions)other.hidden=true;});

@@ -7042,13 +7042,15 @@ function renderChordMap(map){
   // One chip per distinct bridge per anchor: the chord it names is the same
   // either way, and the spokes it is not drawn on lose nothing but clutter.
   const viaSeen=new Set();
-  const dashPatterns=['3 1.5','3 2.5','3 4'];
-  let spokeIndex=0;
   map.outer.forEach(o=>{
     const a=at(rIn,o.anchorAngle),b=at(rOut,o.angle),here=isHere(o.root,o.suf,true);
-    const dashPattern=dashPatterns[spokeIndex%dashPatterns.length];
-    spokes+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" stroke-dasharray="'+dashPattern+'"/>';
-    spokeIndex++;
+    // Round dots, one consistent pattern -- the only thing that varies between
+    // spokes is opacity, and that variation carries meaning: a spoke reaching
+    // a chord that "leads somewhere" (same border colour as its node, in the
+    // legend below) reads as the more actionable move, so it stays fuller
+    // while a plain borrowed outlier recedes rather than competing for
+    // attention with a second dash rhythm.
+    spokes+='<line x1="'+a.x+'" y1="'+a.y+'" x2="'+b.x+'" y2="'+b.y+'" opacity="'+(o.leads?'.9':'.45')+'"/>';
     nodes+=node(' outside'+(o.leads?' leads':'')+(here?' here':'')+(isPicked(o.root,o.suf)?' picked':''),o.root,o.suf,b.x,b.y,
       escapeHtml(o.label)+' — outside the key, sitting next to the '+o.anchorRn+' it relates to'+
       (o.bridge?'. Bridge in with '+escapeHtml(pcName(o.bridge.root)+o.bridge.suf):'')+'. Tap to hear it',
@@ -7075,7 +7077,7 @@ function renderChordMap(map){
   return '<div class="chord-map"><div class="map-stage">'+
     '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
       '<g stroke="var(--ink-faint)" stroke-width=".5" stroke-dasharray="1.5 2" fill="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'"/></g>'+
-      '<g stroke="var(--ink)" stroke-width="1" fill="none">'+spokes+'</g></svg>'+
+      '<g stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="0 3" fill="none">'+spokes+'</g></svg>'+
     '<span class="map-centre" style="'+centreStyle+'">'+escapeHtml(map.label)+'</span>'+
     vias+nodes+
     '</div>'+renderMapLegend()+renderLookFrom(map)+renderMapCaption(map)+'</div>';

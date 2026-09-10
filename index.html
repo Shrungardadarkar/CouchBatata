@@ -1158,7 +1158,8 @@
     .shelf-resize-handle{display:block;flex:0 0 6px;width:6px;align-self:stretch;cursor:col-resize;
       background:repeating-linear-gradient(var(--ink-faint) 0 4px,transparent 4px 8px);
       background-position:center;background-repeat:repeat-y;background-size:2px 8px}
-    .shelf-resize-handle:hover,.shelf-resize-handle.active{background-color:var(--sun-soft)}
+    .shelf-resize-handle.active{background-color:var(--sun-soft)}
+    @media (hover:hover){.shelf-resize-handle:hover{background-color:var(--sun-soft)}}
     .wrap{flex:1;min-width:0}
 
     .app-shell.shelf-collapsed #songShelfOverlay{flex:0 0 46px;width:46px}
@@ -1466,7 +1467,8 @@
     .key-chord-chip:hover,.mini-key-chip:hover,.scale-alt-chip:hover,
     .lead-tech:hover,.lead-edit:hover,.lead-event:hover,.lead-event-copy:hover,.lead-step-btn:hover,
     .song-shelf-item:hover,.song-shelf-close:hover,.song-shelf-more:hover,
-    .toast-action:hover,.bs-close:hover{transform:none !important}
+    .toast-action:hover,.bs-close:hover,
+    .shelf-file-btn:hover,.shelf-file-btn:active{transform:none !important}
     #toast{transform:translateX(-50%) translateY(-12px) !important}
     #toast.show{transform:translateX(-50%) translateY(0) !important}
     /* .board-sticker's translate(-50%,-50%) is load-bearing centering, not
@@ -1544,7 +1546,9 @@
     </div>
   </section>
 </div>
-<div class="shelf-resize-handle" id="shelfResizeHandle" title="Drag to resize the songs panel" aria-hidden="true"></div>
+<div class="shelf-resize-handle" id="shelfResizeHandle" title="Drag to resize the songs panel"
+  role="separator" aria-orientation="vertical" tabindex="0" aria-label="Resize the songs panel"
+  aria-valuemin="200" aria-valuemax="420" aria-valuenow="260"></div>
 
 <div class="wrap" inert>
 <div class="song-context" aria-label="Current song">
@@ -6713,6 +6717,7 @@ async function scanLinkedFolder(opts){
   }
 }
 async function linkSongsFolder(){
+  await _bootPromise;
   if(!fsDirPickerSupported()){
     flash('Folder linking needs Chrome or Edge on a computer — Save and Open still work without it');
     return;
@@ -6724,36 +6729,50 @@ async function linkSongsFolder(){
   updateLinkedFolderUI('linked');
   await scanLinkedFolder({});
 }
+let _savingLinkedFolder=false;
 async function saveToLinkedFolder(){
-  await flushCurrentProject();
-  if(!fsDirPickerSupported()){
-    downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
-    flash('Downloaded — move it into your synced folder (iCloud Drive, Google Drive…) to open it on another device');
-    return;
-  }
-  if(!linkedDirHandle){
-    let picked;
-    try{picked=await window.showDirectoryPicker({mode:'readwrite'});}catch(error){return;}
-    linkedDirHandle=picked;
-    try{await setSongMetaValue('linkedFolder',picked);}catch(error){}
-    updateLinkedFolderUI('linked');
-    await scanLinkedFolder({silent:true});
-  }
-  if(!(await verifyLinkedFolderAccess(true))){
-    updateLinkedFolderUI('needs-attention');
-    flash('Couldn\'t get permission for the linked folder — tap "reconnect" and try again');
-    return;
-  }
+  // A rapid double-tap would otherwise open two concurrent writes against the
+  // same file handle -- the same reentrancy problem scanLinkedFolder already
+  // guards against with _linkedFolderSyncing.
+  if(_savingLinkedFolder)return;
+  _savingLinkedFolder=true;
+  const btn=document.getElementById('btnLinkedSave');
+  if(btn)btn.disabled=true;
   try{
-    const fileName=await linkedFileNameFor(activeProjectId);
-    const fileHandle=await linkedDirHandle.getFileHandle(fileName,{create:true});
-    const writable=await fileHandle.createWritable();
-    await writable.write(JSON.stringify(projectSnapshot(),null,2));
-    await writable.close();
-    updateLinkedFolderUI('linked');
-    flash('Saved to '+linkedDirHandle.name);
-  }catch(error){
-    flash('Could not save to the linked folder');
+    await _bootPromise;
+    await flushCurrentProject();
+    if(!fsDirPickerSupported()){
+      downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
+      flash('Downloaded — move it into your synced folder (iCloud Drive, Google Drive…) to open it on another device');
+      return;
+    }
+    if(!linkedDirHandle){
+      let picked;
+      try{picked=await window.showDirectoryPicker({mode:'readwrite'});}catch(error){return;}
+      linkedDirHandle=picked;
+      try{await setSongMetaValue('linkedFolder',picked);}catch(error){}
+      updateLinkedFolderUI('linked');
+      await scanLinkedFolder({silent:true});
+    }
+    if(!(await verifyLinkedFolderAccess(true))){
+      updateLinkedFolderUI('needs-attention');
+      flash('Couldn\'t get permission for the linked folder — tap "reconnect" and try again');
+      return;
+    }
+    try{
+      const fileName=await linkedFileNameFor(activeProjectId);
+      const fileHandle=await linkedDirHandle.getFileHandle(fileName,{create:true});
+      const writable=await fileHandle.createWritable();
+      await writable.write(JSON.stringify(projectSnapshot(),null,2));
+      await writable.close();
+      updateLinkedFolderUI('linked');
+      flash('Saved to '+linkedDirHandle.name);
+    }catch(error){
+      flash('Could not save to the linked folder');
+    }
+  }finally{
+    _savingLinkedFolder=false;
+    if(btn)btn.disabled=false;
   }
 }
 async function openProjectFromPicker(){
@@ -8004,7 +8023,17 @@ function loadShelfWidth(){
   const n=Number(localStorage.getItem(SHELF_WIDTH_KEY));
   return Number.isFinite(n)&&n>=SHELF_MIN_W&&n<=SHELF_MAX_W?n:SHELF_DEFAULT_W;
 }
-appShell.style.setProperty('--shelf-w',loadShelfWidth()+'px');
+// Shared by pointer drag and the keyboard path below, so both ways of
+// resizing keep --shelf-w, the separator's own aria-valuenow, and the
+// persisted width in exact agreement.
+function setShelfWidth(w,persist){
+  const clamped=Math.max(SHELF_MIN_W,Math.min(SHELF_MAX_W,Math.round(w)));
+  appShell.style.setProperty('--shelf-w',clamped+'px');
+  shelfResizeHandle.setAttribute('aria-valuenow',String(clamped));
+  if(persist)try{localStorage.setItem(SHELF_WIDTH_KEY,String(clamped));}catch(error){}
+  return clamped;
+}
+setShelfWidth(loadShelfWidth(),false);
 if(localStorage.getItem(SHELF_COLLAPSED_KEY)==='1'){
   appShell.classList.add('shelf-collapsed');
   btnShelfCollapse.textContent='▸';btnShelfCollapse.title='Expand songs';
@@ -8025,18 +8054,32 @@ shelfResizeHandle.addEventListener('pointerdown',event=>{
 });
 shelfResizeHandle.addEventListener('pointermove',event=>{
   if(!_shelfDragging)return;
-  const w=Math.max(SHELF_MIN_W,Math.min(SHELF_MAX_W,_shelfDragStartW+(event.clientX-_shelfDragStartX)));
-  appShell.style.setProperty('--shelf-w',w+'px');
+  setShelfWidth(_shelfDragStartW+(event.clientX-_shelfDragStartX),false);
 });
 function endShelfDrag(event){
   if(!_shelfDragging)return;
   _shelfDragging=false;shelfResizeHandle.classList.remove('active');document.body.style.userSelect='';
   try{shelfResizeHandle.releasePointerCapture(event.pointerId);}catch(error){}
   const match=/([\d.]+)px/.exec(appShell.style.getPropertyValue('--shelf-w'));
-  if(match)try{localStorage.setItem(SHELF_WIDTH_KEY,String(Math.round(parseFloat(match[1]))));}catch(error){}
+  if(match)setShelfWidth(parseFloat(match[1]),true);
 }
 shelfResizeHandle.addEventListener('pointerup',endShelfDrag);
 shelfResizeHandle.addEventListener('pointercancel',endShelfDrag);
+// Arrow-Left/Right steps the width the same way drag does; Home/End jump to
+// the extremes. The same aria-valuenow update and persistence path as drag,
+// so a keyboard-only user isn't stuck at whatever width was last saved.
+shelfResizeHandle.addEventListener('keydown',event=>{
+  if(appShell.classList.contains('shelf-collapsed'))return;
+  const step=event.shiftKey?40:16;
+  let w=null;
+  if(event.key==='ArrowLeft')w=loadShelfWidth()-step;
+  else if(event.key==='ArrowRight')w=loadShelfWidth()+step;
+  else if(event.key==='Home')w=SHELF_MIN_W;
+  else if(event.key==='End')w=SHELF_MAX_W;
+  else return;
+  event.preventDefault();
+  setShelfWidth(w,true);
+});
 // The dialog's modal semantics (role="dialog", aria-modal, the Escape/Tab
 // trap, aria-hidden while closed) only make sense while it's actually an
 // overlay. Docked, it's a permanently visible region of the page -- marking
@@ -8101,6 +8144,10 @@ function setSongShelfOpen(open){
   }
 }
 function hideSongShelfForModal(){
+  // Docked, there is no modal to hide out of the way -- doing it anyway would
+  // aria-hide a panel that's still sitting there, visible and interactive,
+  // exactly the mistake syncShelfDockA11y() exists to prevent.
+  if(shelfDockQuery.matches)return;
   songShelfOverlay.classList.remove('show');
   songShelfOverlay.hidden=true;
   songShelfOverlay.setAttribute('aria-hidden','true');
@@ -8190,6 +8237,12 @@ btnNewSong.addEventListener('click',async()=>{
 });
 songShelfOverlay.addEventListener('click',event=>{if(event.target===songShelfOverlay)setSongShelfOpen(false);});
 document.addEventListener('keydown',event=>{
+  // Docked, songShelfOverlay.hidden is permanently false (syncShelfDockA11y
+  // keeps it that way -- it's not a modal here) -- without this guard the
+  // Escape/Tab trap meant only for the overlay would run for the whole app,
+  // and Tab would loop forever at the sidebar's own edge instead of
+  // continuing into the board.
+  if(shelfDockQuery.matches)return;
   if(songShelfOverlay.hidden)return;
   if(event.key==='Escape'){event.preventDefault();setSongShelfOpen(false);return;}
   if(event.key!=='Tab')return;
@@ -8341,11 +8394,15 @@ try{
 
 /* init */
 async function boot(){
-  // Independent of the current song loading -- never block the app becoming
-  // interactive on a folder-permission check that might take a moment.
-  restoreLinkedFolder();
   try{
     const wasRestored=await load();
+    // Only after load() has finished its own IndexedDB writes (migration,
+    // legacy recovery) -- scanLinkedFolder() snapshots songIndex once up
+    // front, so racing it against load()'s own addSongRecord() calls could
+    // import a duplicate of a title load() was still in the middle of
+    // adding. Still fire-and-forget: never block the app becoming
+    // interactive on a folder-permission check that might take a moment.
+    restoreLinkedFolder();
     syncSongTitleUI();
     // Sync the accidental toggle's icon/state to the restored (or default) useFlats value.
     setFlats(useFlats);

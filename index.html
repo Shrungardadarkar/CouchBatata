@@ -1099,7 +1099,76 @@
   .song-shelf-actions[hidden]{display:none}
   .song-shelf-action{border:2px solid var(--ink);border-radius:7px;background:var(--cream);color:var(--ink);padding:5px 9px;box-shadow:1.5px 1.5px 0 var(--ink);font:inherit;font-size:.75rem;line-height:1.1;font-weight:800;cursor:pointer}
   .song-shelf-action.danger{background:var(--tomato);color:var(--cream)}
-  .song-shelf-foot{margin:10px 1px 0;color:var(--ink-dim);font-size:.76rem;line-height:1.4;font-weight:650}
+  .song-shelf-foot{margin:10px 1px 0;display:flex;flex-direction:column;gap:8px}
+  .shelf-collapse-btn{display:none;flex:0 0 auto;width:28px;height:28px;border:1.5px solid var(--ink);
+    border-radius:7px;background:var(--paper);color:var(--ink);cursor:pointer;font-size:.8rem;line-height:1;
+    align-items:center;justify-content:center}
+  .shelf-collapse-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  @media (hover:hover){.shelf-collapse-btn:hover{background:var(--cream-2)}}
+  .shelf-resize-handle{display:none}
+  /* The File section: exactly four things (Save, Open, Export tabs, and the
+     linked-folder status) -- Save/Open write straight into whatever folder
+     is linked (a real folder on disk via the File System Access API, kept
+     in sync by iCloud Drive/Google Drive/etc themselves); Export tabs is
+     the existing plain-text download, unchanged. */
+  .shelf-file-actions{display:flex;flex-direction:column;gap:6px}
+  .shelf-file-btn{display:flex;align-items:center;gap:8px;min-height:38px;border:2px solid var(--ink);
+    border-radius:9px;background:var(--paper);color:var(--ink);padding:7px 11px;box-shadow:1.5px 1.5px 0 var(--ink);
+    font:800 .82rem/1.1 inherit;cursor:pointer;text-align:left;
+    transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .shelf-file-btn.primary{background:var(--tomato);color:var(--cream)}
+  @media (hover:hover){.shelf-file-btn:not(:disabled):hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
+  .shelf-file-btn:active:not(:disabled){transform:translate(1px,1px);box-shadow:0 0 0 var(--ink);transition-duration:.05s}
+  .shelf-file-btn:disabled{opacity:.5;cursor:default;box-shadow:none;transform:none}
+  .shelf-file-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .linked-folder-link{display:flex;align-items:center;gap:6px;border:0;background:none;padding:2px 3px;
+    color:var(--explore-dk);font:750 .74rem/1.3 inherit;cursor:pointer;text-align:left;width:100%}
+  .linked-folder-link:hover,.linked-folder-link:focus-visible{text-decoration:underline}
+  .linked-folder-link:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .linked-folder-dot{width:7px;height:7px;border-radius:50%;background:var(--ink-faint);flex:0 0 auto}
+  .linked-folder-link.is-linked .linked-folder-dot{background:var(--explore)}
+  .linked-folder-link.needs-attention{color:var(--tomato-dk)}
+  .linked-folder-link.needs-attention .linked-folder-dot{background:var(--tomato)}
+  /* Marks a song the folder scan found (vs. one that only lives in this
+     browser's own storage) -- same idea as the chord map's "in your song"
+     dot, reused so a new visual language doesn't have to be learned. */
+  .song-shelf-folder-badge{display:inline-block;width:6px;height:6px;border-radius:2px;
+    background:var(--explore);margin-left:6px;vertical-align:middle}
+
+  /* ===== SONG SIDEBAR: the same song-shelf dialog used as a full-screen
+     drawer below this breakpoint docks permanently to the left of .wrap here
+     instead -- one element, two presentations, so open/closed state never
+     has to be tracked twice. Below 1100px nothing here applies and the
+     existing overlay/drawer behaviour (setSongShelfOpen) is untouched. Placed
+     after every base shelf and song-shelf rule above (not just after the
+     other 1100px-and-up block near the top of the sheet) so these overrides
+     are never beaten by a same-specificity base rule that happens to come
+     later in the file. ===== */
+  @media (min-width:1100px){
+    .app-shell{display:flex;align-items:stretch;gap:0}
+    #btnSongShelf{display:none}
+    #songShelfOverlay{position:static;inset:auto;z-index:auto;opacity:1;background:none;padding:0;
+      display:flex !important;flex:0 0 var(--shelf-w,260px);width:var(--shelf-w,260px);min-width:0;transition:none}
+    .song-shelf-dialog{width:100%;height:100%;max-height:none;border:0;border-right:2.5px solid var(--ink);
+      border-radius:0;box-shadow:none;transform:none !important;display:flex;flex-direction:column;
+      padding:14px 12px 10px;overflow:hidden}
+    .song-shelf-list{flex:1}
+    .song-shelf-close{display:none}
+    .shelf-collapse-btn{display:flex}
+    .shelf-resize-handle{display:block;flex:0 0 6px;width:6px;align-self:stretch;cursor:col-resize;
+      background:repeating-linear-gradient(var(--ink-faint) 0 4px,transparent 4px 8px);
+      background-position:center;background-repeat:repeat-y;background-size:2px 8px}
+    .shelf-resize-handle:hover,.shelf-resize-handle.active{background-color:var(--sun-soft)}
+    .wrap{flex:1;min-width:0}
+
+    .app-shell.shelf-collapsed #songShelfOverlay{flex:0 0 46px;width:46px}
+    .app-shell.shelf-collapsed .shelf-resize-handle{display:none}
+    .app-shell.shelf-collapsed .song-shelf-head{justify-content:center;padding:14px 6px}
+    .app-shell.shelf-collapsed .song-shelf-head-copy,
+    .app-shell.shelf-collapsed .song-shelf-new,
+    .app-shell.shelf-collapsed .song-shelf-list,
+    .app-shell.shelf-collapsed .song-shelf-foot{display:none}
+  }
 
   /* Tab builder ends with two calm decisions: shape the song, then share or
      keep it. Backup/import remain available without competing with Export. */
@@ -1451,17 +1520,31 @@
      regardless of how high this overlay's own z-index was set. Keep this
      element out here so its z-index is compared at the root, where it
      actually means something. -->
+<div class="app-shell" id="appShell">
 <div class="song-shelf-overlay" id="songShelfOverlay" hidden aria-hidden="true">
   <section class="song-shelf-dialog" id="songShelfDialog" role="dialog" aria-modal="true" aria-labelledby="songShelfTitle" tabindex="-1">
     <div class="song-shelf-head">
       <div class="song-shelf-head-copy"><span class="song-shelf-kicker">Your songs</span><h3 class="song-shelf-title" id="songShelfTitle">Pick up an idea</h3></div>
       <button class="btn primary song-shelf-new" id="btnNewSong" type="button">+ New song</button>
+      <button class="shelf-collapse-btn" id="btnShelfCollapse" type="button" title="Collapse songs" aria-label="Collapse songs panel">◂</button>
       <button class="song-shelf-close" id="btnSongShelfClose" type="button" aria-label="Close songs">×</button>
     </div>
     <div class="song-shelf-list" id="songShelfList" role="list"></div>
-    <p class="song-shelf-foot">Everything stays on this device. Switching saves the song you are leaving.</p>
+    <div class="song-shelf-foot">
+      <div class="shelf-file-actions">
+        <button class="shelf-file-btn primary" id="btnLinkedSave" type="button">💾 Save</button>
+        <button class="shelf-file-btn" id="btnLinkedOpen" type="button">📂 Open…</button>
+        <button class="shelf-file-btn" id="btnExport" type="button" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">📤 Export tabs (.txt)</button>
+      </div>
+      <button class="linked-folder-link" id="linkedFolderLink" type="button">
+        <span class="linked-folder-dot" id="linkedFolderDot" aria-hidden="true"></span>
+        <span id="linkedFolderLabel">Not linked to a folder · link one</span>
+      </button>
+      <input id="projectFile" type="file" accept="application/json,.json" hidden>
+    </div>
   </section>
 </div>
+<div class="shelf-resize-handle" id="shelfResizeHandle" title="Drag to resize the songs panel" aria-hidden="true"></div>
 
 <div class="wrap" inert>
 <div class="song-context" aria-label="Current song">
@@ -1621,20 +1704,12 @@
     <div class="song-action-group share-actions">
       <span class="song-action-kicker">Share &amp; keep</span>
       <button class="btn" id="btnCopy" disabled title="Preview your complete chord chart and tab before exporting">Preview</button>
-      <details class="song-tools">
-        <summary>File</summary>
-        <div class="song-tools-menu">
-          <button class="btn ghost" id="btnBackup" disabled title="Save an editable Couch Batata project backup">Save project (.json)</button>
-          <button class="btn ghost" id="btnImport" title="Import an editable Couch Batata project backup as a new song">Import project</button>
-          <button class="btn primary" id="btnExport" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">Export tab (.txt)</button>
-        </div>
-      </details>
-      <input id="projectFile" type="file" accept="application/json,.json" hidden>
     </div>
   </div>
   <p class="hint">Your song auto-saves. Drag chords or section handles to rearrange; open Help for the rest.</p>
 </div>
 
+</div>
 </div>
 </div>
 
@@ -3321,6 +3396,11 @@ async function refreshSongIndex(){
   const records=await idbRequest(transaction.objectStore(_SONG_STORE).getAll());
   songIndex=records.sort((a,b)=>b.updatedAt-a.updatedAt);
   records.forEach(record=>projectRevisions.set(record.id,record.revision));
+  // The docked sidebar (>=1100px) has no open/closed state to hang a render
+  // off of -- it's always on screen -- so every index refresh re-renders it
+  // directly instead of waiting for setSongShelfOpen(true). Below that width
+  // this is a harmless extra render of a hidden dialog.
+  if(typeof renderSongShelf==='function')renderSongShelf();
   return songIndex;
 }
 async function initialiseSongStore(){
@@ -3368,6 +3448,32 @@ async function setActiveSongId(id){
   const transaction=db.transaction(_SONG_META_STORE,'readwrite');
   transaction.objectStore(_SONG_META_STORE).put({key:_SONG_ACTIVE_KEY,value:id||null});
   await idbTransactionDone(transaction);
+}
+async function setSongMetaValue(key,value){
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_META_STORE,'readwrite');
+  transaction.objectStore(_SONG_META_STORE).put({key,value});
+  await idbTransactionDone(transaction);
+}
+// Which file inside the linked folder a given local song corresponds to.
+// Assigned once (from the scanned filename when the folder already had it,
+// or a fresh slug the first time this song is saved there) and kept from
+// then on, so renaming the song in the app doesn't orphan its file on disk.
+async function setSongLinkedFileName(songId,fileName){
+  const record=await songRecord(songId);
+  if(!record)return;
+  const db=await openSongDatabase();
+  const transaction=db.transaction(_SONG_STORE,'readwrite');
+  transaction.objectStore(_SONG_STORE).put({...record,linkedFileName:fileName});
+  await idbTransactionDone(transaction);
+}
+async function linkedFileNameFor(songId){
+  if(!songId)return songFileSlug()+'.json';
+  const record=await songRecord(songId);
+  if(record?.linkedFileName)return record.linkedFileName;
+  const name=songFileSlug(record?.title)+'.json';
+  if(record)await setSongLinkedFileName(songId,name);
+  return name;
 }
 function notifySongStoreUnavailable(){
   if(_songStoreNoticeShown||document.visibilityState==='hidden')return;
@@ -5153,7 +5259,6 @@ function renderSong(){
   const hasTabContent=chords.length>0||sections.some(s=>(s.lead||[]).length>0);
   document.getElementById('btnExport').disabled=!hasTabContent;
   document.getElementById('btnCopy').disabled=!hasTabContent;
-  document.getElementById('btnBackup').disabled=sections.length===0;
 
   if(sections.length===0){
     host.innerHTML='<p class="placeholder">Add a section below (Intro, Chorus…) to start building your song. Chords you add will drop into whichever section is active — or Couch Batata will create an Intro automatically on your first add.</p>';
@@ -6469,14 +6574,50 @@ function downloadText(filename,text,type){
   document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
-document.getElementById('btnBackup').addEventListener('click',()=>{
-  save(true);
-  downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
-  flash('Downloaded editable project backup');
-});
-document.getElementById('btnImport').addEventListener('click',()=>{
-  document.getElementById('projectFile').click();
-});
+// Load whatever project JSON `data` holds as a song, the same way the old
+// single "Import project" button always did -- as a new song when this
+// browser has the multi-song store, opened in place of the current one when
+// it doesn't. Shared by the linked-folder Open flow and the plain <input>
+// fallback below, so the two only ever differ in how they get the file.
+async function importProjectData(data,sourceLabel){
+  if(!data||data.version!==1||!Array.isArray(data.sections))throw new Error('Unsupported project format');
+  if(leadDraft.length){
+    const discard=await confirmModal('You have a solo draft in progress. Discard it and import this project?',{confirmText:'Discard draft and import',cancelText:'Keep editing'});
+    if(!discard)return false;
+  }
+  if(_songDb){
+    await flushCurrentProject();
+    // Use the existing normaliser without letting a failed import replace the
+    // song currently on screen. The imported record is created first, then
+    // applied as the active song only after that succeeds.
+    const previous=projectSnapshot();
+    if(!restoreProject(data))throw new Error('Unsupported project format');
+    const importedSnapshot=projectSnapshot();
+    restoreProject(previous);
+    const originalTitle=snapshotTitle(importedSnapshot);
+    const titles=new Set(songIndex.map(record=>record.title.toLowerCase()));
+    let importedTitle=originalTitle;
+    if(titles.has(importedTitle.toLowerCase())){
+      const base=(originalTitle.length>108?originalTitle.slice(0,108):originalTitle)+' (imported)';
+      importedTitle=base;let count=2;
+      while(titles.has(importedTitle.toLowerCase()))importedTitle=base+' '+count++;
+    }
+    importedSnapshot.songName=importedTitle==='Untitled song'?'':importedTitle;
+    const record=await addSongRecord(importedSnapshot,{activate:true,title:importedTitle});
+    if(!applySongRecord(record))throw new Error('Could not open imported project');
+    flash('Imported "'+importedTitle+'" as a new song');
+  }else{
+    if(sections.length){
+      const replace=await confirmModal('Open this backup in place of the current song? Back up the current song first if you want to keep both.',{confirmText:'Open backup',cancelText:'Keep current song'});
+      if(!replace)return false;
+    }
+    if(!restoreProject(data))throw new Error('Unsupported project format');
+    resetProjectEditingState();
+    syncSongTitleUI();setFlats(useFlats);analyze();renderSong();renderLead();save(true);
+    flash('Opened project "'+(sourceLabel||'file')+'"');
+  }
+  return true;
+}
 document.getElementById('projectFile').addEventListener('change',async e=>{
   const file=e.target.files&&e.target.files[0];
   e.target.value='';
@@ -6484,46 +6625,174 @@ document.getElementById('projectFile').addEventListener('change',async e=>{
   try{
     await _bootPromise;
     const data=JSON.parse(await file.text());
-    if(!data||data.version!==1||!Array.isArray(data.sections))throw new Error('Unsupported project format');
-    if(leadDraft.length){
-      const discard=await confirmModal('You have a solo draft in progress. Discard it and import this project?',{confirmText:'Discard draft and import',cancelText:'Keep editing'});
-      if(!discard)return;
-    }
-    if(_songDb){
-      await flushCurrentProject();
-      // Use the existing normaliser without letting a failed import replace the
-      // song currently on screen. The imported record is created first, then
-      // applied as the active song only after that succeeds.
-      const previous=projectSnapshot();
-      if(!restoreProject(data))throw new Error('Unsupported project format');
-      const importedSnapshot=projectSnapshot();
-      restoreProject(previous);
-      const originalTitle=snapshotTitle(importedSnapshot);
-      const titles=new Set(songIndex.map(record=>record.title.toLowerCase()));
-      let importedTitle=originalTitle;
-      if(titles.has(importedTitle.toLowerCase())){
-        const base=(originalTitle.length>108?originalTitle.slice(0,108):originalTitle)+' (imported)';
-        importedTitle=base;let count=2;
-        while(titles.has(importedTitle.toLowerCase()))importedTitle=base+' '+count++;
-      }
-      importedSnapshot.songName=importedTitle==='Untitled song'?'':importedTitle;
-      const record=await addSongRecord(importedSnapshot,{activate:true,title:importedTitle});
-      if(!applySongRecord(record))throw new Error('Could not open imported project');
-      flash('Imported "'+importedTitle+'" as a new song');
-    }else{
-      if(sections.length){
-        const replace=await confirmModal('Open this backup in place of the current song? Back up the current song first if you want to keep both.',{confirmText:'Open backup',cancelText:'Keep current song'});
-        if(!replace)return;
-      }
-      if(!restoreProject(data))throw new Error('Unsupported project format');
-      resetProjectEditingState();
-      syncSongTitleUI();setFlats(useFlats);analyze();renderSong();renderLead();save(true);
-      flash('Opened project "'+file.name+'"');
-    }
+    await importProjectData(data,file.name);
   }catch(err){
     flash('Could not open that project file');
   }
 });
+
+/* ---------- linked folder: Save/Open straight to a real folder on disk ----------
+   The File System Access API where it exists (desktop Chrome/Edge can both
+   write into and re-read a whole folder; Android Chrome can silently
+   re-write one remembered *file* but not enumerate a folder's contents) --
+   the plain file <input> above and a download everywhere else, notably
+   Safari on both Mac and iOS, which supports neither. Whichever path runs,
+   the payload is the exact same projectSnapshot()/restoreProject() JSON the
+   backup/import buttons always used -- linking a folder only changes where
+   that JSON goes, never what it is. */
+let linkedDirHandle=null;
+let _linkedFolderSyncing=false;
+const fsDirPickerSupported=()=>typeof window.showDirectoryPicker==='function';
+const fsOpenPickerSupported=()=>typeof window.showOpenFilePicker==='function';
+async function verifyLinkedFolderAccess(promptIfNeeded){
+  if(!linkedDirHandle)return false;
+  try{
+    let perm=await linkedDirHandle.queryPermission({mode:'readwrite'});
+    if(perm!=='granted'&&promptIfNeeded)perm=await linkedDirHandle.requestPermission({mode:'readwrite'});
+    return perm==='granted';
+  }catch(error){return false;}
+}
+function updateLinkedFolderUI(state){
+  const link=document.getElementById('linkedFolderLink'),label=document.getElementById('linkedFolderLabel');
+  if(!link||!label)return;
+  link.classList.remove('is-linked','needs-attention');
+  if(state==='linked'){
+    link.classList.add('is-linked');
+    label.textContent='Songs folder: '+(linkedDirHandle?.name||'linked')+' · change';
+  }else if(state==='needs-attention'){
+    link.classList.add('needs-attention');
+    label.textContent='Songs folder: '+(linkedDirHandle?.name||'linked')+' · reconnect';
+  }else{
+    label.textContent='Not linked to a folder · link one';
+  }
+}
+// Picks up any Couch Batata song sitting in the linked folder that this
+// browser doesn't already know about -- another device's save, most likely
+// -- and adds it as a local song too, so it shows up in the list without
+// anyone hunting for the file. Matches by title first (the same song
+// re-imported twice under different filenames is still one song here), and
+// never touches whatever song is currently open.
+async function scanLinkedFolder(opts){
+  if(!linkedDirHandle)return;
+  if(!(await verifyLinkedFolderAccess(false))){updateLinkedFolderUI('needs-attention');return;}
+  if(_linkedFolderSyncing)return;
+  _linkedFolderSyncing=true;
+  try{
+    await refreshSongIndex();
+    const existingTitles=new Set(songIndex.map(r=>r.title.toLowerCase()));
+    const existingFileNames=new Set(songIndex.map(r=>r.linkedFileName).filter(Boolean));
+    let importedCount=0;
+    for await (const [name,handle] of linkedDirHandle.entries()){
+      if(handle.kind!=='file'||!name.toLowerCase().endsWith('.json')||existingFileNames.has(name))continue;
+      try{
+        const file=await handle.getFile();
+        const data=JSON.parse(await file.text());
+        if(!data||data.app!=='Couch Batata'||data.version!==1||!Array.isArray(data.sections))continue;
+        const title=snapshotTitle(data);
+        if(existingTitles.has(title.toLowerCase())){
+          // Already have a song by this name locally -- not a new song to
+          // import, but if that local copy has no file of its own yet, this
+          // is it: tag it so it gets the folder badge and Save targets this
+          // exact file from now on, instead of generating a fresh slug that
+          // may not even match this filename.
+          const match=songIndex.find(r=>r.title.toLowerCase()===title.toLowerCase()&&!r.linkedFileName);
+          if(match){await setSongLinkedFileName(match.id,name);existingFileNames.add(name);}
+          continue;
+        }
+        const record=await addSongRecord(data,{activate:false,title});
+        await setSongLinkedFileName(record.id,name);
+        existingTitles.add(title.toLowerCase());existingFileNames.add(name);
+        importedCount++;
+      }catch(error){/* not a Couch Batata file, or unreadable -- skip it and keep scanning */}
+    }
+    if(importedCount)await refreshSongIndex();
+    updateLinkedFolderUI('linked');
+    if(!opts?.silent&&importedCount)flash(importedCount+' song'+(importedCount===1?'':'s')+' found in your linked folder');
+  }finally{
+    _linkedFolderSyncing=false;
+  }
+}
+async function linkSongsFolder(){
+  if(!fsDirPickerSupported()){
+    flash('Folder linking needs Chrome or Edge on a computer — Save and Open still work without it');
+    return;
+  }
+  let picked;
+  try{picked=await window.showDirectoryPicker({mode:'readwrite'});}catch(error){return;}
+  linkedDirHandle=picked;
+  try{await setSongMetaValue('linkedFolder',picked);}catch(error){}
+  updateLinkedFolderUI('linked');
+  await scanLinkedFolder({});
+}
+async function saveToLinkedFolder(){
+  await flushCurrentProject();
+  if(!fsDirPickerSupported()){
+    downloadText('couch-batata-'+songFileSlug()+'-project.json',JSON.stringify(projectSnapshot(),null,2),'application/json');
+    flash('Downloaded — move it into your synced folder (iCloud Drive, Google Drive…) to open it on another device');
+    return;
+  }
+  if(!linkedDirHandle){
+    let picked;
+    try{picked=await window.showDirectoryPicker({mode:'readwrite'});}catch(error){return;}
+    linkedDirHandle=picked;
+    try{await setSongMetaValue('linkedFolder',picked);}catch(error){}
+    updateLinkedFolderUI('linked');
+    await scanLinkedFolder({silent:true});
+  }
+  if(!(await verifyLinkedFolderAccess(true))){
+    updateLinkedFolderUI('needs-attention');
+    flash('Couldn\'t get permission for the linked folder — tap "reconnect" and try again');
+    return;
+  }
+  try{
+    const fileName=await linkedFileNameFor(activeProjectId);
+    const fileHandle=await linkedDirHandle.getFileHandle(fileName,{create:true});
+    const writable=await fileHandle.createWritable();
+    await writable.write(JSON.stringify(projectSnapshot(),null,2));
+    await writable.close();
+    updateLinkedFolderUI('linked');
+    flash('Saved to '+linkedDirHandle.name);
+  }catch(error){
+    flash('Could not save to the linked folder');
+  }
+}
+async function openProjectFromPicker(){
+  if(!fsOpenPickerSupported()){document.getElementById('projectFile').click();return;}
+  let handles;
+  try{
+    handles=await window.showOpenFilePicker({
+      types:[{description:'Couch Batata project',accept:{'application/json':['.json']}}],
+      excludeAcceptAllOption:false
+    });
+  }catch(error){return;}
+  const handle=handles&&handles[0];
+  if(!handle)return;
+  try{
+    await _bootPromise;
+    const file=await handle.getFile();
+    const data=JSON.parse(await file.text());
+    await importProjectData(data,file.name);
+  }catch(error){
+    flash('Could not open that project file');
+  }
+}
+document.getElementById('btnLinkedSave').addEventListener('click',()=>{saveToLinkedFolder();});
+document.getElementById('btnLinkedOpen').addEventListener('click',()=>{openProjectFromPicker();});
+document.getElementById('linkedFolderLink').addEventListener('click',()=>{linkSongsFolder();});
+updateLinkedFolderUI('unlinked');
+// Restore a folder linked in an earlier session -- silent when the browser
+// still trusts it, otherwise the footer link switches to "reconnect" on its
+// own next render rather than prompting without a click to hang the
+// permission request on. Called from boot() itself (not run standalone here)
+// so it never races _bootPromise's own declaration further down the file.
+async function restoreLinkedFolder(){
+  try{
+    const handle=await songMetaValue('linkedFolder');
+    if(!handle)return;
+    linkedDirHandle=handle;
+    await scanLinkedFolder({silent:true});
+  }catch(error){/* nothing was linked, or this browser can't restore it -- stays unlinked */}
+}
 
 /* ---------- key analysis ---------- */
 function startsLike(diatonicSuf,playedSuf){
@@ -7723,6 +7992,71 @@ const songShelfDialog=document.getElementById('songShelfDialog');
 const songShelfList=document.getElementById('songShelfList');
 const btnSongShelfClose=document.getElementById('btnSongShelfClose');
 const btnNewSong=document.getElementById('btnNewSong');
+
+// ---- docked sidebar (>=1100px): same dialog, permanently visible, resizable ----
+const appShell=document.getElementById('appShell');
+const btnShelfCollapse=document.getElementById('btnShelfCollapse');
+const shelfResizeHandle=document.getElementById('shelfResizeHandle');
+const shelfDockQuery=window.matchMedia('(min-width:1100px)');
+const SHELF_WIDTH_KEY='couch-batata.shelfWidth',SHELF_COLLAPSED_KEY='couch-batata.shelfCollapsed';
+const SHELF_MIN_W=200,SHELF_MAX_W=420,SHELF_DEFAULT_W=260;
+function loadShelfWidth(){
+  const n=Number(localStorage.getItem(SHELF_WIDTH_KEY));
+  return Number.isFinite(n)&&n>=SHELF_MIN_W&&n<=SHELF_MAX_W?n:SHELF_DEFAULT_W;
+}
+appShell.style.setProperty('--shelf-w',loadShelfWidth()+'px');
+if(localStorage.getItem(SHELF_COLLAPSED_KEY)==='1'){
+  appShell.classList.add('shelf-collapsed');
+  btnShelfCollapse.textContent='▸';btnShelfCollapse.title='Expand songs';
+}
+btnShelfCollapse.addEventListener('click',()=>{
+  const collapsed=appShell.classList.toggle('shelf-collapsed');
+  btnShelfCollapse.textContent=collapsed?'▸':'◂';
+  btnShelfCollapse.title=collapsed?'Expand songs':'Collapse songs';
+  btnShelfCollapse.setAttribute('aria-label',collapsed?'Expand songs panel':'Collapse songs panel');
+  try{localStorage.setItem(SHELF_COLLAPSED_KEY,collapsed?'1':'0');}catch(error){}
+});
+let _shelfDragging=false,_shelfDragStartX=0,_shelfDragStartW=0;
+shelfResizeHandle.addEventListener('pointerdown',event=>{
+  if(appShell.classList.contains('shelf-collapsed'))return;
+  _shelfDragging=true;_shelfDragStartX=event.clientX;_shelfDragStartW=loadShelfWidth();
+  shelfResizeHandle.classList.add('active');shelfResizeHandle.setPointerCapture(event.pointerId);
+  document.body.style.userSelect='none';event.preventDefault();
+});
+shelfResizeHandle.addEventListener('pointermove',event=>{
+  if(!_shelfDragging)return;
+  const w=Math.max(SHELF_MIN_W,Math.min(SHELF_MAX_W,_shelfDragStartW+(event.clientX-_shelfDragStartX)));
+  appShell.style.setProperty('--shelf-w',w+'px');
+});
+function endShelfDrag(event){
+  if(!_shelfDragging)return;
+  _shelfDragging=false;shelfResizeHandle.classList.remove('active');document.body.style.userSelect='';
+  try{shelfResizeHandle.releasePointerCapture(event.pointerId);}catch(error){}
+  const match=/([\d.]+)px/.exec(appShell.style.getPropertyValue('--shelf-w'));
+  if(match)try{localStorage.setItem(SHELF_WIDTH_KEY,String(Math.round(parseFloat(match[1]))));}catch(error){}
+}
+shelfResizeHandle.addEventListener('pointerup',endShelfDrag);
+shelfResizeHandle.addEventListener('pointercancel',endShelfDrag);
+// The dialog's modal semantics (role="dialog", aria-modal, the Escape/Tab
+// trap, aria-hidden while closed) only make sense while it's actually an
+// overlay. Docked, it's a permanently visible region of the page -- marking
+// it aria-hidden there would hide real, interactive content from anyone not
+// using a mouse, so both directions of this crossing are handled explicitly
+// rather than left to whatever the modal's default state happened to be.
+function syncShelfDockA11y(){
+  if(shelfDockQuery.matches){
+    songShelfDialog.removeAttribute('role');songShelfDialog.removeAttribute('aria-modal');
+    songShelfOverlay.hidden=false;songShelfOverlay.classList.add('show');
+    songShelfOverlay.setAttribute('aria-hidden','false');
+  }else{
+    songShelfDialog.setAttribute('role','dialog');songShelfDialog.setAttribute('aria-modal','true');
+    songShelfOverlay.hidden=true;songShelfOverlay.classList.remove('show');
+    songShelfOverlay.setAttribute('aria-hidden','true');
+    btnSongShelf.setAttribute('aria-expanded','false');
+  }
+}
+shelfDockQuery.addEventListener('change',syncShelfDockA11y);
+syncShelfDockA11y();
 function formatSongDate(time){
   if(!Number.isFinite(time))return '';
   try{return 'Edited '+new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short'}).format(new Date(time));}
@@ -7747,6 +8081,12 @@ function shelfFocusable(){
     .filter(element=>!element.closest('[hidden]'));
 }
 function setSongShelfOpen(open){
+  // Permanently docked at this width (see the >=1100px block in <style>) --
+  // there's nothing to open or close, so a click on the now-current song
+  // (which used to dismiss the dialog) or the hidden trigger button is a
+  // no-op instead of quietly flipping aria-hidden on a panel that's still
+  // sitting there, visible, right next to the board.
+  if(shelfDockQuery.matches)return;
   if(open){
     if(_songDbFailed){notifySongStoreUnavailable();return;}
     renderSongShelf();
@@ -7807,6 +8147,11 @@ function renderSongShelf(){
     const open=document.createElement('button');open.type='button';open.className='song-shelf-open';open.title='Open '+record.title;
     const copy=document.createElement('span');copy.className='song-shelf-copy';
     const name=document.createElement('span');name.className='song-shelf-name';name.textContent=record.title;
+    if(record.linkedFileName){
+      const badge=document.createElement('span');badge.className='song-shelf-folder-badge';
+      badge.title='Found in your linked folder ('+record.linkedFileName+')';
+      name.appendChild(badge);
+    }
     const meta=document.createElement('span');meta.className='song-shelf-meta';
     const details=document.createElement('span');details.textContent=songSummaryLine(record);
     const date=document.createElement('span');date.className='song-shelf-date';date.textContent=formatSongDate(record.updatedAt);
@@ -7996,6 +8341,9 @@ try{
 
 /* init */
 async function boot(){
+  // Independent of the current song loading -- never block the app becoming
+  // interactive on a folder-permission check that might take a moment.
+  restoreLinkedFolder();
   try{
     const wasRestored=await load();
     syncSongTitleUI();

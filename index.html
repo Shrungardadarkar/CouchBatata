@@ -100,6 +100,11 @@
     background-repeat:no-repeat}
   body.booting .wrap{pointer-events:none;cursor:wait}
   .wrap{max-width:1080px;margin:0 auto;padding:0 20px 20px;display:flex;flex-direction:column}
+  /* Base (hidden) state for the fretboard/tab-builder resize handle -- must
+     precede the >=1100px block below that turns it on, or the later,
+     same-specificity base rule would win regardless of viewport width (the
+     exact bug already hit once with the songs sidebar's own handle). */
+  .main-resize-handle{display:none}
   /* Below the two-column breakpoint, .col-main/.col-rail are invisible to layout
      (display:contents) so panels are direct flex children of .wrap -- these
      `order` values are the only thing restoring the original single-column
@@ -114,13 +119,24 @@
 
   /* ===== DESKTOP TWO-COLUMN: fretboard/chord stay left; Tab builder + Key &
      Scales move into a sticky right rail so both stay on screen while
-     capturing, instead of requiring a scroll to cross-reference the song. ===== */
+     capturing, instead of requiring a scroll to cross-reference the song.
+     The song-title bar moves into the same right column, sitting above the
+     rail rather than spanning both -- it's DOM-order-first regardless, so
+     the stacked single-column reading order below this breakpoint is
+     unaffected; only its grid placement changes here. A draggable column
+     between the two lets either one take more of the width, matching the
+     songs sidebar's own resize handle. ===== */
   @media (min-width:1100px){
-    .wrap{max-width:1320px;display:grid;grid-template-columns:1.6fr 1fr;column-gap:30px;align-items:start}
-    .song-context{grid-column:1/-1}
+    .wrap{max-width:1320px;display:grid;grid-template-columns:var(--main-w,1.6fr) 8px 1fr;
+      grid-template-rows:auto 1fr;column-gap:16px;row-gap:16px;align-items:start}
+    .song-context{grid-column:3;grid-row:1}
     .col-main,.col-rail{display:block}
-    .col-main{grid-column:1;min-width:0}
-    .col-rail{grid-column:2;min-width:0;position:sticky;top:20px;
+    .col-main{grid-column:1;grid-row:1/-1;min-width:0}
+    .main-resize-handle{display:block;grid-column:2;grid-row:1/-1;align-self:stretch;cursor:col-resize;
+      background:repeating-linear-gradient(var(--ink-faint) 0 4px,transparent 4px 8px);
+      background-position:center;background-repeat:repeat-y;background-size:2px 8px}
+    .main-resize-handle.active{background-color:var(--sun-soft)}
+    .col-rail{grid-column:3;grid-row:2;min-width:0;position:sticky;top:20px;
       max-height:calc(100vh - 40px);overflow-y:auto;padding:2px 8px 8px 2px}
   }
 
@@ -1106,6 +1122,7 @@
   .shelf-collapse-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   @media (hover:hover){.shelf-collapse-btn:hover{background:var(--cream-2)}}
   .shelf-resize-handle{display:none}
+  @media (hover:hover){.main-resize-handle:hover{background-color:var(--sun-soft)}}
   /* The File section: exactly four things (Save, Open, Export tabs, and the
      linked-folder status) -- Save/Open write straight into whatever folder
      is linked (a real folder on disk via the File System Access API, kept
@@ -1145,17 +1162,31 @@
      are never beaten by a same-specificity base rule that happens to come
      later in the file. ===== */
   @media (min-width:1100px){
-    .app-shell{display:flex;align-items:stretch;gap:0}
+    /* flex-start, not stretch: an align-items:stretch sidebar would match
+       .wrap's own full (often much-taller-than-the-screen) content height,
+       which is exactly why the File section used to sit wherever the list's
+       old 340px cap left it rather than pinned to the bottom -- there was
+       genuine empty space below it, not a positioning bug in the footer
+       itself. .col-rail's own sticky rule below only needs a max-height
+       (its content is routinely taller than one screen, so a cap is all it
+       needs); this one needs a real height too -- max-height alone is an
+       upper bound, not a size, so with a short song list .song-shelf-dialog's
+       height:100% would resolve against nothing and the footer would sit
+       whever the (short) content left it rather than pinned to the bottom
+       edge of this box. */
+    .app-shell{display:flex;align-items:flex-start;gap:0}
     #btnSongShelf{display:none}
-    #songShelfOverlay{position:static;inset:auto;z-index:auto;opacity:1;background:none;padding:0;
-      display:flex !important;flex:0 0 var(--shelf-w,260px);width:var(--shelf-w,260px);min-width:0;transition:none}
+    #songShelfOverlay{position:sticky;top:20px;inset:auto;z-index:auto;opacity:1;background:none;padding:0;
+      display:flex !important;flex:0 0 var(--shelf-w,260px);width:var(--shelf-w,260px);min-width:0;
+      height:calc(100vh - 40px);transition:none}
     .song-shelf-dialog{width:100%;height:100%;max-height:none;border:0;border-right:2.5px solid var(--ink);
       border-radius:0;box-shadow:none;transform:none !important;display:flex;flex-direction:column;
       padding:14px 12px 10px;overflow:hidden}
-    .song-shelf-list{flex:1}
+    .song-shelf-list{flex:1;min-height:0;max-height:none;overflow-y:auto}
     .song-shelf-close{display:none}
     .shelf-collapse-btn{display:flex}
     .shelf-resize-handle{display:block;flex:0 0 6px;width:6px;align-self:stretch;cursor:col-resize;
+      position:sticky;top:20px;height:calc(100vh - 40px);
       background:repeating-linear-gradient(var(--ink-faint) 0 4px,transparent 4px 8px);
       background-position:center;background-repeat:repeat-y;background-size:2px 8px}
     .shelf-resize-handle.active{background-color:var(--sun-soft)}
@@ -1691,6 +1722,10 @@
   <pre id="exportPre" tabindex="0" aria-label="Exported chord chart preview"></pre>
 </div>
 </div>
+
+<div class="main-resize-handle" id="mainResizeHandle" title="Drag to resize the fretboard and tab builder"
+  role="separator" aria-orientation="vertical" tabindex="0" aria-label="Resize the fretboard and tab builder columns"
+  aria-valuemin="320" aria-valuemax="1000" aria-valuenow="640"></div>
 
 <div class="col-rail">
 <div class="panel win-tomato" data-win="Tab builder" id="builderPanel">
@@ -8100,6 +8135,75 @@ function syncShelfDockA11y(){
 }
 shelfDockQuery.addEventListener('change',syncShelfDockA11y);
 syncShelfDockA11y();
+
+// ---- fretboard/tab-builder column split (>=1100px): same resize idiom as
+// the songs sidebar, but the width that's saved is a real measurement
+// against .wrap's own current width rather than a fixed pixel range -- the
+// two columns split a space that itself changes size (viewport width, the
+// sidebar's own width/collapsed state), so the clamp has to be recomputed
+// against that live width every time, not just once at load. ----
+const mainResizeHandle=document.getElementById('mainResizeHandle');
+const wrapEl=document.querySelector('.wrap');
+const MAIN_WIDTH_KEY='couch-batata.mainWidth';
+const MAIN_MIN_W=320,MAIN_RAIL_MIN_W=280,MAIN_HANDLE_GAP=8+16+16;
+function loadMainWidth(){
+  const n=Number(localStorage.getItem(MAIN_WIDTH_KEY));
+  return Number.isFinite(n)&&n>0?n:null;
+}
+function mainMaxWidth(){
+  const wrapW=wrapEl.getBoundingClientRect().width||1320;
+  return Math.max(MAIN_MIN_W,wrapW-MAIN_RAIL_MIN_W-MAIN_HANDLE_GAP);
+}
+function setMainWidth(px,persist){
+  const clamped=Math.max(MAIN_MIN_W,Math.min(mainMaxWidth(),Math.round(px)));
+  wrapEl.style.setProperty('--main-w',clamped+'px');
+  mainResizeHandle.setAttribute('aria-valuenow',String(clamped));
+  mainResizeHandle.setAttribute('aria-valuemax',String(mainMaxWidth()));
+  if(persist)try{localStorage.setItem(MAIN_WIDTH_KEY,String(clamped));}catch(error){}
+  return clamped;
+}
+const savedMainW=loadMainWidth();
+if(savedMainW)setMainWidth(savedMainW,false);
+// A width chosen at a wide viewport can overflow a narrower one the sidebar
+// alone wouldn't (it collapses/resizes independently) -- reclamp on resize
+// rather than only ever re-checking on the next manual drag.
+window.addEventListener('resize',()=>{
+  if(!shelfDockQuery.matches)return;
+  const current=parseFloat(wrapEl.style.getPropertyValue('--main-w'));
+  if(Number.isFinite(current))setMainWidth(current,false);
+});
+let _mainDragging=false,_mainDragStartX=0,_mainDragStartW=0;
+mainResizeHandle.addEventListener('pointerdown',event=>{
+  _mainDragging=true;_mainDragStartX=event.clientX;
+  _mainDragStartW=document.querySelector('.col-main').getBoundingClientRect().width;
+  mainResizeHandle.classList.add('active');mainResizeHandle.setPointerCapture(event.pointerId);
+  document.body.style.userSelect='none';event.preventDefault();
+});
+mainResizeHandle.addEventListener('pointermove',event=>{
+  if(!_mainDragging)return;
+  setMainWidth(_mainDragStartW+(event.clientX-_mainDragStartX),false);
+});
+function endMainDrag(event){
+  if(!_mainDragging)return;
+  _mainDragging=false;mainResizeHandle.classList.remove('active');document.body.style.userSelect='';
+  try{mainResizeHandle.releasePointerCapture(event.pointerId);}catch(error){}
+  const match=/([\d.]+)px/.exec(wrapEl.style.getPropertyValue('--main-w'));
+  if(match)setMainWidth(parseFloat(match[1]),true);
+}
+mainResizeHandle.addEventListener('pointerup',endMainDrag);
+mainResizeHandle.addEventListener('pointercancel',endMainDrag);
+mainResizeHandle.addEventListener('keydown',event=>{
+  const step=event.shiftKey?60:24;
+  let w=null;
+  const current=parseFloat(wrapEl.style.getPropertyValue('--main-w'))||document.querySelector('.col-main').getBoundingClientRect().width;
+  if(event.key==='ArrowLeft')w=current-step;
+  else if(event.key==='ArrowRight')w=current+step;
+  else if(event.key==='Home')w=MAIN_MIN_W;
+  else if(event.key==='End')w=mainMaxWidth();
+  else return;
+  event.preventDefault();
+  setMainWidth(w,true);
+});
 function formatSongDate(time){
   if(!Number.isFinite(time))return '';
   try{return 'Edited '+new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short'}).format(new Date(time));}

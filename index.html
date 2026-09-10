@@ -1090,7 +1090,8 @@
   /* The list scrolls, but its rows and the secondary “more” control still
      need room to lift. The generous gutter prevents cropped shadows/focus
      rings at every edge; row overflow stays visible for its icon feedback. */
-  .song-shelf-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto;padding:6px 8px 10px 6px}
+  .song-shelf-list{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto;padding:6px 8px 10px 6px;
+    -webkit-overflow-scrolling:touch;overscroll-behavior:contain}
   .song-shelf-item{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;border:2px solid var(--ink);border-radius:9px;background:var(--paper);box-shadow:1.5px 1.5px 0 var(--ink);overflow:visible;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .song-shelf-item.active{background:var(--sun-soft);box-shadow:2px 2px 0 var(--ink)}
@@ -8139,6 +8140,10 @@ shelfResizeHandle.addEventListener('keydown',event=>{
 // rather than left to whatever the modal's default state happened to be.
 function syncShelfDockA11y(){
   if(shelfDockQuery.matches){
+    // A resize (or tablet rotation) can cross into docked width while the
+    // drawer was open and the page was scroll-locked for it -- docked mode
+    // expects ordinary page scrolling, so that lock must not survive here.
+    unlockBodyScroll();
     songShelfDialog.removeAttribute('role');songShelfDialog.removeAttribute('aria-modal');
     songShelfOverlay.hidden=false;songShelfOverlay.classList.add('show');
     songShelfOverlay.setAttribute('aria-hidden','false');
@@ -8243,6 +8248,34 @@ function shelfFocusable(){
   return [songShelfDialog,...songShelfOverlay.querySelectorAll('button:not([disabled])')]
     .filter(element=>!element.closest('[hidden]'));
 }
+// The drawer is `position:fixed`, so it visually covers the page underneath,
+// but the page itself was still a normal scrolling document -- a touch-drag
+// anywhere on it (even over the drawer) could scroll the board behind it
+// instead of the song list. Pinning <body> in place with position:fixed
+// while remembering its scroll offset is the one technique that reliably
+// stops that on iOS Safari, where overflow:hidden on body alone is ignored
+// for touch scrolling.
+let _bodyScrollLockY=null;
+function lockBodyScroll(){
+  if(_bodyScrollLockY!=null)return;
+  _bodyScrollLockY=window.scrollY||window.pageYOffset||0;
+  document.body.style.position='fixed';
+  document.body.style.top='-'+_bodyScrollLockY+'px';
+  document.body.style.left='0';
+  document.body.style.right='0';
+  document.body.style.width='100%';
+}
+function unlockBodyScroll(){
+  if(_bodyScrollLockY==null)return;
+  const y=_bodyScrollLockY;
+  _bodyScrollLockY=null;
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.left='';
+  document.body.style.right='';
+  document.body.style.width='';
+  window.scrollTo(0,y);
+}
 function setSongShelfOpen(open){
   // Permanently docked at this width (see the >=1100px block in <style>) --
   // there's nothing to open or close, so a click on the now-current song
@@ -8253,10 +8286,12 @@ function setSongShelfOpen(open){
   if(open){
     if(_songDbFailed){notifySongStoreUnavailable();return;}
     renderSongShelf();
+    lockBodyScroll();
     songShelfOverlay.hidden=false;songShelfOverlay.setAttribute('aria-hidden','false');
     btnSongShelf.setAttribute('aria-expanded','true');
     requestAnimationFrame(()=>{songShelfOverlay.classList.add('show');songShelfDialog.focus({preventScroll:true});});
   }else{
+    unlockBodyScroll();
     songShelfOverlay.classList.remove('show');songShelfOverlay.setAttribute('aria-hidden','true');
     btnSongShelf.setAttribute('aria-expanded','false');
     setTimeout(()=>{if(!songShelfOverlay.classList.contains('show'))songShelfOverlay.hidden=true;},180);
@@ -8268,6 +8303,7 @@ function hideSongShelfForModal(){
   // aria-hide a panel that's still sitting there, visible and interactive,
   // exactly the mistake syncShelfDockA11y() exists to prevent.
   if(shelfDockQuery.matches)return;
+  unlockBodyScroll();
   songShelfOverlay.classList.remove('show');
   songShelfOverlay.hidden=true;
   songShelfOverlay.setAttribute('aria-hidden','true');

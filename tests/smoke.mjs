@@ -211,6 +211,13 @@ assert.match(html, /actions\.append\(rename,dupe,remove\)/);
 // not after the description, notes and key-context chips.
 assert.match(html, /<\/div>\s*<div class="btn-row">\s*<button class="btn primary" id="btnAdd"[\s\S]*?<div class="key-chip-row" id="chordKeyChips"/);
 assert.match(html, /textContent="?Reset Fretboard"?|>Reset Fretboard</);
+// The mobile songs drawer is `position:fixed`, covering the page, but the
+// page itself was still an ordinary scrolling document underneath it -- a
+// touch-drag anywhere (even over the drawer) could scroll the board behind
+// it instead of the song list. Pin <body> in place while the drawer is open.
+assert.match(html, /function lockBodyScroll\(\)/);
+assert.match(html, /function unlockBodyScroll\(\)/);
+assert.match(html, /if\(open\)\{\s*if\(_songDbFailed\)\{notifySongStoreUnavailable\(\);return;\}\s*renderSongShelf\(\);\s*lockBodyScroll\(\);/);
 // inset:auto must come before top:20px in the docked sidebar rule -- inset is
 // shorthand for all four offsets, so listed after top it silently wins and
 // resets top back to auto, leaving position:sticky with no offset to hold

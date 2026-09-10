@@ -120,23 +120,21 @@
   /* ===== DESKTOP TWO-COLUMN: fretboard/chord stay left; Tab builder + Key &
      Scales move into a sticky right rail so both stay on screen while
      capturing, instead of requiring a scroll to cross-reference the song.
-     The song-title bar moves into the same right column, sitting above the
-     rail rather than spanning both -- it's DOM-order-first regardless, so
-     the stacked single-column reading order below this breakpoint is
-     unaffected; only its grid placement changes here. A draggable column
-     between the two lets either one take more of the width, matching the
-     songs sidebar's own resize handle. ===== */
+     Naming and switching songs live in the sidebar now, not up here -- only
+     the "My songs" trigger stays in .wrap, and it's hidden itself once the
+     sidebar is docked (see the sidebar media block below). A draggable
+     column between the two lets either one take more of the width, matching
+     the songs sidebar's own resize handle. ===== */
   @media (min-width:1100px){
     .wrap{max-width:1320px;display:grid;grid-template-columns:var(--main-w,1.6fr) 8px 1fr;
-      grid-template-rows:auto 1fr;column-gap:16px;row-gap:16px;align-items:start}
-    .song-context{grid-column:3;grid-row:1}
+      column-gap:16px;align-items:start}
     .col-main,.col-rail{display:block}
-    .col-main{grid-column:1;grid-row:1/-1;min-width:0}
-    .main-resize-handle{display:block;grid-column:2;grid-row:1/-1;align-self:stretch;cursor:col-resize;
+    .col-main{grid-column:1;min-width:0}
+    .main-resize-handle{display:block;grid-column:2;align-self:stretch;cursor:col-resize;
       background:repeating-linear-gradient(var(--ink-faint) 0 4px,transparent 4px 8px);
       background-position:center;background-repeat:repeat-y;background-size:2px 8px}
     .main-resize-handle.active{background-color:var(--sun-soft)}
-    .col-rail{grid-column:3;grid-row:2;min-width:0;position:sticky;top:20px;
+    .col-rail{grid-column:3;min-width:0;position:sticky;top:20px;
       max-height:calc(100vh - 40px);overflow-y:auto;padding:2px 8px 8px 2px}
   }
 
@@ -154,13 +152,11 @@
   h1 .dot{color:var(--sun);-webkit-text-stroke:2px var(--ink)}
   .header-subtitle{max-width:184px;margin:0;color:#2b1520;text-align:right;
     font:900 .61rem/1.2 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase}
-  .song-context{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;column-gap:14px;row-gap:3px;
-    align-items:center;margin:16px 4px 0;padding:11px 10px 11px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--paper);box-shadow:var(--shadow-sm)}
-  .song-context-kicker{grid-column:1;grid-row:1;color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
-  /* The current idea is named where it is chosen, not again inside Tab builder.
-     Giving the working label its own row makes the current song feel like a
-     deliberate home base, while My Songs keeps its familiar button treatment. */
-  .song-name-row{grid-column:1;grid-row:2;display:flex;align-items:center;gap:5px;min-width:0;min-height:28px}
+  /* The current song is named where songs are picked -- in the songs
+     sidebar/drawer, right below its header -- not again above Tab builder. */
+  .song-shelf-current{margin-bottom:10px;padding-bottom:12px;border-bottom:2px dashed rgba(90,47,62,.3)}
+  .song-context-kicker{display:block;color:var(--ink-dim);font:900 .67rem/1 "Courier New",monospace;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+  .song-name-row{display:flex;align-items:center;gap:5px;min-width:0;min-height:28px;margin-top:3px}
   .song-name-display{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);
     font-family:"Arial Black",Arial,sans-serif;font-size:1.08rem;font-weight:900;line-height:1.25;padding:3px 2px}
   .song-name-display.placeholder{color:var(--ink-faint);font-weight:700}
@@ -524,11 +520,11 @@
     font-size:.62rem;font-weight:800;padding:5px 9px;border-radius:6px;white-space:nowrap;
     box-shadow:2px 2px 0 rgba(90,47,62,.35);pointer-events:none;transform:translate(-50%,-115%)}
 
-  /* Key is a property of the song, like its title -- so it reads next to the
-     title rather than heading a card of its own. */
+  /* Key sits inside Tab builder itself, as reference while shaping the song --
+     not up near the song title, which now lives in the songs sidebar. */
   /* The line wraps, its parts do not: three pills plus the key name overflow a
      narrow screen, and nowrap on the whole line clipped the last one off. */
-  .song-key{font-weight:800;font-size:.82rem;color:var(--ink-dim);white-space:normal}
+  .song-key{display:block;font-weight:800;font-size:.82rem;color:var(--ink-dim);white-space:normal;margin-bottom:14px}
   .song-key b{white-space:nowrap}
   .song-key b{color:var(--tomato-dk)}
   .song-key .song-key-fit{font-family:"Courier New",monospace;font-size:.66rem;font-weight:900;
@@ -1059,7 +1055,7 @@
   .sect-lyrics textarea:focus{box-shadow:inset 2px 2px 0 rgba(90,47,62,.08)}
   .sect-lyrics textarea::placeholder{color:var(--ink-faint)}
 
-  .song-shelf-trigger{grid-column:2;grid-row:1 / span 2;align-self:center;display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
+  .song-shelf-trigger{align-self:flex-start;margin:16px 4px 0;display:inline-flex;align-items:center;gap:7px;padding:6px 9px 6px 10px;border:2px solid var(--ink);border-radius:999px;
     background:var(--mint);color:var(--ink);box-shadow:2px 2px 0 var(--ink);font:800 .72rem/1 "Courier New",monospace;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   .song-shelf-trigger[hidden]{display:none}
@@ -1191,13 +1187,19 @@
       background-position:center;background-repeat:repeat-y;background-size:2px 8px}
     .shelf-resize-handle.active{background-color:var(--sun-soft)}
     @media (hover:hover){.shelf-resize-handle:hover{background-color:var(--sun-soft)}}
-    .wrap{flex:1;min-width:0}
+    /* The base .wrap rule caps its width and auto-centers it -- fine when it's
+       the only thing on the page, but with the sidebar docked flush to the
+       left edge that left a floating, centered block with dead space on both
+       sides instead of a flush three-column layout. Let it fill whatever
+       width remains next to the sidebar instead. */
+    .wrap{flex:1;min-width:0;max-width:none;margin:0}
 
     .app-shell.shelf-collapsed #songShelfOverlay{flex:0 0 46px;width:46px}
     .app-shell.shelf-collapsed .shelf-resize-handle{display:none}
     .app-shell.shelf-collapsed .song-shelf-head{justify-content:center;padding:14px 6px}
     .app-shell.shelf-collapsed .song-shelf-head-copy,
     .app-shell.shelf-collapsed .song-shelf-new,
+    .app-shell.shelf-collapsed .song-shelf-current,
     .app-shell.shelf-collapsed .song-shelf-list,
     .app-shell.shelf-collapsed .song-shelf-foot{display:none}
   }
@@ -1426,7 +1428,7 @@
     header{padding:8px 16px 8px 12px;gap:10px;flex-wrap:nowrap}
     .header-subtitle{max-width:124px;font-size:.56rem;letter-spacing:.06em}
     .wrap{padding:0 12px 16px}
-    .song-context{margin:12px 4px 0;padding:9px 8px 9px 10px;column-gap:8px;row-gap:2px}
+    .song-shelf-current{margin-bottom:8px;padding-bottom:9px}
     .song-context-kicker{font-size:.6rem;letter-spacing:.06em}
     .song-name-row{gap:3px;min-width:0}.song-name-display{font-size:.95rem;padding:3px 1px}.song-name-btn{width:24px;height:24px}
     .song-title-input{font-size:.86rem;padding:4px 6px}
@@ -1562,6 +1564,20 @@
       <button class="shelf-collapse-btn" id="btnShelfCollapse" type="button" title="Collapse songs" aria-label="Collapse songs panel">◂</button>
       <button class="song-shelf-close" id="btnSongShelfClose" type="button" aria-label="Close songs">×</button>
     </div>
+    <div class="song-shelf-current" id="songShelfCurrent" aria-label="Current song">
+      <span class="song-context-kicker">Working on</span>
+      <div class="song-name-row" id="songNameRow">
+        <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
+        <div class="song-name-input-wrap" id="songNameInputWrap">
+          <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
+            placeholder="Untitled song" autocomplete="off" aria-label="Song name">
+        </div>
+        <button type="button" class="song-name-btn" id="songNameBtn" title="Edit song name" aria-label="Edit song name">
+          <svg class="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
+        </button>
+      </div>
+    </div>
     <div class="song-shelf-list" id="songShelfList" role="list"></div>
     <div class="song-shelf-foot">
       <div class="shelf-file-actions">
@@ -1582,22 +1598,7 @@
   aria-valuemin="200" aria-valuemax="420" aria-valuenow="260"></div>
 
 <div class="wrap" inert>
-<div class="song-context" aria-label="Current song">
-  <span class="song-context-kicker">Working on</span>
-  <div class="song-name-row" id="songNameRow">
-    <span class="song-name-display placeholder" id="songNameDisplay" aria-live="polite">Untitled song</span>
-    <div class="song-name-input-wrap" id="songNameInputWrap">
-      <input id="songTitleInput" class="song-title-input" type="text" maxlength="120"
-        placeholder="Untitled song" autocomplete="off" aria-label="Song name">
-    </div>
-    <button type="button" class="song-name-btn" id="songNameBtn" title="Edit song name" aria-label="Edit song name">
-      <svg class="icon-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-      <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5L9.5 18L20 6"/></svg>
-    </button>
-  </div>
-  <span class="song-key" id="songKey" hidden aria-live="polite"></span>
-  <button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
-</div>
+<button class="song-shelf-trigger" id="btnSongShelf" type="button" aria-expanded="false" aria-controls="songShelfDialog" title="Switch or start a song">My songs <span class="song-shelf-count" id="songShelfCount">0</span></button>
 
 <div class="col-main">
 <div class="panel win-sun" data-win="Fretboard" id="tabPanel">
@@ -1730,6 +1731,7 @@
 <div class="col-rail">
 <div class="panel win-tomato" data-win="Tab builder" id="builderPanel">
   <h2>Tab builder</h2>
+  <span class="song-key" id="songKey" hidden aria-live="polite"></span>
   <div id="song"></div>
 
   <div class="song-actions" aria-label="Song actions">
@@ -8282,10 +8284,12 @@ async function deleteSongFromShelf(record){
   setSongShelfOpen(true);
   flash('Deleted "'+record.title+'"');
 }
-function backupSongFromShelf(record){
-  hideSongShelfForModal();
-  downloadText('couch-batata-'+songFileSlug(record.title)+'-project.json',JSON.stringify(record.snapshot,null,2),'application/json');
-  flash('Downloaded backup for "'+record.title+'"');
+async function renameSongFromShelf(record){
+  if(record.id!==activeProjectId){
+    if(!(await switchToSong(record.id)))return;
+    renderSongShelf();
+  }
+  enterSongNameEdit();
 }
 function renderSongShelf(){
   renderSongShelfTrigger();
@@ -8311,13 +8315,14 @@ function renderSongShelf(){
     open.addEventListener('click',async()=>{
       if(record.id===activeProjectId){setSongShelfOpen(false);return;}
       hideSongShelfForModal();
-      if(!(await switchToSong(record.id)))setSongShelfOpen(true);
+      if(await switchToSong(record.id))renderSongShelf();
+      else setSongShelfOpen(true);
     });
     const more=document.createElement('button');more.type='button';more.className='song-shelf-more';more.textContent='⋯';more.setAttribute('aria-label','More actions for '+record.title);more.setAttribute('aria-expanded','false');
     const actions=document.createElement('div');actions.className='song-shelf-actions';actions.hidden=true;
-    const backup=document.createElement('button');backup.type='button';backup.className='song-shelf-action';backup.textContent='Back up';backup.addEventListener('click',()=>backupSongFromShelf(record));
+    const rename=document.createElement('button');rename.type='button';rename.className='song-shelf-action';rename.textContent='Rename';rename.addEventListener('click',()=>renameSongFromShelf(record));
     const remove=document.createElement('button');remove.type='button';remove.className='song-shelf-action danger';remove.textContent='Delete…';remove.addEventListener('click',()=>deleteSongFromShelf(record));
-    actions.append(backup,remove);
+    actions.append(rename,remove);
     more.addEventListener('click',()=>{
       const isOpen=!actions.hidden;
       songShelfList.querySelectorAll('.song-shelf-actions').forEach(other=>{if(other!==actions)other.hidden=true;});

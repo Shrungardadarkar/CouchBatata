@@ -193,6 +193,15 @@ assert.match(html, /element=>!element\.closest\('\[hidden\]'\)/);
 assert.match(html, /id="btnLinkedSave"/);
 assert.match(html, /id="btnLinkedOpen"/);
 assert.match(html, /id="linkedFolderLink"/);
+// Naming and switching a song both live in the songs sidebar now; the "..."
+// menu offers Rename, not a backup download, and the old title bar above
+// Tab builder is gone (Key moved into the Tab builder panel itself).
+assert.match(html, /id="songShelfCurrent"/);
+assert.match(html, /async function renameSongFromShelf\(record\)/);
+assert.match(html, /textContent='Rename'/);
+assert.doesNotMatch(html, /textContent='Back up'/);
+assert.doesNotMatch(html, /class="song-context"/);
+assert.match(html, /<h2>Tab builder<\/h2>\s*<span class="song-key" id="songKey"/);
 assert.match(html, /async function importProjectData\(data,sourceLabel\)/);
 assert.match(html, /async function saveToLinkedFolder\(\)/);
 assert.match(html, /async function openProjectFromPicker\(\)/);

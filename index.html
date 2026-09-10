@@ -623,6 +623,20 @@
   @media (hover:hover){.map-via:hover{background:var(--mint);color:var(--paper);z-index:4}}
   .map-via:active{transform:translate(-50%,-50%) translate(1px,1px);transition-duration:.05s}
   .map-via:focus-visible{outline:3px solid var(--focus);outline-offset:2px;z-index:4}
+  /* The next-chord bridge: the melodic move between whichever chord is
+     selected and whatever chronologically follows it in the song, so it
+     gets the same red the "here" tag and picked ring use elsewhere for
+     "this is true about where you are right now" -- distinct from the
+     always-there mint via chips, which don't depend on a selection at all. */
+  .map-bridge-chip{position:absolute;transform:translate(-50%,-50%);z-index:2;
+    font:900 .72rem "Courier New",monospace;letter-spacing:.02em;color:var(--tomato);
+    background:var(--paper);border:2px dashed var(--tomato);border-radius:999px;
+    padding:4px 8px;cursor:pointer;white-space:nowrap;box-shadow:1.5px 1.5px 0 var(--tomato);
+    transition:transform .16s var(--ease-spring),background .12s,color .12s}
+  @media (hover:hover){.map-bridge-chip:hover{background:var(--tomato);color:var(--paper);z-index:4}}
+  .map-bridge-chip:active{transform:translate(-50%,-50%) translate(1px,1px);transition-duration:.05s}
+  .map-bridge-chip:focus-visible{outline:3px solid var(--focus);outline-offset:2px;z-index:4}
+  .map-bridge-chip.is-previewing{background:var(--tomato);color:var(--paper);box-shadow:3px 3px 0 var(--ink)}
   .map-node.picked{background:var(--mint);color:var(--paper);box-shadow:3px 3px 0 var(--ink)}
   .map-node.picked .map-rn{color:var(--paper)}
   /* "You are here" is the chord selected in the song -- a place, not a key. */
@@ -6998,6 +7012,36 @@ function chordMapFor(keyInfo){
   const home=currentKeyInfo&&!currentKeyInfo.dominantContext?currentKeyInfo:keyInfo;
   return {inner,outer,keyInfo,home,label:keyInfoLabel(keyInfo),candidates:lookFromCandidates(home,mapView)};
 }
+// The chord map's dotted "next" arc: not every borrowed chord's own approach
+// (chordContext's moves, gated on the *selected* chord itself sitting
+// outside the key) but whichever chord actually follows the one just tapped
+// in its own section -- so it still offers a bridge when the selected chord
+// is diatonic and only the chord it hands off to is the outlier, which
+// chordContext's own-chord gate misses entirely. Reuses melodicBridge, so
+// the suggestion is ranked by function first, fretboard comfort only
+// breaking ties -- a melodic bridge, never merely a convenient one.
+function nextChordBridge(map){
+  if(!map||!map.keyInfo||map.keyInfo.dominantContext)return null;
+  const {chord,sec,ref}=hereChordInfo();
+  if(!chord||!sec||!ref||!Array.isArray(chord.pcs))return null;
+  const next=sec.chords[ref.chordIdx+1];
+  if(!next||!Array.isArray(next.pcs))return null;
+  const same=(a,b)=>!!a&&!!b&&a.root===b.root&&(a.suf===b.suf||startsLike(a.suf,b.suf)||startsLike(b.suf,a.suf));
+  if(same(chord,next))return null;
+  // Worth a bridge only when the join actually needs one: the next chord
+  // steps outside the key -- the borrowed-dominant case this was built
+  // for -- or the two voicings don't already sit close on the neck.
+  // Otherwise every ordinary diatonic step would grow a suggestion nobody
+  // asked for.
+  const place=chordPlacement(next,map.keyInfo);
+  if(place&&place.inKey){
+    const direct=(Array.isArray(chord.frets)&&Array.isArray(next.frets))?connectionScore(chord.frets,next.frets):null;
+    if(direct!=null&&direct<SMOOTH_JOIN)return null;
+  }
+  const bridge=melodicBridge(chord,next,map.keyInfo);
+  if(!bridge||same(chord,bridge)||same(next,bridge))return null;
+  return {from:chord,to:next,bridge,secId:sec.id,idx:ref.chordIdx+1};
+}
 function renderChordMap(map){
   if(!map)return '';
   // A chip's own pixel footprint barely shrinks with the viewport, but the
@@ -7025,6 +7069,7 @@ function renderChordMap(map){
   const hereChord=hereChordInfo().chord;
   const isHere=(root,suf,exact)=>!!hereChord&&hereChord.root===root&&(exact?hereChord.suf===suf:startsLike(suf,hereChord.suf));
   const isPicked=(root,suf)=>!!mapPick&&mapPick.root===root&&mapPick.suf===suf;
+  const bridgeMove=nextChordBridge(map);
   const node=(cls,root,suf,x,y,title,body)=>'<button type="button" class="map-node'+cls+'" data-map-root="'+root+
     '" data-map-suf="'+escapeHtml(suf)+'" style="left:'+x+'%;top:'+y+'%;'+nodeStyle+'" aria-pressed="'+isPicked(root,suf)+'" title="'+title+'">'+body+'</button>';
   const hereTag='<span class="map-here" style="'+hereStyle+'">here</span>',rnSpan=s=>'<span class="map-rn" style="'+rnStyle+'">'+s+'</span>';
@@ -7068,12 +7113,61 @@ function renderChordMap(map){
         '">'+escapeHtml(bl)+'</button>';
     }
   });
+  // The dotted "next" arc itself: bowed away from the centre so it reads as
+  // its own path rather than retracing a spoke or the ring, with the bridge
+  // chord it suggests sitting on the curve the same way a via chip sits on
+  // its spoke -- gone the instant nothing is selected, since without a
+  // position there is no "next" to bridge into.
+  let bridgeSvg='',bridgeChip='';
+  if(bridgeMove){
+    const posFor=(root,suf)=>{
+      const inn=map.inner.find(n=>n.root===root&&startsLike(n.suf,suf));
+      if(inn)return at(rIn,inn.angle);
+      const out=map.outer.find(o=>o.root===root&&o.suf===suf);
+      return out?at(rOut,out.angle):null;
+    };
+    const p1=posFor(bridgeMove.from.root,bridgeMove.from.suf),p2=posFor(bridgeMove.to.root,bridgeMove.to.suf);
+    if(p1&&p2){
+      const mx=(p1.x+p2.x)/2,my=(p1.y+p2.y)/2;
+      // Bowed perpendicular to the chord-to-chord line, not radially out from
+      // the ring's centre: two chords roughly opposite each other on the ring
+      // (as a chord and the dominant it resolves to often are) put the centre
+      // on or near that line, so a radial bow barely moves and the arc cuts
+      // straight through whatever sits in the middle -- the centre badge, or
+      // a ring chord like Bm on the way. Perpendicular always clears a path
+      // around the ring instead, on whichever side already points away from
+      // the centre.
+      const segLen=Math.hypot(p2.x-p1.x,p2.y-p1.y)||1,bow=11;
+      let px=-(p2.y-p1.y)/segLen,py=(p2.x-p1.x)/segLen;
+      if((mx-cx)*px+(my-cy)*py<0){px=-px;py=-py;}
+      const bx=mx+px*bow,by=my+py*bow;
+      bridgeSvg='<path d="M'+p1.x+' '+p1.y+' Q'+bx+' '+by+' '+p2.x+' '+p2.y+'"/>';
+      // Biased toward the selected chord rather than the curve's true
+      // midpoint: dead centre is exactly where a ring chord unrelated to
+      // either end (the "why" this chip explains is only about these two)
+      // is most likely to already be sitting, on a ring this dense.
+      const ct=0.4,ci=1-ct,chipX=ci*ci*p1.x+2*ci*ct*bx+ct*ct*p2.x,chipY=ci*ci*p1.y+2*ci*ct*by+ct*ct*p2.y;
+      const bl=pcName(bridgeMove.bridge.root)+bridgeMove.bridge.suf;
+      const frets=Array.isArray(bridgeMove.bridge.frets)?bridgeMove.bridge.frets:
+        ((playableSuggestion(bridgeMove.bridge.root,bridgeMove.bridge.suf)||{frets:[]}).frets||[]);
+      const previewing=!!(connPreview&&connPreview.secId===bridgeMove.secId&&connPreview.idx===bridgeMove.idx&&
+        connPreview.root===bridgeMove.bridge.root&&connPreview.suf===bridgeMove.bridge.suf);
+      bridgeChip='<button type="button" class="map-bridge-chip'+(previewing?' is-previewing':'')+'" data-join-sec="'+bridgeMove.secId+
+        '" data-join-idx="'+bridgeMove.idx+'" data-conn-root="'+bridgeMove.bridge.root+'" data-conn-suf="'+escapeHtml(bridgeMove.bridge.suf)+
+        '" data-conn-frets="'+frets.join(',')+'" style="left:'+chipX+'%;top:'+chipY+'%;'+viaStyle+'" title="'+
+        escapeHtml(bl+' bridges '+songChordLabel(bridgeMove.from)+' into '+songChordLabel(bridgeMove.to)+
+          (bridgeMove.bridge.why?' — '+bridgeMove.bridge.why:'')+(previewing?' — tap again to add it between them':' — tap to hear it'))+
+        '">'+escapeHtml(bl)+(previewing?' <span class="conn-keep">keep?</span>':'')+'</button>';
+    }
+  }
   return '<div class="chord-map"><div class="map-stage">'+
     '<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">'+
       '<g stroke="var(--ink-faint)" stroke-width=".5" stroke-dasharray="1.5 2" fill="none"><circle cx="'+cx+'" cy="'+cy+'" r="'+rIn+'"/></g>'+
-      '<g stroke="var(--ink)" stroke-width="1" stroke-linecap="round" stroke-dasharray="0 2" fill="none">'+spokes+'</g></svg>'+
+      '<g stroke="var(--ink)" stroke-width="1" stroke-linecap="round" stroke-dasharray="0 2" fill="none">'+spokes+'</g>'+
+      (bridgeSvg?'<g stroke="var(--tomato)" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="0 2.6" fill="none">'+bridgeSvg+'</g>':'')+
+    '</svg>'+
     '<span class="map-centre" style="'+centreStyle+'">'+escapeHtml(map.label)+'</span>'+
-    vias+nodes+
+    vias+nodes+bridgeChip+
     '</div>'+renderMapLegend()+renderLookFrom(map)+renderMapCaption(map)+'</div>';
 }
 // The four things a node's fill and border can mean, each swatch styled with
@@ -7195,6 +7289,11 @@ function wireChordMap(host){
     mapPick={root:Number(ir),suf:is||''};
     if(!loadSuggestedChord({root:Number(btn.dataset.viaRoot),suf:btn.dataset.viaSuf||''}))renderChordKeyChips();
   }));
+  // The next-chord bridge chip's own [data-conn-root] click is already
+  // covered: renderChordKeyChips always wires this same host with
+  // wireChordContext first, which calls wireJoinFix once for everything in
+  // it. Binding it again here would double-fire -- the second listener would
+  // see the first one's connPreview already set and insert on a single tap.
   host.querySelectorAll('[data-map-view]').forEach(btn=>btn.addEventListener('click',event=>{
     event.stopPropagation();
     const v=btn.dataset.mapView;

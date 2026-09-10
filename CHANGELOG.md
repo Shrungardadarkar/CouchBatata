@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-10 — A legend for the ring, a collapsible explainer, and a scroll hint on "Look from"
+
+- **Added a small colour legend under the ring** — in your song, in the key
+  and unused, borrowed, leads somewhere — each swatch styled with the exact
+  rule the node it stands for uses. The one paragraph explaining the map
+  used to be the only way to learn what a node's fill or border meant;
+  now the ring can be read at a glance and the paragraph is only needed for
+  the mechanics (spokes, bridges, the red ring).
+- **"B phrygian in fifths — how to read this ring" is now collapsed by
+  default**, a one-line prompt instead of the full paragraph reappearing
+  every time the map is opened. Tapping it expands the same explanation as
+  before; nothing about the wording changed, only when it's shown.
+- **"Look from" now fades whichever edge still has chips scrolled past
+  it**, and the fade disappears the moment that edge is scrolled fully into
+  view — so a cut-off "D mixolydian" card at the right edge reads as "there's
+  more, swipe" instead of looking like a rendering glitch.
+
 ## 2026-09-10 — Bridge chips read as equal to the chords they connect, and stop colliding with them
 
 - **Bridge chips (e.g. Bm between Am and E) are now sized like a regular

@@ -633,11 +633,35 @@
     font:900 .44rem "Courier New",monospace;letter-spacing:.06em;text-transform:uppercase;
     background:var(--tomato);color:var(--paper);border-radius:999px;padding:1px 6px;white-space:nowrap}
   .map-node.here{z-index:3}
+  /* What each node's fill/border is saying, at a glance, so the one paragraph
+     below only has to spell it out for whoever wants the detail -- reading
+     the ring itself shouldn't require reading prose first. Each swatch
+     mirrors the exact rule the node it stands for uses. */
+  .map-legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;
+    margin:8px 0 2px;font-size:.62rem;font-weight:700;color:var(--ink-dim)}
+  .map-legend-item{display:flex;align-items:center;gap:4px}
+  .map-legend-swatch{width:10px;height:10px;flex:0 0 auto;border-radius:999px;
+    border:2px solid var(--ink);background:var(--paper)}
+  .map-legend-swatch.used{background:var(--sun)}
+  .map-legend-swatch.outside{border-style:dashed;background:var(--cream-2)}
+  .map-legend-swatch.outside.leads{border-style:solid;border-color:var(--sky)}
   .map-cap{margin:2px 0 4px}
   .map-cap-line{margin:0;font-size:.8rem;line-height:1.5;color:var(--ink-dim);font-weight:650;text-align:center}
   .map-cap-line b{color:var(--ink)}
   .map-cap-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
   .map-btn{padding:5px 12px;font-size:.76rem;font-family:inherit;font-weight:800}
+  /* The full "how this ring works" explanation only needs reading once --
+     collapsed to a one-line prompt after that, rather than a paragraph
+     re-read on every visit to the map. */
+  .map-help{text-align:center}
+  .map-help summary{cursor:pointer;font-size:.72rem;font-weight:800;color:var(--ink-faint);
+    list-style:none;display:inline-block}
+  .map-help summary::-webkit-details-marker{display:none}
+  .map-help summary::after{content:" ▾";color:var(--ink-faint)}
+  .map-help[open] summary::after{content:" ▴"}
+  .map-help summary:hover{color:var(--ink-dim)}
+  .map-help-text{margin:6px 0 0;font-size:.78rem;line-height:1.5;color:var(--ink-dim);font-weight:650;text-align:center}
+  .map-help-text b{color:var(--ink)}
   /* Look from: every other reading of this song, ranked by how many notes it
      actually costs -- one scrolling row, same idiom as the scale-alternates
      row, rather than a set of categories to understand before seeing any of
@@ -648,6 +672,15 @@
     text-transform:uppercase;color:var(--ink-faint)}
   .lookfrom-spectrum{font-size:.7rem;color:var(--ink-faint)}
   .lookfrom-spectrum b{color:var(--ink-dim)}
+  /* A row that scrolls needs to say so before the first swipe, not after --
+     a soft fade over whichever edge still has chips hiding past it, gone
+     the moment that edge is scrolled fully into view (see wireChordMap). */
+  .lookfrom-scroll{position:relative}
+  .lookfrom-fade{position:absolute;top:0;bottom:6px;width:26px;pointer-events:none;
+    opacity:0;transition:opacity .15s;z-index:1}
+  .lookfrom-fade-l{left:0;background:linear-gradient(to right,var(--paper),transparent)}
+  .lookfrom-fade-r{right:0;background:linear-gradient(to left,var(--paper),transparent)}
+  .lookfrom-fade.show{opacity:1}
   .lookfrom-row{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
   .lookfrom-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
     font:inherit;text-align:left;background:var(--cream);border:2px solid var(--ink);border-radius:10px;
@@ -7041,7 +7074,18 @@ function renderChordMap(map){
       '<g stroke="var(--ink)" stroke-width="1" fill="none">'+spokes+'</g></svg>'+
     '<span class="map-centre" style="'+centreStyle+'">'+escapeHtml(map.label)+'</span>'+
     vias+nodes+
-    '</div>'+renderLookFrom(map)+renderMapCaption(map)+'</div>';
+    '</div>'+renderMapLegend()+renderLookFrom(map)+renderMapCaption(map)+'</div>';
+}
+// The four things a node's fill and border can mean, each swatch styled with
+// the exact rule the node itself uses -- reading the ring shouldn't require
+// reading the paragraph below it first.
+function renderMapLegend(){
+  return '<div class="map-legend">'+
+    '<span class="map-legend-item"><i class="map-legend-swatch used"></i>in your song</span>'+
+    '<span class="map-legend-item"><i class="map-legend-swatch"></i>in the key, unused</span>'+
+    '<span class="map-legend-item"><i class="map-legend-swatch outside"></i>borrowed</span>'+
+    '<span class="map-legend-item"><i class="map-legend-swatch outside leads"></i>leads somewhere</span>'+
+    '</div>';
 }
 // How far a note-distance actually is, in plain terms rather than a bucket
 // name -- "same chords" and "1 chord differs" tell the whole story a
@@ -7066,7 +7110,8 @@ function renderLookFrom(map){
   if(!map.candidates.length)return '';
   const home=map.home;
   let html='<div class="lookfrom-head"><span class="lookfrom-label">Look from</span>'+
-    '<span class="lookfrom-spectrum">from <b>'+escapeHtml(keyInfoLabel(home))+'</b> &middot; closest <b>&larr;</b> &middot; <b>&rarr;</b> most different</span></div><div class="lookfrom-row">';
+    '<span class="lookfrom-spectrum">from <b>'+escapeHtml(keyInfoLabel(home))+'</b> &middot; closest <b>&larr;</b> &middot; <b>&rarr;</b> most different</span></div>'+
+    '<div class="lookfrom-scroll"><div class="lookfrom-row">';
   map.candidates.forEach(c=>{
     const on=mapView&&mapView.tonic===c.root&&mapView.scaleKey===c.scaleKey;
     html+='<button type="button" class="lookfrom-chip'+(on?' on':'')+'" data-map-view="'+c.root+':'+c.scaleKey+
@@ -7075,7 +7120,9 @@ function renderLookFrom(map){
       '</span><span class="lf-badge">'+lookFromDistBadge(c.dist)+
       ' <span class="lf-fit'+(c.fits===c.total?' is-all':'')+'">'+c.fits+'/'+c.total+' fit</span></span></button>';
   });
-  return html+'</div>';
+  return html+'</div>'+
+    '<span class="lookfrom-fade lookfrom-fade-l" aria-hidden="true"></span>'+
+    '<span class="lookfrom-fade lookfrom-fade-r" aria-hidden="true"></span></div>';
 }
 // What the map is saying right now: the node last tapped, or how to read it.
 function renderMapCaption(map){
@@ -7104,13 +7151,34 @@ function renderMapCaption(map){
     actions+='<button type="button" class="btn primary map-btn" id="mapSetKey" data-set-key="'+map.keyInfo.tonic+':'+map.keyInfo.keyScale+
       '">Set as key →</button><button type="button" class="btn ghost map-btn" data-map-view="home">Cancel</button>';
   }else{
-    line='<b>'+home+'</b> in fifths — neighbours on the ring are easy moves. Every chord your song plays from <i>outside</i> the key hangs on a spoke beside the one chord it points at: a dominant next to what it resolves to, a borrowed chord next to where it usually goes, anything else next to its closest relative in the key. The chip on the spoke is the chord that bridges those two — tap it to put it on the fretboard. The red ring is whatever is selected in the song.';
+    // Nothing picked, own key: the legend above already carries the gist at
+    // a glance, so the full paragraph is a tap away instead of a re-read on
+    // every visit -- <details> keeps that state-free, no render-tracked flag
+    // needed for something this disposable.
+    if(map.keyInfo.overridden)
+      actions='<button type="button" class="btn ghost map-btn" id="mapRevertKey">↩ back to the detected key</button>';
+    return '<div class="map-cap"><details class="map-help"><summary><b>'+home+'</b> in fifths — how to read this ring</summary>'+
+      '<p class="map-help-text">Neighbours on the ring are easy moves. Every chord your song plays from <i>outside</i> the key hangs on a spoke beside the one chord it points at: a dominant next to what it resolves to, a borrowed chord next to where it usually goes, anything else next to its closest relative in the key. The chip on the spoke is the chord that bridges those two — tap it to put it on the fretboard. The red ring is whatever is selected in the song.</p></details>'+
+      (actions?'<div class="map-cap-actions">'+actions+'</div>':'')+'</div>';
   }
   if(!viewing&&map.keyInfo.overridden)
     actions+='<button type="button" class="btn ghost map-btn" id="mapRevertKey">↩ back to the detected key</button>';
   return '<div class="map-cap"><p class="map-cap-line">'+line+'</p>'+(actions?'<div class="map-cap-actions">'+actions+'</div>':'')+'</div>';
 }
 function wireChordMap(host){
+  // Each fade shows only while its own edge still has chips scrolled past
+  // it -- both hidden when everything already fits, so the row never claims
+  // there's more to see when there isn't.
+  host.querySelectorAll('.lookfrom-scroll').forEach(wrap=>{
+    const row=wrap.querySelector('.lookfrom-row'),l=wrap.querySelector('.lookfrom-fade-l'),r=wrap.querySelector('.lookfrom-fade-r');
+    if(!row||!l||!r)return;
+    const sync=()=>{
+      l.classList.toggle('show',row.scrollLeft>4);
+      r.classList.toggle('show',row.scrollLeft<row.scrollWidth-row.clientWidth-4);
+    };
+    row.addEventListener('scroll',sync,{passive:true});
+    sync();
+  });
   host.querySelectorAll('[data-map-root]').forEach(btn=>btn.addEventListener('click',event=>{
     event.stopPropagation();
     const root=Number(btn.dataset.mapRoot),suf=btn.dataset.mapSuf||'';

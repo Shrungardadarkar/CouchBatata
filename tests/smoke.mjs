@@ -220,6 +220,14 @@ assert.match(html, /function openSongDatabaseAttempt\(\)/);
 assert.match(html, /openSongDatabaseAttempt\(\)\.catch\(async\(\)=>\{/);
 assert.match(html, /async function retrySongStore\(\)/);
 assert.match(html, /if\(_songDbFailed\)\{[\s\S]{0,400}?retrySongStore\)/);
+// Save/Open/Export dock behind one cyan "File" disclosure again (matching
+// the pre-sidebar version) instead of three permanently-visible buttons;
+// Save is no longer styled red/primary -- it, Open, and the disabled Export
+// all read the same neutral way.
+assert.match(html, /id="btnFileMenu"/);
+assert.match(html, /id="shelfFileMenu" hidden/);
+assert.doesNotMatch(html, /class="shelf-file-btn primary"/);
+assert.match(html, /function setFileMenuOpen\(open\)/);
 // The mobile songs drawer is `position:fixed`, covering the page, but the
 // page itself was still an ordinary scrolling document underneath it -- a
 // touch-drag anywhere (even over the drawer) could scroll the board behind

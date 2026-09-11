@@ -1120,17 +1120,29 @@
   @media (hover:hover){.shelf-collapse-btn:hover{background:var(--cream-2)}}
   .shelf-resize-handle{display:none}
   @media (hover:hover){.main-resize-handle:hover{background-color:var(--sun-soft)}}
-  /* The File section: exactly four things (Save, Open, Export tabs, and the
-     linked-folder status) -- Save/Open write straight into whatever folder
-     is linked (a real folder on disk via the File System Access API, kept
-     in sync by iCloud Drive/Google Drive/etc themselves); Export tabs is
-     the existing plain-text download, unchanged. */
-  .shelf-file-actions{display:flex;flex-direction:column;gap:6px}
+  /* The File section: one docked disclosure (Save, Open, Export tabs behind
+     a single cyan "File" trigger, the way the pre-sidebar version read) plus
+     the linked-folder status below it -- Save/Open write straight into
+     whatever folder is linked (a real folder on disk via the File System
+     Access API, kept in sync by iCloud Drive/Google Drive/etc themselves);
+     Export tabs is the existing plain-text download, unchanged. */
+  .shelf-file-picker{position:relative}
+  .shelf-file-trigger{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:40px;
+    border:2px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:7px 11px;
+    box-shadow:1.5px 1.5px 0 var(--ink);font:900 .82rem/1.1 "Courier New",monospace;letter-spacing:.06em;
+    text-transform:uppercase;cursor:pointer;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
+  .shelf-file-trigger::after{content:'▾';font-size:.75rem;transition:transform .16s var(--ease-spring)}
+  @media (hover:hover){.shelf-file-picker:not(.open) .shelf-file-trigger:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
+  .shelf-file-trigger:active{transform:translate(1px,1px);box-shadow:0 0 0 var(--ink);transition-duration:.05s}
+  .shelf-file-picker.open .shelf-file-trigger{background:var(--sun);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
+  .shelf-file-picker.open .shelf-file-trigger::after{transform:rotate(180deg)}
+  .shelf-file-trigger:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+  .shelf-file-menu{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+  .shelf-file-menu[hidden]{display:none}
   .shelf-file-btn{display:flex;align-items:center;gap:8px;min-height:38px;border:2px solid var(--ink);
     border-radius:9px;background:var(--paper);color:var(--ink);padding:7px 11px;box-shadow:1.5px 1.5px 0 var(--ink);
     font:800 .82rem/1.1 inherit;cursor:pointer;text-align:left;
     transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .shelf-file-btn.primary{background:var(--tomato);color:var(--cream)}
   @media (hover:hover){.shelf-file-btn:not(:disabled):hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .shelf-file-btn:active:not(:disabled){transform:translate(1px,1px);box-shadow:0 0 0 var(--ink);transition-duration:.05s}
   .shelf-file-btn:disabled{opacity:.5;cursor:default;box-shadow:none;transform:none}
@@ -1587,10 +1599,13 @@
     </div>
     <div class="song-shelf-list" id="songShelfList" role="list"></div>
     <div class="song-shelf-foot">
-      <div class="shelf-file-actions">
-        <button class="shelf-file-btn primary" id="btnLinkedSave" type="button">💾 Save</button>
-        <button class="shelf-file-btn" id="btnLinkedOpen" type="button">📂 Open…</button>
-        <button class="shelf-file-btn" id="btnExport" type="button" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">📤 Export tabs (.txt)</button>
+      <div class="shelf-file-picker" id="shelfFilePicker">
+        <button class="shelf-file-trigger" id="btnFileMenu" type="button" aria-expanded="false" aria-controls="shelfFileMenu">File</button>
+        <div class="shelf-file-menu" id="shelfFileMenu" hidden>
+          <button class="shelf-file-btn" id="btnLinkedSave" type="button">💾 Save</button>
+          <button class="shelf-file-btn" id="btnLinkedOpen" type="button">📂 Open…</button>
+          <button class="shelf-file-btn" id="btnExport" type="button" disabled title="Save your song as a plain-text tab file (.txt) you can open in any editor">📤 Export tabs (.txt)</button>
+        </div>
       </div>
       <button class="linked-folder-link" id="linkedFolderLink" type="button">
         <span class="linked-folder-dot" id="linkedFolderDot" aria-hidden="true"></span>
@@ -6880,6 +6895,25 @@ async function openProjectFromPicker(){
 document.getElementById('btnLinkedSave').addEventListener('click',()=>{saveToLinkedFolder();});
 document.getElementById('btnLinkedOpen').addEventListener('click',()=>{openProjectFromPicker();});
 document.getElementById('linkedFolderLink').addEventListener('click',()=>{linkSongsFolder();});
+// Save/Open/Export dock behind one "File" disclosure -- picking any of the
+// three is a complete action, so the menu closes itself right along with it
+// instead of staying open the way a persistent settings panel would.
+const shelfFilePicker=document.getElementById('shelfFilePicker');
+const btnFileMenu=document.getElementById('btnFileMenu');
+const shelfFileMenu=document.getElementById('shelfFileMenu');
+function setFileMenuOpen(open){
+  shelfFilePicker.classList.toggle('open',open);
+  shelfFileMenu.hidden=!open;
+  btnFileMenu.setAttribute('aria-expanded',String(open));
+}
+btnFileMenu.addEventListener('click',()=>setFileMenuOpen(shelfFileMenu.hidden));
+shelfFileMenu.addEventListener('click',event=>{if(event.target.closest('.shelf-file-btn'))setFileMenuOpen(false);});
+document.addEventListener('click',event=>{
+  if(!shelfFileMenu.hidden&&!shelfFilePicker.contains(event.target))setFileMenuOpen(false);
+});
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&!shelfFileMenu.hidden){setFileMenuOpen(false);btnFileMenu.focus();}
+});
 updateLinkedFolderUI('unlinked');
 // Restore a folder linked in an earlier session -- silent when the browser
 // still trusts it, otherwise the footer link switches to "reconnect" on its

@@ -1131,11 +1131,11 @@
     border:2px solid var(--ink);border-radius:9px;background:var(--mint);color:var(--ink);padding:7px 11px;
     box-shadow:1.5px 1.5px 0 var(--ink);font:900 .82rem/1.1 "Courier New",monospace;letter-spacing:.06em;
     text-transform:uppercase;cursor:pointer;transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
-  .shelf-file-trigger::after{content:'▾';font-size:.75rem;transition:transform .16s var(--ease-spring)}
+  .shelf-file-trigger::after{content:'▴';font-size:.75rem;transition:content .16s var(--ease-spring)}
   @media (hover:hover){.shelf-file-picker:not(.open) .shelf-file-trigger:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--ink)}}
   .shelf-file-trigger:active{transform:translate(1px,1px);box-shadow:0 0 0 var(--ink);transition-duration:.05s}
   .shelf-file-picker.open .shelf-file-trigger{background:var(--explore);transform:translate(2px,2px);box-shadow:0 0 0 var(--ink)}
-  .shelf-file-picker.open .shelf-file-trigger::after{transform:rotate(180deg)}
+  .shelf-file-picker.open .shelf-file-trigger::after{content:'▾'}
   .shelf-file-trigger:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
   .shelf-file-menu{display:flex;flex-direction:column;gap:6px;margin-top:6px}
   .shelf-file-menu[hidden]{display:none}
@@ -1233,6 +1233,8 @@
   .section-add-control{display:inline-flex;align-items:center;position:relative}
   .section-add-control .picker{z-index:2}.section-add-control .picker.open{z-index:45}
   .section-add-control .picker-trigger{min-width:185px;background:var(--sun);padding:10px 14px;font-size:1rem;box-shadow:4px 4px 0 var(--ink)}
+  .section-add-control .picker-trigger::after{content:'▴'}
+  .section-add-control .picker.open .picker-trigger::after{content:'▾'}
   /* One clear action: choose the section from this upward menu and add it in
      the same click. The menu overlays the builder, never moves the page. */
   .section-add-control .picker-menu{top:auto;bottom:calc(100% + 8px)}

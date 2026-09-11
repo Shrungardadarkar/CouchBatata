@@ -3356,14 +3356,11 @@ function idbTransactionDone(transaction){
     transaction.onabort=()=>reject(transaction.error||new Error('IndexedDB transaction aborted'));
   });
 }
-function openSongDatabase(){
-  if(_songDb)return Promise.resolve(_songDb);
-  if(_songDbFailed)return Promise.reject(new Error('Song shelf storage is unavailable'));
-  if(_songDbOpening)return _songDbOpening;
-  const opening=new Promise((resolve,reject)=>{
-    if(!('indexedDB' in window)){_songDbFailed=true;reject(new Error('IndexedDB is unavailable'));return;}
+function openSongDatabaseAttempt(){
+  return new Promise((resolve,reject)=>{
+    if(!('indexedDB' in window)){reject(new Error('IndexedDB is unavailable'));return;}
     let request;
-    try{request=indexedDB.open(_SONG_DB_NAME,_SONG_DB_VERSION);}catch(error){_songDbFailed=true;reject(error);return;}
+    try{request=indexedDB.open(_SONG_DB_NAME,_SONG_DB_VERSION);}catch(error){reject(error);return;}
     request.onupgradeneeded=()=>{
       const db=request.result;
       if(!db.objectStoreNames.contains(_SONG_STORE)){
@@ -3373,15 +3370,31 @@ function openSongDatabase(){
       if(!db.objectStoreNames.contains(_SONG_META_STORE))db.createObjectStore(_SONG_META_STORE,{keyPath:'key'});
     };
     request.onsuccess=()=>{
-      _songDb=request.result;
-      _songDb.onversionchange=()=>{_songDb.close();_songDb=null;};
-      resolve(_songDb);
+      const db=request.result;
+      db.onversionchange=()=>{db.close();_songDb=null;};
+      resolve(db);
     };
-    request.onerror=()=>{_songDbFailed=true;reject(request.error||new Error('IndexedDB is unavailable'));};
+    request.onerror=()=>reject(request.error||new Error('IndexedDB is unavailable'));
+  });
+}
+function openSongDatabase(){
+  if(_songDb)return Promise.resolve(_songDb);
+  if(_songDbFailed)return Promise.reject(new Error('Song shelf storage is unavailable'));
+  if(_songDbOpening)return _songDbOpening;
+  // A handful of browsers (mobile Safari especially) can fail the very first
+  // IndexedDB open right after a page load or reload, before storage has
+  // finished settling -- one short retry recovers from that transparently.
+  // Without it, that single transient failure used to mark the whole song
+  // store unavailable for the rest of the page's life: every song still sat
+  // safely in IndexedDB, but the shelf rendered as if brand new, which read
+  // as "my songs disappeared."
+  const opening=openSongDatabaseAttempt().catch(async()=>{
+    await new Promise(resolve=>setTimeout(resolve,250));
+    return openSongDatabaseAttempt();
   });
   _songDbOpening=opening.then(
-    db=>{_songDbOpening=null;return db;},
-    error=>{_songDbOpening=null;throw error;}
+    db=>{_songDbOpening=null;_songDb=db;return db;},
+    error=>{_songDbOpening=null;_songDbFailed=true;throw error;}
   );
   return _songDbOpening;
 }
@@ -3535,6 +3548,23 @@ function notifySongStoreUnavailable(){
   if(_songStoreNoticeShown||document.visibilityState==='hidden')return;
   _songStoreNoticeShown=true;
   flash('Multiple songs are unavailable in this browser — back up important work');
+}
+// The shelf's own "Retry" button after a failed boot -- the songs and any
+// linked folder were never touched, opening the database just didn't
+// succeed yet. Re-running the same startup sequence is enough to recover
+// from a transient failure; a real, permanent one (private browsing,
+// storage disabled) will fail again and notifySongStoreUnavailable() says so.
+async function retrySongStore(){
+  _songDbFailed=false;_songStoreNoticeShown=false;
+  try{
+    await initialiseSongStore();
+    await restoreLinkedFolder();
+    flash('Reconnected to your saved songs');
+  }catch(error){
+    _songDbFailed=true;
+    notifySongStoreUnavailable();
+    renderSongShelf();
+  }
 }
 async function persistProjectSnapshot(snapshot,targetId,targetRevision){
   if(!targetId){
@@ -6862,7 +6892,13 @@ async function restoreLinkedFolder(){
     if(!handle)return;
     linkedDirHandle=handle;
     await scanLinkedFolder({silent:true});
-  }catch(error){/* nothing was linked, or this browser can't restore it -- stays unlinked */}
+  }catch(error){
+    // A real folder handle was read but scanning it failed (a storage
+    // hiccup, or a permission state this browser won't report without a
+    // click) -- say so rather than leaving the footer on its default "not
+    // linked" text, which would read as the link having vanished outright.
+    if(linkedDirHandle)updateLinkedFolderUI('needs-attention');
+  }
 }
 
 /* ---------- key analysis ---------- */
@@ -8132,6 +8168,41 @@ shelfResizeHandle.addEventListener('keydown',event=>{
   event.preventDefault();
   setShelfWidth(w,true);
 });
+// The drawer is `position:fixed`, so it visually covers the page underneath,
+// but the page itself was still a normal scrolling document -- a touch-drag
+// anywhere on it (even over the drawer) could scroll the board behind it
+// instead of the song list. Pinning <body> in place with position:fixed
+// while remembering its scroll offset is the one technique that reliably
+// stops that on iOS Safari, where overflow:hidden on body alone is ignored
+// for touch scrolling. Declared here, before syncShelfDockA11y() (which
+// calls unlockBodyScroll() and is itself invoked immediately below, at
+// script-load time) -- placed after that call instead, a `let` this early
+// in the module is still in its temporal dead zone, and that immediate call
+// would throw a ReferenceError that aborts every top-level statement after
+// it in this script, including the assignment that starts boot() -- which
+// is exactly what silently emptied the song shelf and the linked-folder
+// state on every load at a docked width, with no error visible on screen.
+let _bodyScrollLockY=null;
+function lockBodyScroll(){
+  if(_bodyScrollLockY!=null)return;
+  _bodyScrollLockY=window.scrollY||window.pageYOffset||0;
+  document.body.style.position='fixed';
+  document.body.style.top='-'+_bodyScrollLockY+'px';
+  document.body.style.left='0';
+  document.body.style.right='0';
+  document.body.style.width='100%';
+}
+function unlockBodyScroll(){
+  if(_bodyScrollLockY==null)return;
+  const y=_bodyScrollLockY;
+  _bodyScrollLockY=null;
+  document.body.style.position='';
+  document.body.style.top='';
+  document.body.style.left='';
+  document.body.style.right='';
+  document.body.style.width='';
+  window.scrollTo(0,y);
+}
 // The dialog's modal semantics (role="dialog", aria-modal, the Escape/Tab
 // trap, aria-hidden while closed) only make sense while it's actually an
 // overlay. Docked, it's a permanently visible region of the page -- marking
@@ -8248,34 +8319,6 @@ function shelfFocusable(){
   return [songShelfDialog,...songShelfOverlay.querySelectorAll('button:not([disabled])')]
     .filter(element=>!element.closest('[hidden]'));
 }
-// The drawer is `position:fixed`, so it visually covers the page underneath,
-// but the page itself was still a normal scrolling document -- a touch-drag
-// anywhere on it (even over the drawer) could scroll the board behind it
-// instead of the song list. Pinning <body> in place with position:fixed
-// while remembering its scroll offset is the one technique that reliably
-// stops that on iOS Safari, where overflow:hidden on body alone is ignored
-// for touch scrolling.
-let _bodyScrollLockY=null;
-function lockBodyScroll(){
-  if(_bodyScrollLockY!=null)return;
-  _bodyScrollLockY=window.scrollY||window.pageYOffset||0;
-  document.body.style.position='fixed';
-  document.body.style.top='-'+_bodyScrollLockY+'px';
-  document.body.style.left='0';
-  document.body.style.right='0';
-  document.body.style.width='100%';
-}
-function unlockBodyScroll(){
-  if(_bodyScrollLockY==null)return;
-  const y=_bodyScrollLockY;
-  _bodyScrollLockY=null;
-  document.body.style.position='';
-  document.body.style.top='';
-  document.body.style.left='';
-  document.body.style.right='';
-  document.body.style.width='';
-  window.scrollTo(0,y);
-}
 function setSongShelfOpen(open){
   // Permanently docked at this width (see the >=1100px block in <style>) --
   // there's nothing to open or close, so a click on the now-current song
@@ -8365,6 +8408,18 @@ function renderSongShelf(){
   renderSongShelfTrigger();
   songShelfList.textContent='';
   if(!songIndex.length){
+    // An empty list because the database genuinely couldn't be reached reads
+    // very differently from an empty list because this is a brand-new
+    // songwriter -- the former needs a way back to real, still-safe songs,
+    // not a cheerful invitation to start over as if they'd lost nothing.
+    if(_songDbFailed){
+      const msg=document.createElement('p');msg.className='song-shelf-foot';
+      msg.textContent="Couldn't load your saved songs. They're still safe on this device.";
+      const retry=document.createElement('button');retry.type='button';retry.className='song-shelf-action';retry.textContent='Retry';
+      retry.addEventListener('click',retrySongStore);
+      songShelfList.append(msg,retry);
+      return;
+    }
     const empty=document.createElement('p');empty.className='song-shelf-foot';empty.textContent='Your next idea can start here.';songShelfList.append(empty);return;
   }
   for(const record of songIndex){

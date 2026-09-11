@@ -211,6 +211,15 @@ assert.match(html, /actions\.append\(rename,dupe,remove\)/);
 // not after the description, notes and key-context chips.
 assert.match(html, /<\/div>\s*<div class="btn-row">\s*<button class="btn primary" id="btnAdd"[\s\S]*?<div class="key-chip-row" id="chordKeyChips"/);
 assert.match(html, /textContent="?Reset Fretboard"?|>Reset Fretboard</);
+// A single transient IndexedDB failure right after a page load used to mark
+// the whole song store unavailable for the rest of the page's life -- every
+// song still sat safely in storage, but the shelf rendered empty with no
+// way back short of a fresh reload. One retry, plus a real Retry action in
+// the shelf itself instead of the ordinary "start a new song" empty state.
+assert.match(html, /function openSongDatabaseAttempt\(\)/);
+assert.match(html, /openSongDatabaseAttempt\(\)\.catch\(async\(\)=>\{/);
+assert.match(html, /async function retrySongStore\(\)/);
+assert.match(html, /if\(_songDbFailed\)\{[\s\S]{0,400}?retrySongStore\)/);
 // The mobile songs drawer is `position:fixed`, covering the page, but the
 // page itself was still an ordinary scrolling document underneath it -- a
 // touch-drag anywhere (even over the drawer) could scroll the board behind
@@ -218,6 +227,27 @@ assert.match(html, /textContent="?Reset Fretboard"?|>Reset Fretboard</);
 assert.match(html, /function lockBodyScroll\(\)/);
 assert.match(html, /function unlockBodyScroll\(\)/);
 assert.match(html, /if\(open\)\{\s*if\(_songDbFailed\)\{notifySongStoreUnavailable\(\);return;\}\s*renderSongShelf\(\);\s*lockBodyScroll\(\);/);
+// `let _bodyScrollLockY` must be declared before syncShelfDockA11y() is
+// invoked immediately at script-load time (it calls unlockBodyScroll(),
+// which reads that binding) -- a `let` this early in the module sits in its
+// temporal dead zone until its own declaration line runs, so declaring it
+// AFTER that immediate call once threw a ReferenceError on every page load
+// at a docked (>=1100px) width. That error aborted every top-level
+// statement after it in the script, including the one that starts boot(),
+// which is what silently emptied the song shelf and the linked-folder
+// state with no visible error -- exactly the shape of "my songs
+// disappeared" bugs that only a live browser catches, never a source-text
+// check alone. Both regressions are guarded here: the ordering, and (via
+// index.html itself, exercised by a real browser in manual verification)
+// that no such error fires at load.
+{
+  const lockDeclIdx = html.indexOf('let _bodyScrollLockY');
+  const eagerCallIdx = html.indexOf('syncShelfDockA11y();');
+  assert.notEqual(lockDeclIdx, -1, 'let _bodyScrollLockY declaration not found');
+  assert.notEqual(eagerCallIdx, -1, 'eager syncShelfDockA11y() call not found');
+  assert.ok(lockDeclIdx < eagerCallIdx,
+    '_bodyScrollLockY must be declared before the eager syncShelfDockA11y() call that reads it via unlockBodyScroll()');
+}
 // inset:auto must come before top:20px in the docked sidebar rule -- inset is
 // shorthand for all four offsets, so listed after top it silently wins and
 // resets top back to auto, leaving position:sticky with no offset to hold

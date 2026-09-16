@@ -5764,8 +5764,12 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
         menu.style.maxHeight='none';
       }else if(wrap.classList.contains('lead-play-picker')&&menu.getBoundingClientRect().top<8){
         wrap.classList.add('menu-below');
+        const triggerRect=trigger.getBoundingClientRect();
+        menu.style.maxHeight=Math.max(120,Math.min(280,window.innerHeight-triggerRect.bottom-16))+'px';
       }else if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
         wrap.classList.add('menu-below');
+        const triggerRect=trigger.getBoundingClientRect();
+        menu.style.maxHeight=Math.max(120,Math.min(280,window.innerHeight-triggerRect.bottom-16))+'px';
       }
       const items=buttons();const current=Math.max(0,items.findIndex(button=>button.dataset.value===selected));
       const next=focusMode==='last'?items.length-1:focusMode==='first'?0:current;items[next]?.focus();

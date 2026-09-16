@@ -5718,7 +5718,7 @@ function closeAllPickers(except){
   document.querySelectorAll('.picker.open').forEach(picker=>{
     if(picker===except)return;
     const menu=picker.querySelector('.picker-menu');
-    if(menu){menu.hidden=true;menu.style.maxHeight='';}
+    if(menu){menu.hidden=true;menu.style.maxHeight='';menu.style.position='';menu.style.left='';menu.style.top='';menu.style.minWidth='';}
     picker.classList.remove('open','menu-below');
     picker.querySelector('.picker-trigger')?.setAttribute('aria-expanded','false');
   });
@@ -5743,8 +5743,11 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
     if(triggerText)trigger.title=(option?.label||'')+' — choose a section to add';
     menu.querySelectorAll('.picker-option').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.value===selected)));
   };
+  const unpinMenu=()=>{
+    menu.style.position='';menu.style.left='';menu.style.top='';menu.style.minWidth='';
+  };
   const close=(restoreFocus=false)=>{
-    menu.hidden=true;menu.style.maxHeight='';wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
+    menu.hidden=true;menu.style.maxHeight='';unpinMenu();wrap.classList.remove('open','menu-below');trigger.setAttribute('aria-expanded','false');
     if(restoreFocus)trigger.focus();
   };
   const buttons=()=>[...menu.querySelectorAll('.picker-option')];
@@ -5752,7 +5755,7 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
     closeSongTools(false);
     closeAllSectNameMenus();
     closeAllPickers(wrap);
-    menu.hidden=false;menu.style.maxHeight='';wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
+    menu.hidden=false;menu.style.maxHeight='';unpinMenu();wrap.classList.remove('menu-below');wrap.classList.add('open');trigger.setAttribute('aria-expanded','true');
     requestAnimationFrame(()=>{
       // Section choices normally rise over the builder. Near the top of a
       // short viewport, flip that standalone menu below instead of letting it
@@ -5762,13 +5765,19 @@ function makePicker({value,options,label,className='',onChange,triggerText=''}){
         // Repeat menus are inline by CSS, so their owning row grows instead
         // of covering the next chip or panel.
         menu.style.maxHeight='none';
-      }else if(wrap.classList.contains('lead-play-picker')&&menu.getBoundingClientRect().top<8){
+      }else if((wrap.classList.contains('lead-play-picker')||wrap.classList.contains('add-section-picker'))&&menu.getBoundingClientRect().top<8){
+        // These live in the sticky right column, which has its own
+        // overflow-y:auto for internal scrolling -- an absolutely
+        // positioned menu that falls back to opening below the trigger
+        // would get clipped by that same overflow box. Pin it to the
+        // viewport with position:fixed instead, so it escapes the
+        // column's own scroll clipping entirely.
         wrap.classList.add('menu-below');
         const triggerRect=trigger.getBoundingClientRect();
-        menu.style.maxHeight=Math.max(120,Math.min(280,window.innerHeight-triggerRect.bottom-16))+'px';
-      }else if(wrap.classList.contains('add-section-picker')&&menu.getBoundingClientRect().top<8){
-        wrap.classList.add('menu-below');
-        const triggerRect=trigger.getBoundingClientRect();
+        menu.style.position='fixed';
+        menu.style.left=triggerRect.left+'px';
+        menu.style.minWidth=triggerRect.width+'px';
+        menu.style.top=(triggerRect.bottom+8)+'px';
         menu.style.maxHeight=Math.max(120,Math.min(280,window.innerHeight-triggerRect.bottom-16))+'px';
       }
       const items=buttons();const current=Math.max(0,items.findIndex(button=>button.dataset.value===selected));

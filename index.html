@@ -1238,7 +1238,7 @@
   /* One clear action: choose the section from this upward menu and add it in
      the same click. The menu overlays the builder, never moves the page. */
   .section-add-control .picker-menu{top:auto;bottom:calc(100% + 8px)}
-  .section-add-control .picker.menu-below .picker-menu{top:calc(100% + 8px);bottom:auto}
+  .section-add-control .picker.menu-below .picker-menu{top:calc(100% + 8px);bottom:auto;max-height:min(280px,calc(100vh - 120px))}
   .song-clear-btn{border:0;background:transparent;color:var(--tomato);padding:8px 3px;font:850 .78rem/1 inherit;cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:5px}
   .song-clear-btn:focus-visible{outline:3px solid var(--focus);outline-offset:2px}.song-clear-btn:active{transform:translateY(1px)}
   /* File actions stay together in a small upward menu so opening it never

@@ -796,7 +796,13 @@
   .lead-edit{font:inherit;font-size:.74rem;font-weight:900;color:var(--ink);background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:4px 8px;cursor:pointer;box-shadow:1px 1px 0 var(--ink);transition:transform .16s var(--ease-spring),box-shadow .16s var(--ease-spring),background .12s}
   @media (hover:hover){.lead-edit:hover{background:var(--sun);transform:translate(-1px,-1px) rotate(-1deg);box-shadow:2px 2px 0 var(--ink)}}
   .sect-lead{margin-top:10px;padding-top:9px;border-top:2px dashed rgba(90,47,62,.45)}
-  .sect-lead .lead-sequence{margin:7px 0 0;min-height:0}
+  /* A solo with dozens of phrases must not stretch the section card (and the
+     whole page) to that height -- the floating help button stays pinned to
+     the viewport corner regardless of scroll, and a runaway-tall card would
+     eventually scroll a phrase row right underneath it, burying its Strum/
+     repeat/delete controls under the button. Cap it and scroll internally
+     instead, same as the song shelf list. */
+  .sect-lead .lead-sequence{margin:7px 0 0;min-height:0;max-height:400px;overflow-y:auto}
   .section-transfer{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:-3px 0 11px;padding:8px 9px;background:var(--cream-2);border:2px dashed var(--ink-soft);border-radius:9px;color:var(--ink-dim);font-size:.76rem;font-weight:800}
   .section-transfer-label{font-family:"Courier New",monospace;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;color:var(--ink)}
   .section-transfer .picker{min-width:116px;max-width:190px}
